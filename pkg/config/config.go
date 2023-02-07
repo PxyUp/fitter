@@ -24,6 +24,7 @@ type Config struct {
 }
 
 type EntryConfig struct {
+	Field  *BaseField
 	Fields map[string]*Field
 }
 

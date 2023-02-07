@@ -7,5 +7,5 @@ type Parser interface {
 }
 
 type ParseResult struct {
-	Raw string
+	Raw string `json:"raw"`
 }
