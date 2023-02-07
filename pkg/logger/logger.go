@@ -1,24 +1,30 @@
 package logger
 
 import (
+	"fmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
 )
 
 type Logger interface {
-	Infof(msg string, fields ...string)
+	Infof(msg string, fields ...any)
 	Info(msg string)
 	Infow(msg string, fields ...string)
 	Error(msg string)
-	Errorf(msg string, fields ...string)
+	Errorf(msg string, fields ...any)
 	Errorw(msg string, fields ...string)
+	With(fields ...string) Logger
 }
 
 type null struct {
 }
 
-func (n null) Infof(msg string, fields ...string) {
+func (n null) With(fields ...string) Logger {
+	return Null
+}
+
+func (n null) Infof(msg string, fields ...any) {
 	return
 }
 
@@ -34,7 +40,7 @@ func (n null) Error(msg string) {
 	return
 }
 
-func (n null) Errorf(msg string, fields ...string) {
+func (n null) Errorf(msg string, fields ...any) {
 	return
 }
 
@@ -60,8 +66,14 @@ func makeFields(fields []string) []zap.Field {
 	return zapField
 }
 
-func (z *zapLogger) Infof(msg string, fields ...string) {
-	z.logger.Info(msg, makeFields(fields)...)
+func (z *zapLogger) Infof(msg string, fields ...any) {
+	z.logger.Info(fmt.Sprintf(msg, fields...))
+}
+
+func (z *zapLogger) With(fields ...string) Logger {
+	return &zapLogger{
+		logger: z.logger.With(makeFields(fields)...),
+	}
 }
 
 func (z *zapLogger) Info(msg string) {
@@ -76,8 +88,8 @@ func (z *zapLogger) Error(msg string) {
 	z.logger.Info(msg)
 }
 
-func (z *zapLogger) Errorf(msg string, fields ...string) {
-	z.logger.Error(msg, makeFields(fields)...)
+func (z *zapLogger) Errorf(msg string, fields ...any) {
+	z.logger.Error(fmt.Sprintf(msg, fields...))
 }
 
 func (z *zapLogger) Errorw(msg string, fields ...string) {

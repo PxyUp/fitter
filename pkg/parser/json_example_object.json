@@ -1,0 +1,78 @@
+{
+  "_id": "63e23d761a4fe54031428417",
+  "index": 1,
+  "guid": "cde229c5-0937-498d-8e91-58dee057fdbf",
+  "isActive": true,
+  "balance": "$2,200.02",
+  "picture": "http://placehold.it/32x32",
+  "age": 27,
+  "eyeColor": "green",
+  "name": "Henderson Gonzales",
+  "gender": "male",
+  "company": "MEGALL",
+  "email": "hendersongonzales@megall.com",
+  "phone": "+1 (916) 421-2037",
+  "address": "472 Cheever Place, Spelter, New Jersey, 5250",
+  "about": "In consequat aute id voluptate exercitation tempor id amet mollit. Enim ea cupidatat culpa proident est cillum ipsum. Aute id do consectetur proident consectetur.\r\n",
+  "registered": "2023-01-06T02:51:46 -01:00",
+  "latitude": 44.823498,
+  "longitude": -71.6833,
+  "tags": [
+    "tempor",
+    "magna",
+    "ullamco",
+    "Lorem",
+    "sunt",
+    "irure",
+    "et"
+  ],
+  "friends": [
+    {
+      "id": 0,
+      "name": "Cooley Spence",
+      "meals": [
+        {
+          "price": 292
+        },
+        {
+          "price": 357
+        },
+        {
+          "price": 695
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Dixie Padilla",
+      "meals": [
+        {
+          "price": 315
+        },
+        {
+          "price": 279
+        },
+        {
+          "price": 336
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Tanisha Kline",
+      "meals": [
+        {
+          "price": 594
+        },
+        {
+          "price": 821
+        },
+        {
+          "price": 791
+        }
+      ]
+    }
+  ],
+  "greeting": "Hello, Henderson Gonzales! You have 6 unread messages.",
+  "favoriteFruit": "banana"
+}

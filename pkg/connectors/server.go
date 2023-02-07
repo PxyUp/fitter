@@ -1,6 +1,7 @@
 package connectors
 
 import (
+	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"io/ioutil"
 	"net/http"
@@ -16,17 +17,17 @@ type apiConnector struct {
 	logger logger.Logger
 }
 
-func NewAPI(headers map[string]string, url string, method string, client *http.Client) *apiConnector {
+func NewAPI(cfg *config.ServerConnectorConfig, client *http.Client) *apiConnector {
 	if client == nil {
 		client = &http.Client{
 			Timeout: 10 * time.Second,
 		}
 	}
 	return &apiConnector{
-		headers: headers,
-		url:     url,
+		headers: cfg.Headers,
+		url:     cfg.Url,
 		client:  client,
-		method:  method,
+		method:  cfg.Method,
 		logger:  logger.Null,
 	}
 }

@@ -1,0 +1,45 @@
+{
+  "items": [
+    {
+      "name": "Chronicling America",
+      "connector_config": {
+        "response_type": "json",
+        "connector_type": "server",
+        "server_config": {
+          "method": "GET",
+          "url": "https://chroniclingamerica.loc.gov/search/titles/results/?terms=michigan&format=json"
+        }
+      },
+      "trigger_config": {
+        "scheduler_trigger": {
+          "interval": 10
+        }
+      },
+      "notifier_config": {
+        "console": true
+      },
+      "model": {
+        "type": "object",
+        "object_config": {
+          "fields": {
+            "response_id": {
+              "generated": {
+                "uuid": {}
+              }
+            },
+            "cities": {
+              "array_config": {
+                "root_path": "items.#.city|@flatten",
+                "item_config": {
+                  "field": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
