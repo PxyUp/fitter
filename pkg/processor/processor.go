@@ -89,7 +89,7 @@ func CreateProcessor(item *config.Item) Processor {
 
 	var connector connectors.Connector
 	if item.ConnectorConfig.ConnectorType == config.Server && item.ConnectorConfig.ServerConfig != nil {
-		connector = connectors.NewAPI(item.ConnectorConfig.ServerConfig)
+		connector = connectors.NewAPI(item.ConnectorConfig.ServerConfig, nil)
 	}
 
 	var parserFactory parser.Factory

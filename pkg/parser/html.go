@@ -61,6 +61,7 @@ func (h *htmlParser) buildObject(object *config.ObjectConfig) builder.Jsonable {
 func (h *htmlParser) buildObjectField(parent *goquery.Selection, fields map[string]*config.Field) builder.Jsonable {
 	kv := make(map[string]builder.Jsonable)
 	var wg sync.WaitGroup
+	var mutex sync.Mutex
 
 	for lKey, lValue := range fields {
 		key := lKey
@@ -69,26 +70,36 @@ func (h *htmlParser) buildObjectField(parent *goquery.Selection, fields map[stri
 		go func(k string, v *config.Field) {
 			defer wg.Done()
 
-			if v.BaseField != nil {
-				if v.BaseField.Path == "" {
-					kv[k] = h.buildBaseField(parent, v.BaseField)
+			var fnValue builder.Jsonable
+			defer func() {
+				if fnValue == nil {
 					return
 				}
-				kv[k] = h.buildBaseField(parent.Find(v.BaseField.Path), v.BaseField)
+				mutex.Lock()
+				kv[k] = fnValue
+				mutex.Unlock()
+			}()
+
+			if v.BaseField != nil {
+				if v.BaseField.Path == "" {
+					fnValue = h.buildBaseField(parent, v.BaseField)
+					return
+				}
+				fnValue = h.buildBaseField(parent.Find(v.BaseField.Path), v.BaseField)
 				return
 			}
 
 			if v.ObjectConfig != nil {
-				kv[k] = h.buildObjectField(parent, v.ObjectConfig.Fields)
+				fnValue = h.buildObjectField(parent, v.ObjectConfig.Fields)
 				return
 			}
 
 			if v.ArrayConfig != nil {
 				if v.ArrayConfig.RootPath == "" {
-					kv[k] = h.buildArrayField(parent, v.ArrayConfig)
+					fnValue = h.buildArrayField(parent, v.ArrayConfig)
 					return
 				}
-				kv[k] = h.buildArrayField(parent.Find(v.ArrayConfig.RootPath), v.ArrayConfig)
+				fnValue = h.buildArrayField(parent.Find(v.ArrayConfig.RootPath), v.ArrayConfig)
 			}
 		}(key, value)
 
@@ -101,7 +112,7 @@ func (h *htmlParser) buildObjectField(parent *goquery.Selection, fields map[stri
 
 func (h *htmlParser) buildArrayField(parent *goquery.Selection, array *config.ArrayConfig) builder.Jsonable {
 	values := make([]builder.Jsonable, parent.Length())
-	
+
 	if array.ItemConfig.Field != nil {
 		var wg sync.WaitGroup
 		parent.Each(func(i int, s *goquery.Selection) {

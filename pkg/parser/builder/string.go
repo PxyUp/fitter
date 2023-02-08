@@ -1,6 +1,9 @@
 package builder
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type stringField struct {
 	value string
@@ -13,5 +16,5 @@ func String(value string) *stringField {
 }
 
 func (s *stringField) ToJson() string {
-	return fmt.Sprintf(`"%s"`, s.value)
+	return fmt.Sprintf(`"%s"`, strings.ReplaceAll(s.value, `"`, `\"`))
 }

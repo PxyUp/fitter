@@ -50,6 +50,7 @@ func (j *jsonParser) buildObject(object *config.ObjectConfig) builder.Jsonable {
 
 func (j *jsonParser) buildObjectField(parent gjson.Result, fields map[string]*config.Field) builder.Jsonable {
 	kv := make(map[string]builder.Jsonable)
+	var mutex sync.Mutex
 
 	var wg sync.WaitGroup
 	for lKey, lValue := range fields {
@@ -60,26 +61,36 @@ func (j *jsonParser) buildObjectField(parent gjson.Result, fields map[string]*co
 		go func(k string, v *config.Field) {
 			defer wg.Done()
 
-			if v.BaseField != nil {
-				if v.BaseField.Path == "" {
-					kv[k] = j.buildBaseField(parent, v.BaseField)
+			var fnValue builder.Jsonable
+			defer func() {
+				if fnValue == nil {
 					return
 				}
-				kv[k] = j.buildBaseField(parent.Get(v.BaseField.Path), v.BaseField)
+				mutex.Lock()
+				kv[k] = fnValue
+				mutex.Unlock()
+			}()
+
+			if v.BaseField != nil {
+				if v.BaseField.Path == "" {
+					fnValue = j.buildBaseField(parent, v.BaseField)
+					return
+				}
+				fnValue = j.buildBaseField(parent.Get(v.BaseField.Path), v.BaseField)
 				return
 			}
 
 			if v.ObjectConfig != nil {
-				kv[k] = j.buildObjectField(parent, v.ObjectConfig.Fields)
+				fnValue = j.buildObjectField(parent, v.ObjectConfig.Fields)
 				return
 			}
 
 			if v.ArrayConfig != nil {
 				if v.ArrayConfig.RootPath == "" {
-					kv[k] = j.buildArrayField(parent, v.ArrayConfig)
+					fnValue = j.buildArrayField(parent, v.ArrayConfig)
 					return
 				}
-				kv[k] = j.buildArrayField(parent.Get(v.ArrayConfig.RootPath), v.ArrayConfig)
+				fnValue = j.buildArrayField(parent.Get(v.ArrayConfig.RootPath), v.ArrayConfig)
 			}
 		}(key, value)
 	}

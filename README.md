@@ -14,7 +14,7 @@ Fitter - new way for collect information from the API's/Websites
 3. **HTML** - parsing dom tree to get specific information
 
 # Environment variables
-1. **FITTER_HTTP_WORKER** - int[20] - default concurrent HTTP workers
+1. **FITTER_HTTP_WORKER** - int[1000] - default concurrent HTTP workers
 
 # How to run locally
 

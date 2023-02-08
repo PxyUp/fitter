@@ -2,6 +2,10 @@ package builder
 
 import "strings"
 
+const (
+	EmptyString = `""`
+)
+
 type pureStringField struct {
 	value string
 }
@@ -9,7 +13,7 @@ type pureStringField struct {
 func PureString(value string) *pureStringField {
 	value = strings.TrimRight(strings.TrimLeft(value, `"`), `"`)
 	if value == "" {
-		value = `""`
+		value = EmptyString
 	}
 	return &pureStringField{
 		value: value,

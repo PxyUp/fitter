@@ -18,6 +18,34 @@
             }
           }
         },
+        "quotes": {
+          "base_field": {
+            "generated": {
+              "model": {
+                "type": "array",
+                "model": {
+                  "type": "array",
+                  "array_config": {
+                    "root_path": "#content dt.quote > a",
+                    "item_config": {
+                      "field": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "connector_config": {
+                  "response_type": "HTML",
+                  "connector_type": "server",
+                  "server_config": {
+                    "method": "GET",
+                    "url": "http://www.quotationspage.com/random.php"
+                  }
+                }
+              }
+            }
+          }
+        },
         "hackernews": {
           "array_config": {
             "item_config": {

@@ -14,7 +14,7 @@ import (
 
 const (
 	timeout                 = 10 * time.Second
-	defaultConcurrentWorker = 20
+	defaultConcurrentWorker = 1000
 )
 
 type apiConnector struct {
@@ -23,14 +23,17 @@ type apiConnector struct {
 
 	method string
 	logger logger.Logger
+	client *http.Client
 }
 
 var (
-	DefaultClient = http.Client{
+	DefaultClient = &http.Client{
 		Timeout: timeout,
 	}
 
 	sem *semaphore.Weighted
+
+	ctx = context.Background()
 )
 
 func init() {
@@ -44,9 +47,10 @@ func init() {
 	sem = semaphore.NewWeighted(int64(defaultConcurrentRequest))
 }
 
-func NewAPI(cfg *config.ServerConnectorConfig) *apiConnector {
+func NewAPI(cfg *config.ServerConnectorConfig, client *http.Client) *apiConnector {
 	return &apiConnector{
 		headers: cfg.Headers,
+		client:  client,
 		url:     cfg.Url,
 		method:  cfg.Method,
 		logger:  logger.Null,
@@ -69,7 +73,7 @@ func (api *apiConnector) Get() ([]byte, error) {
 		req.Header.Add(k, v)
 	}
 
-	err = sem.Acquire(context.Background(), 1)
+	err = sem.Acquire(ctx, 1)
 	if err != nil {
 		api.logger.Errorw("unable to acquire semaphore", "method", api.method, "url", api.url, "error", err.Error())
 		return nil, err
@@ -77,7 +81,12 @@ func (api *apiConnector) Get() ([]byte, error) {
 
 	defer sem.Release(1)
 
-	resp, err := DefaultClient.Do(req)
+	client := DefaultClient
+	if api.client != nil {
+		client = api.client
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		api.logger.Errorw("unable to send http request", "method", api.method, "url", api.url, "error", err.Error())
 		return nil, err
