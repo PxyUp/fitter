@@ -46,7 +46,7 @@ func (r *runtime) createRunTime(updates <-chan string) {
 func (r *runtime) runScheduler(updates chan<- string) {
 	for _, item := range r.cfg.Items {
 		if item.TriggerConfig != nil && item.TriggerConfig.SchedulerTrigger != nil {
-			localTrigger := trigger.Scheduler(item.Name, item.TriggerConfig.SchedulerTrigger).WithLogger(r.logger.With("scheduler_name", item.Name))
+			localTrigger := trigger.Scheduler(r.ctx, item.Name, item.TriggerConfig.SchedulerTrigger).WithLogger(r.logger.With("scheduler_name", item.Name))
 			localTrigger.Run(updates)
 			go func() {
 				<-r.ctx.Done()

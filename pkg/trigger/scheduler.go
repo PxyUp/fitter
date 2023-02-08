@@ -11,16 +11,19 @@ type scheduler struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
+	parentCtx context.Context
+
 	cfg    *config.SchedulerTrigger
 	logger logger.Logger
 	name   string
 }
 
-func Scheduler(name string, cfg *config.SchedulerTrigger) *scheduler {
+func Scheduler(parentCtx context.Context, name string, cfg *config.SchedulerTrigger) *scheduler {
 	return &scheduler{
-		name:   name,
-		cfg:    cfg,
-		logger: logger.Null,
+		name:      name,
+		cfg:       cfg,
+		parentCtx: parentCtx,
+		logger:    logger.Null,
 	}
 }
 
@@ -33,7 +36,7 @@ func (s *scheduler) Run(updates chan<- string) {
 	if s.ctx != nil {
 		return
 	}
-	localCtx, cancelFn := context.WithCancel(context.Background())
+	localCtx, cancelFn := context.WithCancel(s.parentCtx)
 
 	s.ctx = localCtx
 	s.cancel = cancelFn
@@ -43,15 +46,17 @@ func (s *scheduler) Run(updates chan<- string) {
 			s.logger.Info("invalid interval")
 			return
 		}
+
+		updates <- s.name
+
 		for {
 			select {
 			case <-localCtx.Done():
-				s.logger.Infof("stop scheduler trigger", s.name)
+				s.logger.Infof("stop scheduler trigger %s", s.name)
 				return
-			default:
+			case <-time.After(time.Duration(s.cfg.Interval) * time.Second):
 				updates <- s.name
 				s.logger.Infof("send scheduled trigger for %s", s.name)
-				<-time.After(time.Duration(s.cfg.Interval) * time.Second)
 			}
 		}
 	}()

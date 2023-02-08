@@ -10,7 +10,9 @@ import (
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
+	"os/signal"
 	"path"
+	"time"
 )
 
 func main() {
@@ -23,8 +25,16 @@ func main() {
 		return
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	runtime.New(ctx, cfg, logger.NewLogger().With("component", "runtime")).Start()
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		<-c
+		cancel()
+	}()
+	logger := logger.NewLogger()
+	runtime.New(ctx, cfg, logger.With("component", "runtime")).Start()
+	logger.Info("shutdown...")
+	time.Sleep(time.Second * 5)
 }
 
 func getConfig(filePath string) *config.Config {
