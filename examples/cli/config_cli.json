@@ -4,7 +4,7 @@
     "connector_type": "server",
     "server_config": {
       "method": "GET",
-      "url": "https://hacker-news.firebaseio.com/v0/beststories.json?print=pretty"
+      "url": "https://hacker-news.firebaseio.com/v0/beststories.json?print=pretty&limitToFirst=10&orderBy=%22$key%22"
     }
   },
   "model": {
