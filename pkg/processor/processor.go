@@ -88,22 +88,16 @@ func CreateProcessor(item *config.Item) Processor {
 	}
 
 	var connector connectors.Connector
-	var parserFactory parser.Factory
-
 	if item.ConnectorConfig.ConnectorType == config.Server && item.ConnectorConfig.ServerConfig != nil {
-		connector = connectors.NewAPI(item.ConnectorConfig.ServerConfig, nil)
+		connector = connectors.NewAPI(item.ConnectorConfig.ServerConfig)
 	}
 
+	var parserFactory parser.Factory
 	if item.ConnectorConfig.ResponseType == config.Json {
-		parserFactory = func(bytes []byte) parser.Parser {
-			return parser.NewJson(bytes)
-		}
+		parserFactory = parser.JsonFactory
 	}
-
 	if item.ConnectorConfig.ResponseType == config.HTML {
-		parserFactory = func(bytes []byte) parser.Parser {
-			return parser.NewHTML(bytes)
-		}
+		parserFactory = parser.HTMLFactory
 	}
 
 	if connector == nil || parserFactory == nil {

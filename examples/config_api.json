@@ -23,8 +23,10 @@
         "object_config": {
           "fields": {
             "response_id": {
-              "generated": {
-                "uuid": {}
+              "base_field": {
+                "generated": {
+                  "uuid": {}
+                }
               }
             },
             "cities": {

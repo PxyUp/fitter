@@ -131,6 +131,26 @@ func (s *JsonParserObjectSuite) Test_ReturnSimpleArray() {
 	assert.JSONEq(s.T(), "[\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]", res.Raw)
 }
 
+func (s *JsonParserObjectSuite) Test_ReturnSimpleArrayOfArray() {
+	res, err := s.parser.Parse(&config.Model{
+		Type: config.ArrayModel,
+		ArrayConfig: &config.ArrayConfig{
+			RootPath: "tags_nested",
+			ItemConfig: &config.ObjectConfig{
+				ArrayConfig: &config.ArrayConfig{
+					ItemConfig: &config.ObjectConfig{
+						Field: &config.BaseField{
+							Type: config.String,
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "[[\"tempor\"],[\"test\"]]\n", res.Raw)
+}
+
 func (s *JsonParserObjectSuite) Test_ReturnNestedArray() {
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ArrayModel,

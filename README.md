@@ -13,11 +13,27 @@ Fitter - new way for collect information from the API's/Websites
 2. **XML** - parsing xml tree to get specific information
 3. **HTML** - parsing dom tree to get specific information
 
+# Environment variables
+1. **FITTER_HTTP_WORKER** - int[20] - default concurrent HTTP workers
+
 # How to run locally
+
+### Arguments
+1. **--path** - string[config.yaml] - path for the configuration of the Fitter
 
 ```bash
 go run cmd/fitter/main.go --path=./examples/config_api.json
 go run cmd/fitter/main.go --path=./examples/config_web.json
+```
+
+# How to use Fitter_CLI
+
+### Arguments
+1. **--path** - string[config.yaml] - path for the configuration of the Fitter_CLI
+2. **--copy** - bool[false] - copy information into clipboard
+
+```bash
+go run cmd/cli/main.go --path=./examples/cli/config_cli.json --copy=true
 ```
 
 # Roadmap

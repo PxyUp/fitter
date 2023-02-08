@@ -2,6 +2,8 @@ package config
 
 type FieldType string
 
+type GeneratedFieldType FieldType
+
 const (
 	Null    FieldType = "null"
 	Bool    FieldType = "boolean"
@@ -10,10 +12,13 @@ const (
 	Int64   FieldType = "int64"
 	Float   FieldType = "float"
 	Float64 FieldType = "float64"
+
+	Array  GeneratedFieldType = "array"
+	Object GeneratedFieldType = "object"
 )
 
 type Field struct {
-	*BaseField
+	BaseField    *BaseField    `json:"base_field" yaml:"base_field"`
 	ObjectConfig *ObjectConfig `yaml:"object_config" yaml:"object_config"`
 	ArrayConfig  *ArrayConfig  `json:"array_config" yaml:"array_config"`
 }
@@ -25,9 +30,25 @@ type BaseField struct {
 	Generated *GeneratedFieldConfig `yaml:"generated" json:"generated"`
 }
 
+type FormattedFieldConfig struct {
+	Template string `yaml:"template" json:"template"`
+}
+
 type GeneratedFieldConfig struct {
-	UUID   *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
-	Static *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
+	UUID      *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
+	Static    *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
+	Formatted *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
+	Model     *ModelField                 `yaml:"model" json:"model"`
+}
+
+type ModelField struct {
+	// Type of parsing
+	ConnectorConfig *ConnectorConfig `yaml:"connector_config" json:"connector_config"`
+	// Model of the response
+	Model *Model `yaml:"model" json:"model"`
+
+	Type GeneratedFieldType `yaml:"type" json:"type"`
+	Path string             `yaml:"path" json:"path"`
 }
 
 type StaticGeneratedFieldConfig struct {

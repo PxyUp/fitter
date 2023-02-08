@@ -1,27 +1,25 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
-	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/runtime"
+	"github.com/PxyUp/fitter/pkg/registry"
+	"github.com/atotto/clipboard"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
-	"os/signal"
 	"path"
-	"time"
 )
 
-func getConfig(filePath string) *config.Config {
+func getConfig(filePath string) *config.Item {
 	file, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("unable to read config file %s with error %s", filePath, err.Error())
 		return nil
 	}
-	cfg := &config.Config{}
+	cfg := &config.Item{}
 	if path.Ext(filePath) == ".json" {
 		err = json.Unmarshal(file, &cfg)
 		if err != nil {
@@ -43,22 +41,20 @@ func getConfig(filePath string) *config.Config {
 
 func main() {
 	filePath := flag.String("path", "config.yaml", "Path for config file yaml|json")
+	copyFlag := flag.Bool("copy", false, "Copy to clip board")
 	flag.Parse()
 
 	cfg := getConfig(*filePath)
-	if cfg == nil {
-		log.Fatalf("empty config file %s", filePath)
+	name := "fitter_cli"
+	cfg.Name = name
+	cfg.NotifierConfig = nil
+	res, err := registry.FromItem(cfg).Get(name).Process()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
 		return
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		cancel()
-	}()
-	logger := logger.NewLogger()
-	runtime.New(ctx, cfg, logger.With("component", "runtime")).Start()
-	logger.Info("shutdown...")
-	time.Sleep(time.Second * 5)
+	fmt.Fprintln(os.Stdout, res.ToJson())
+	if *copyFlag {
+		clipboard.WriteAll(res.ToJson())
+	}
 }

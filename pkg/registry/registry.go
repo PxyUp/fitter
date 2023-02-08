@@ -40,6 +40,7 @@ func (r *localRegistry) WithLogger(logger logger.Logger) *localRegistry {
 
 func FromItem(item *config.Item) *localRegistry {
 	return &localRegistry{
+		logger: logger.Null,
 		kv: map[string]processor.Processor{
 			item.Name: processor.CreateProcessor(item),
 		},

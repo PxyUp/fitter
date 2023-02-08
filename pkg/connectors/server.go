@@ -1,32 +1,53 @@
 package connectors
 
 import (
+	"context"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"golang.org/x/sync/semaphore"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
+)
+
+const (
+	timeout                 = 10 * time.Second
+	defaultConcurrentWorker = 20
 )
 
 type apiConnector struct {
 	headers map[string]string
 	url     string
-	client  *http.Client
 
 	method string
 	logger logger.Logger
 }
 
-func NewAPI(cfg *config.ServerConnectorConfig, client *http.Client) *apiConnector {
-	if client == nil {
-		client = &http.Client{
-			Timeout: 10 * time.Second,
+var (
+	DefaultClient = http.Client{
+		Timeout: timeout,
+	}
+
+	sem *semaphore.Weighted
+)
+
+func init() {
+	defaultConcurrentRequest := defaultConcurrentWorker
+	if value, ok := os.LookupEnv("FITTER_HTTP_WORKER"); ok {
+		intValue, err := strconv.ParseInt(value, 10, 32)
+		if err == nil && intValue > 0 {
+			defaultConcurrentRequest = int(intValue)
 		}
 	}
+	sem = semaphore.NewWeighted(int64(defaultConcurrentRequest))
+}
+
+func NewAPI(cfg *config.ServerConnectorConfig) *apiConnector {
 	return &apiConnector{
 		headers: cfg.Headers,
 		url:     cfg.Url,
-		client:  client,
 		method:  cfg.Method,
 		logger:  logger.Null,
 	}
@@ -48,7 +69,15 @@ func (api *apiConnector) Get() ([]byte, error) {
 		req.Header.Add(k, v)
 	}
 
-	resp, err := api.client.Do(req)
+	err = sem.Acquire(context.Background(), 1)
+	if err != nil {
+		api.logger.Errorw("unable to acquire semaphore", "method", api.method, "url", api.url, "error", err.Error())
+		return nil, err
+	}
+
+	defer sem.Release(1)
+
+	resp, err := DefaultClient.Do(req)
 	if err != nil {
 		api.logger.Errorw("unable to send http request", "method", api.method, "url", api.url, "error", err.Error())
 		return nil, err

@@ -114,6 +114,33 @@ func (s *HTMLParserArraySuite) Test_ReturnSimpleArray() {
 	assert.JSONEq(s.T(), "{\"menu\": [\"\",\"\",\"HTML\",\"CSS\",\"JAVASCRIPT\",\"SQL\",\"PYTHON\",\"JAVA\",\"PHP\",\"BOOTSTRAP\",\"HOW TO\",\"W3.CSS\",\"C\",\"C++\",\"C#\",\"REACT\",\"R\",\"JQUERY\",\"DJANGO\",\"TYPESCRIPT\",\"NODEJS\",\"MYSQL\",\"\uE802\",\"\uE801\",\"\uE80B\"]}\n", res.Raw)
 }
 
+func (s *HTMLParserArraySuite) Test_ReturnSimpleArrayOfArray() {
+	res, err := s.parser.Parse(&config.Model{
+		Type: config.ObjectModel,
+		ObjectConfig: &config.ObjectConfig{
+			Fields: map[string]*config.Field{
+				"menu": {
+					ArrayConfig: &config.ArrayConfig{
+						RootPath: "#test_array div",
+						ItemConfig: &config.ObjectConfig{
+							ArrayConfig: &config.ArrayConfig{
+								RootPath: "a",
+								ItemConfig: &config.ObjectConfig{
+									Field: &config.BaseField{
+										Type: config.String,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "{\"menu\": [[\"TEST_1\",\"TEST_2\"],[\"TEST_3\",\"TEST_4\"]]}\n", res.Raw)
+}
+
 func (s *HTMLParserArraySuite) Test_ReturnNestedArray() {
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ArrayModel,

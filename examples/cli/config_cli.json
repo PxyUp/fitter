@@ -1,0 +1,84 @@
+{
+  "connector_config": {
+    "response_type": "json",
+    "connector_type": "server",
+    "server_config": {
+      "method": "GET",
+      "url": "https://hacker-news.firebaseio.com/v0/beststories.json?print=pretty"
+    }
+  },
+  "model": {
+    "type": "object",
+    "object_config": {
+      "fields": {
+        "response_id": {
+          "base_field": {
+            "generated": {
+              "uuid": {}
+            }
+          }
+        },
+        "hackernews": {
+          "array_config": {
+            "item_config": {
+              "fields": {
+                "id": {
+                  "base_field": {
+                    "type": "int"
+                  }
+                },
+                "internal_url": {
+                  "base_field": {
+                    "type": "int",
+                    "generated": {
+                      "formatted": {
+                        "template": "https://news.ycombinator.com/item?id=%s"
+                      }
+                    }
+                  }
+                },
+                "content": {
+                  "base_field": {
+                    "type": "int",
+                    "generated": {
+                      "model": {
+                        "type": "object",
+                        "model": {
+                          "type": "object",
+                          "object_config": {
+                            "fields": {
+                              "title": {
+                                "base_field": {
+                                  "type": "string",
+                                  "path": "title"
+                                }
+                              },
+                              "score": {
+                                "base_field": {
+                                  "type": "int",
+                                  "path": "score"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "connector_config": {
+                          "response_type": "json",
+                          "connector_type": "server",
+                          "server_config": {
+                            "method": "GET",
+                            "url": "https://hacker-news.firebaseio.com/v0/item/%s.json?print=pretty"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

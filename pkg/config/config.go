@@ -23,8 +23,9 @@ type Config struct {
 }
 
 type ObjectConfig struct {
-	Field  *BaseField        `json:"field" yaml:"field"`
-	Fields map[string]*Field `json:"fields" yaml:"fields"`
+	Field       *BaseField        `json:"field" yaml:"field"`
+	Fields      map[string]*Field `json:"fields" yaml:"fields"`
+	ArrayConfig *ArrayConfig      `json:"array_config" yaml:"array_config"`
 }
 
 type ArrayConfig struct {
@@ -36,9 +37,6 @@ type Model struct {
 	Type         ModelType     `yaml:"type" json:"type"`
 	ObjectConfig *ObjectConfig `yaml:"object_config" json:"object_config"`
 	ArrayConfig  *ArrayConfig  `json:"array_config" yaml:"array_config"`
-}
-
-type ParserConfig struct {
 }
 
 type ConnectorConfig struct {
