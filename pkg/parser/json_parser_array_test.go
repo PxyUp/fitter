@@ -1,7 +1,6 @@
 package parser_test
 
 import (
-	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/parser"
 	"github.com/stretchr/testify/assert"
@@ -72,7 +71,7 @@ func (s *JsonParserArraySuite) Test_ReturnNestedArray_Concat() {
 			},
 		},
 	})
-	fmt.Println(res.Raw)
+
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[215,692,257,623,172,567,960,924,857,292,357,695,315,279,336,594,821,791]\n", res.Raw)
 }
@@ -90,7 +89,6 @@ func (s *JsonParserArraySuite) Test_ReturnSimpleArray_Concat() {
 			},
 		},
 	})
-	fmt.Println(res.Raw)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"veniam\",\"nostrud\",\"elit\",\"consequat\",\"mollit\",\"pariatur\",\"proident\",\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]\n", res.Raw)
 }

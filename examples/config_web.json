@@ -1,0 +1,45 @@
+{
+  "items": [
+    {
+      "name": "W3Schools",
+      "connector_config": {
+        "response_type": "HTML",
+        "connector_type": "server",
+        "server_config": {
+          "method": "GET",
+          "url": "https://www.w3schools.com/html/html_examples.asp"
+        }
+      },
+      "trigger_config": {
+        "scheduler_trigger": {
+          "interval": 10
+        }
+      },
+      "notifier_config": {
+        "console": true
+      },
+      "model": {
+        "type": "object",
+        "object_config": {
+          "fields": {
+            "response_id": {
+              "generated": {
+                "uuid": {}
+              }
+            },
+            "menu_titles": {
+              "array_config": {
+                "root_path": "#topnav .w3-bar a[class='w3-bar-item w3-button']",
+                "item_config": {
+                  "field": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

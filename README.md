@@ -16,7 +16,8 @@ Fitter - new way for collect information from the API's/Websites
 # How to run locally
 
 ```bash
-go run cmd/fiiter/main.go --path=./examples/config.json
+go run cmd/fiiter/main.go --path=./examples/config_api.json
+go run cmd/fiiter/main.go --path=./examples/config_web.json
 ```
 
 # Roadmap

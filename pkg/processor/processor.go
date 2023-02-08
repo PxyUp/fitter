@@ -100,6 +100,12 @@ func CreateProcessor(item *config.Item) Processor {
 		}
 	}
 
+	if item.ConnectorConfig.ResponseType == config.HTML {
+		parserFactory = func(bytes []byte) parser.Parser {
+			return parser.NewHTML(bytes)
+		}
+	}
+
 	if connector == nil || parserFactory == nil {
 		return Null()
 	}
