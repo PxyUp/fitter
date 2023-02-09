@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -42,6 +43,7 @@ func getConfig(filePath string) *config.Item {
 func main() {
 	filePath := flag.String("path", "config.yaml", "Path for config file yaml|json")
 	copyFlag := flag.Bool("copy", false, "Copy to clip board")
+	prettyFlag := flag.Bool("pretty", true, "Make result pretty")
 	flag.Parse()
 
 	cfg := getConfig(*filePath)
@@ -53,8 +55,18 @@ func main() {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return
 	}
-	fmt.Fprintln(os.Stdout, res.ToJson())
+	result := res.ToJson()
+	if *prettyFlag {
+		var prettyJSON bytes.Buffer
+		err = json.Indent(&prettyJSON, []byte(result), "", "\t")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return
+		}
+		result = prettyJSON.String()
+	}
+	fmt.Fprintln(os.Stdout, result)
 	if *copyFlag {
-		clipboard.WriteAll(res.ToJson())
+		clipboard.WriteAll(result)
 	}
 }

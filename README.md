@@ -31,6 +31,7 @@ go run cmd/fitter/main.go --path=./examples/config_web.json
 ### Arguments
 1. **--path** - string[config.yaml] - path for the configuration of the Fitter_CLI
 2. **--copy** - bool[false] - copy information into clipboard
+3. **--pretty** - bool[true] - make readable result(also affect on copy)
 
 ```bash
 go run cmd/cli/main.go --path=./examples/cli/config_cli.json --copy=true
