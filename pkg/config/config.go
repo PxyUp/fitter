@@ -10,9 +10,10 @@ const (
 	Browser Connector = "browser"
 	Server  Connector = "server"
 
-	HTML ParserType = "HTML"
-	Json ParserType = "json"
-	XML  ParserType = "XML"
+	HTML  ParserType = "HTML"
+	Json  ParserType = "json"
+	XML   ParserType = "XML"
+	XPath ParserType = "xpath"
 
 	ObjectModel ModelType = "object"
 	ArrayModel  ModelType = "array"

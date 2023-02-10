@@ -16,6 +16,10 @@ var (
 	HTMLFactory Factory = func(bytes []byte) Parser {
 		return NewHTML(bytes)
 	}
+
+	XPathFactory Factory = func(bytes []byte) Parser {
+		return NewXPath(bytes)
+	}
 )
 
 type Factory func([]byte) Parser
@@ -70,6 +74,9 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 		}
 		if field.Model.ConnectorConfig.ResponseType == config.HTML {
 			parserFactory = HTMLFactory
+		}
+		if field.Model.ConnectorConfig.ResponseType == config.XPath {
+			parserFactory = XPathFactory
 		}
 
 		if connector == nil || parserFactory == nil {

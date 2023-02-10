@@ -99,6 +99,9 @@ func CreateProcessor(item *config.Item) Processor {
 	if item.ConnectorConfig.ResponseType == config.HTML {
 		parserFactory = parser.HTMLFactory
 	}
+	if item.ConnectorConfig.ResponseType == config.XPath {
+		parserFactory = parser.XPathFactory
+	}
 
 	if connector == nil || parserFactory == nil {
 		return Null()
