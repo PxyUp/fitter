@@ -18,6 +18,35 @@
             }
           }
         },
+        "sky_news": {
+          "base_field": {
+            "generated": {
+              "model": {
+                "type": "array",
+                "model": {
+                  "type": "array",
+                  "array_config": {
+                    "root_path": "//div[@class='fc-item__standfirst']",
+                    "item_config": {
+                      "field": {
+                        "type": "string",
+                        "path": "text()"
+                      }
+                    }
+                  }
+                },
+                "connector_config": {
+                  "response_type": "xpath",
+                  "connector_type": "server",
+                  "server_config": {
+                    "method": "GET",
+                    "url": "https://www.theguardian.com/world"
+                  }
+                }
+              }
+            }
+          }
+        },
         "quotes": {
           "base_field": {
             "generated": {

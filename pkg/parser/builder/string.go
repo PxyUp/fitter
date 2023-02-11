@@ -11,7 +11,7 @@ type stringField struct {
 
 func String(value string) *stringField {
 	return &stringField{
-		value: value,
+		value: strings.TrimSpace(value),
 	}
 }
 

@@ -12,6 +12,7 @@ Fitter - new way for collect information from the API's/Websites
 1. **JSON** - parsing JSON to get specific information
 2. **XML** - parsing xml tree to get specific information
 3. **HTML** - parsing dom tree to get specific information
+4. **XPath** - parsing dom tree to get specific information but by xpath
 
 # Environment variables
 1. **FITTER_HTTP_WORKER** - int[1000] - default concurrent HTTP workers
