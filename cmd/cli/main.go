@@ -14,13 +14,13 @@ import (
 	"path"
 )
 
-func getConfig(filePath string) *config.Item {
+func getConfig(filePath string) *config.CliItem {
 	file, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("unable to read config file %s with error %s", filePath, err.Error())
 		return nil
 	}
-	cfg := &config.Item{}
+	cfg := &config.CliItem{}
 	if path.Ext(filePath) == ".json" {
 		err = json.Unmarshal(file, &cfg)
 		if err != nil {
@@ -48,8 +48,7 @@ func main() {
 
 	cfg := getConfig(*filePath)
 	name := "fitter_cli"
-	cfg.Name = name
-	cfg.NotifierConfig = nil
+	cfg.Item.Name = name
 	res, err := registry.FromItem(cfg).Get(name).Process()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())

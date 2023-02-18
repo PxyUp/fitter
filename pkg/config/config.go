@@ -19,8 +19,16 @@ const (
 	ArrayModel  ModelType = "array"
 )
 
+type HostRequestLimiter map[string]int64
+
 type Config struct {
-	Items []*Item `yaml:"items" json:"items"`
+	Items              []*Item            `yaml:"items" json:"items"`
+	HostRequestLimiter HostRequestLimiter `yaml:"host_request_limiter" json:"host_request_limiter"`
+}
+
+type CliItem struct {
+	Item               *Item              `yaml:"item" json:"item"`
+	HostRequestLimiter HostRequestLimiter `yaml:"host_request_limiter" json:"host_request_limiter"`
 }
 
 type ObjectConfig struct {

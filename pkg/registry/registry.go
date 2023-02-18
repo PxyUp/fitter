@@ -3,6 +3,7 @@ package registry
 import (
 	"errors"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/connectors"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/processor"
 )
@@ -21,6 +22,8 @@ type localRegistry struct {
 }
 
 func NewFromConfig(config *config.Config) *localRegistry {
+	connectors.SetRequestPerHost(config.HostRequestLimiter)
+	
 	kv := make(map[string]processor.Processor)
 	if config != nil {
 		for _, item := range config.Items {
@@ -38,11 +41,13 @@ func (r *localRegistry) WithLogger(logger logger.Logger) *localRegistry {
 	return r
 }
 
-func FromItem(item *config.Item) *localRegistry {
+func FromItem(itemCfg *config.CliItem) *localRegistry {
+	connectors.SetRequestPerHost(itemCfg.HostRequestLimiter)
+
 	return &localRegistry{
 		logger: logger.Null,
 		kv: map[string]processor.Processor{
-			item.Name: processor.CreateProcessor(item),
+			itemCfg.Item.Name: processor.CreateProcessor(itemCfg.Item),
 		},
 	}
 }

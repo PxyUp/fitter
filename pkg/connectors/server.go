@@ -34,6 +34,8 @@ var (
 	sem *semaphore.Weighted
 
 	ctx = context.Background()
+
+	limitPerHost = make(map[string]*semaphore.Weighted)
 )
 
 func init() {
@@ -45,6 +47,14 @@ func init() {
 		}
 	}
 	sem = semaphore.NewWeighted(int64(defaultConcurrentRequest))
+}
+
+func SetRequestPerHost(limits config.HostRequestLimiter) {
+	for k, v := range limits {
+		if _, ok := limitPerHost[k]; !ok {
+			limitPerHost[k] = semaphore.NewWeighted(v)
+		}
+	}
 }
 
 func NewAPI(cfg *config.ServerConnectorConfig, client *http.Client) *apiConnector {
@@ -84,6 +94,15 @@ func (api *apiConnector) Get() ([]byte, error) {
 	client := DefaultClient
 	if api.client != nil {
 		client = api.client
+	}
+
+	if hostLimit, ok := limitPerHost[req.Host]; ok {
+		errHostLimit := hostLimit.Acquire(ctx, 1)
+		if errHostLimit != nil {
+			api.logger.Errorw("unable to acquire host limit semaphore", "method", api.method, "url", api.url, "error", err.Error(), "host", req.Host)
+			return nil, errHostLimit
+		}
+		defer hostLimit.Release(1)
 	}
 
 	resp, err := client.Do(req)
