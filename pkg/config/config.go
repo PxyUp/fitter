@@ -21,14 +21,19 @@ const (
 
 type HostRequestLimiter map[string]int64
 
-type Config struct {
-	Items              []*Item            `yaml:"items" json:"items"`
+type Limits struct {
 	HostRequestLimiter HostRequestLimiter `yaml:"host_request_limiter" json:"host_request_limiter"`
+	ChromiumInstance   uint32             `yaml:"chromium_instance" json:"chromium_instance"`
+}
+
+type Config struct {
+	Items  []*Item `yaml:"items" json:"items"`
+	Limits *Limits `yaml:"limits" json:"limits"`
 }
 
 type CliItem struct {
-	Item               *Item              `yaml:"item" json:"item"`
-	HostRequestLimiter HostRequestLimiter `yaml:"host_request_limiter" json:"host_request_limiter"`
+	Item   *Item   `yaml:"item" json:"item"`
+	Limits *Limits `yaml:"limits" json:"limits"`
 }
 
 type ObjectConfig struct {
@@ -56,6 +61,14 @@ type ConnectorConfig struct {
 }
 
 type BrowserConnectorConfig struct {
+	Url      string          `json:"url" yaml:"url"`
+	Chromium *ChromiumConfig `json:"chromium" yaml:"chromium"`
+}
+
+type ChromiumConfig struct {
+	Path    string `yaml:"path" json:"path"`
+	Timeout uint32 `yaml:"timeout" json:"timeout"`
+	Wait    uint32 `yaml:"wait" json:"wait"`
 }
 
 type ServerConnectorConfig struct {

@@ -3,7 +3,7 @@ package registry
 import (
 	"errors"
 	"github.com/PxyUp/fitter/pkg/config"
-	"github.com/PxyUp/fitter/pkg/connectors"
+	"github.com/PxyUp/fitter/pkg/connectors/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/processor"
 )
@@ -21,33 +21,28 @@ type localRegistry struct {
 	logger logger.Logger
 }
 
-func NewFromConfig(config *config.Config) *localRegistry {
-	connectors.SetRequestPerHost(config.HostRequestLimiter)
-	
+func NewFromConfig(config *config.Config, logger logger.Logger) *localRegistry {
+	limitter.SetLimits(config.Limits)
+
 	kv := make(map[string]processor.Processor)
 	if config != nil {
 		for _, item := range config.Items {
-			kv[item.Name] = processor.CreateProcessor(item)
+			kv[item.Name] = processor.CreateProcessor(item, logger)
 		}
 	}
 	return &localRegistry{
 		kv:     kv,
-		logger: logger.Null,
+		logger: logger,
 	}
 }
 
-func (r *localRegistry) WithLogger(logger logger.Logger) *localRegistry {
-	r.logger = logger
-	return r
-}
-
-func FromItem(itemCfg *config.CliItem) *localRegistry {
-	connectors.SetRequestPerHost(itemCfg.HostRequestLimiter)
+func FromItem(itemCfg *config.CliItem, logger logger.Logger) *localRegistry {
+	limitter.SetLimits(itemCfg.Limits)
 
 	return &localRegistry{
-		logger: logger.Null,
+		logger: logger,
 		kv: map[string]processor.Processor{
-			itemCfg.Item.Name: processor.CreateProcessor(itemCfg.Item),
+			itemCfg.Item.Name: processor.CreateProcessor(itemCfg.Item, logger),
 		},
 	}
 }

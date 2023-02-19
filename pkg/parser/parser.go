@@ -68,6 +68,14 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 			}, nil)
 		}
 
+		if field.Model.ConnectorConfig.ConnectorType == config.Browser && field.Model.ConnectorConfig.BrowserConfig != nil {
+			newUrl := field.Model.ConnectorConfig.BrowserConfig.Url
+			connector = connectors.NewBrowser(&config.BrowserConnectorConfig{
+				Url:      newUrl,
+				Chromium: field.Model.ConnectorConfig.BrowserConfig.Chromium,
+			})
+		}
+
 		var parserFactory Factory
 		if field.Model.ConnectorConfig.ResponseType == config.Json {
 			parserFactory = JsonFactory

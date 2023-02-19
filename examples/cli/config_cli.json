@@ -1,6 +1,8 @@
 {
-  "host_request_limiter": {
-    "hacker-news.firebaseio.com": 50
+  "limits": {
+    "host_request_limiter": {
+      "hacker-news.firebaseio.com": 50
+    }
   },
   "item": {
     "connector_config": {

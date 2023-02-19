@@ -1,0 +1,74 @@
+{
+  "limits": {
+    "chromium_instance": 3
+  },
+  "item": {
+    "connector_config": {
+      "response_type": "xpath",
+      "connector_type": "browser",
+      "browser_config": {
+        "url": "https://www.theguardian.com/world",
+        "chromium": {
+          "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "wait": 10000
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "object_config": {
+        "fields": {
+          "response_id": {
+            "base_field": {
+              "generated": {
+                "uuid": {}
+              }
+            }
+          },
+          "items": {
+            "array_config": {
+              "root_path": "//div[@class='fc-item__standfirst']",
+              "item_config": {
+                "field": {
+                  "type": "string",
+                  "path": "text()"
+                }
+              }
+            }
+          },
+          "quotes": {
+            "base_field": {
+              "generated": {
+                "model": {
+                  "type": "array",
+                  "model": {
+                    "type": "array",
+                    "array_config": {
+                      "root_path": "#content dt.quote > a",
+                      "item_config": {
+                        "field": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "connector_config": {
+                    "response_type": "HTML",
+                    "connector_type": "browser",
+                    "browser_config": {
+                      "url": "http://www.quotationspage.com/random.php",
+                      "chromium": {
+                        "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                        "wait": 5000
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

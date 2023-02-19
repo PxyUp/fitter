@@ -3,6 +3,7 @@ package connectors
 import (
 	"context"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/connectors/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"golang.org/x/sync/semaphore"
 	"io/ioutil"
@@ -34,8 +35,6 @@ var (
 	sem *semaphore.Weighted
 
 	ctx = context.Background()
-
-	limitPerHost = make(map[string]*semaphore.Weighted)
 )
 
 func init() {
@@ -47,14 +46,6 @@ func init() {
 		}
 	}
 	sem = semaphore.NewWeighted(int64(defaultConcurrentRequest))
-}
-
-func SetRequestPerHost(limits config.HostRequestLimiter) {
-	for k, v := range limits {
-		if _, ok := limitPerHost[k]; !ok {
-			limitPerHost[k] = semaphore.NewWeighted(v)
-		}
-	}
 }
 
 func NewAPI(cfg *config.ServerConnectorConfig, client *http.Client) *apiConnector {
@@ -96,7 +87,7 @@ func (api *apiConnector) Get() ([]byte, error) {
 		client = api.client
 	}
 
-	if hostLimit, ok := limitPerHost[req.Host]; ok {
+	if hostLimit := limitter.HostLimiter(req.Host); hostLimit != nil {
 		errHostLimit := hostLimit.Acquire(ctx, 1)
 		if errHostLimit != nil {
 			api.logger.Errorw("unable to acquire host limit semaphore", "method", api.method, "url", api.url, "error", err.Error(), "host", req.Host)

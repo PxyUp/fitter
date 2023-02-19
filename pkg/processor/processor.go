@@ -78,7 +78,7 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 	return result, nil
 }
 
-func CreateProcessor(item *config.Item) Processor {
+func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 	if item.Name == "" {
 		return Null(errMissingName)
 	}
@@ -89,7 +89,10 @@ func CreateProcessor(item *config.Item) Processor {
 
 	var connector connectors.Connector
 	if item.ConnectorConfig.ConnectorType == config.Server && item.ConnectorConfig.ServerConfig != nil {
-		connector = connectors.NewAPI(item.ConnectorConfig.ServerConfig, nil)
+		connector = connectors.NewAPI(item.ConnectorConfig.ServerConfig, nil).WithLogger(logger)
+	}
+	if item.ConnectorConfig.ConnectorType == config.Browser && item.ConnectorConfig.BrowserConfig != nil {
+		connector = connectors.NewBrowser(item.ConnectorConfig.BrowserConfig).WithLogger(logger)
 	}
 
 	var parserFactory parser.Factory
@@ -107,7 +110,7 @@ func CreateProcessor(item *config.Item) Processor {
 		return Null()
 	}
 
-	logger := logger.NewLogger().With("name", item.Name)
+	logger = logger.With("name", item.Name)
 
 	return New(connector, parserFactory, item.Model, notifier.New(item.Name, item.NotifierConfig).WithLogger(logger)).WithLogger(logger)
 }

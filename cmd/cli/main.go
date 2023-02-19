@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/registry"
 	"github.com/atotto/clipboard"
 	"gopkg.in/yaml.v3"
@@ -44,12 +45,18 @@ func main() {
 	filePath := flag.String("path", "config.yaml", "Path for config file yaml|json")
 	copyFlag := flag.Bool("copy", false, "Copy to clip board")
 	prettyFlag := flag.Bool("pretty", true, "Make result pretty")
+	verboseFlag := flag.Bool("verbose", false, "Provide logger")
 	flag.Parse()
+
+	log := logger.Null
+	if *verboseFlag {
+		log = logger.NewLogger()
+	}
 
 	cfg := getConfig(*filePath)
 	name := "fitter_cli"
 	cfg.Item.Name = name
-	res, err := registry.FromItem(cfg).Get(name).Process()
+	res, err := registry.FromItem(cfg, log).Get(name).Process()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return

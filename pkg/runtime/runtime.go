@@ -30,7 +30,7 @@ func (r *runtime) Start() {
 }
 
 func (r *runtime) createRunTime(updates <-chan string) {
-	reg := registry.NewFromConfig(r.cfg).WithLogger(r.logger.With("registry", "runtime"))
+	reg := registry.NewFromConfig(r.cfg, r.logger.With("registry", "runtime"))
 	go func() {
 		for {
 			select {
