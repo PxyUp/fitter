@@ -1,10 +1,12 @@
-# Fitter (development)
+# Fitter + Fitter CLI
 
 Fitter - new way for collect information from the API's/Websites
 
+Fitter CLI - small cli command which provide result from Fitter for test/debug/home usage
+
 # Way to collect information
 
-1. **Server** - parsing response from some API's or http request
+1. **Server** - parsing response from some API's or http request(usage of http.Client)
 2. **Browser** - emulate real browser using chromium + docker + cypress and get DOM information
 
 # Format which can be parsed
@@ -17,17 +19,26 @@ Fitter - new way for collect information from the API's/Websites
 # Environment variables
 1. **FITTER_HTTP_WORKER** - int[1000] - default concurrent HTTP workers
 
-# How to run locally
+# How to Fitter
+
+[Download latest version from the release page](https://github.com/PxyUp/fitter/releases)
+
+or locally:
+```bash
+go run cmd/fitter/main.go --path=./examples/config_api.json
+```
 
 ### Arguments
 1. **--path** - string[config.yaml] - path for the configuration of the Fitter
 
-```bash
-go run cmd/fitter/main.go --path=./examples/config_api.json
-go run cmd/fitter/main.go --path=./examples/config_web.json
-```
-
 # How to use Fitter_CLI
+
+[Download latest version from the release page](https://github.com/PxyUp/fitter/releases)
+
+or locally:
+```bash
+go run cmd/cli/main.go --path=./examples/cli/config_cli.json
+```
 
 ### Arguments
 1. **--path** - string[config.yaml] - path for the configuration of the Fitter_CLI
@@ -36,7 +47,7 @@ go run cmd/fitter/main.go --path=./examples/config_web.json
 4. **--verbose** - bool[false] - enable logging
 
 ```bash
-go run cmd/cli/main.go --path=./examples/cli/config_cli.json --copy=true
+./fitter_cli_${VERSION} --path=./examples/cli/config_cli.json --copy=true
 ```
 
 Examples:
@@ -64,6 +75,6 @@ Example [here](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_c
 
 # Roadmap
 
-1. Browser - emulation - 1.0
-2. Notification: Webhook - 1.0
-3. Trigger: Webhook/Queue - 1.0
+1. Add browser emulation via: Docker/Cypress(for run scenario)
+2. Add trigger method for Fitter: Webhook/Queue
+3. Add notification methods for Fitter: Webhook/Queue
