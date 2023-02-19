@@ -67,9 +67,10 @@ type BrowserConnectorConfig struct {
 }
 
 type ChromiumConfig struct {
-	Path    string `yaml:"path" json:"path"`
-	Timeout uint32 `yaml:"timeout" json:"timeout"`
-	Wait    uint32 `yaml:"wait" json:"wait"`
+	Path    string   `yaml:"path" json:"path"`
+	Timeout uint32   `yaml:"timeout" json:"timeout"`
+	Wait    uint32   `yaml:"wait" json:"wait"`
+	Flags   []string `yaml:"flags" json:"flags"`
 }
 
 type ServerConnectorConfig struct {

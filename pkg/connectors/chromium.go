@@ -11,8 +11,20 @@ import (
 	"time"
 )
 
+var (
+	defaultFlags = []string{
+		"--headless",
+		"--proxy-auto-detect",
+		"--temp-profile",
+		"--incognito",
+		"--disable-logging",
+		"--disable-gpu",
+	}
+)
+
 func getFromChromium(url string, cfg *config.ChromiumConfig, logger logger.Logger) ([]byte, error) {
 	ctxB := context.Background()
+
 	if instanceLimit := limitter.ChromiumLimiter(); instanceLimit != nil {
 		errInstance := instanceLimit.Acquire(ctxB, 1)
 		if errInstance != nil {
@@ -21,6 +33,7 @@ func getFromChromium(url string, cfg *config.ChromiumConfig, logger logger.Logge
 		}
 		defer instanceLimit.Release(1)
 	}
+
 	t := timeout
 	if cfg.Timeout > 0 {
 		t = time.Second * time.Duration(cfg.Timeout)
@@ -28,22 +41,21 @@ func getFromChromium(url string, cfg *config.ChromiumConfig, logger logger.Logge
 	ctxT, cancel := context.WithTimeout(ctxB, t)
 	defer cancel()
 
-	args := []string{
-		"--headless",
-		"--proxy-auto-detect",
-		"--temp-profile",
-		"--incognito",
-		"--disable-logging",
-		"--disable-gpu",
-		fmt.Sprintf("--timeout=%d", t.Milliseconds()),
-		"--dump-dom",
-		url,
+	var args []string
+	if len(cfg.Flags) != 0 {
+		args = append(args, cfg.Flags...)
+	} else {
+		args = append(args, defaultFlags...)
 	}
+
 	if cfg.Wait > 0 {
 		args = append(args, fmt.Sprintf("--virtual-time-budget=%d", (time.Duration(cfg.Wait)*time.Millisecond).Milliseconds()))
 	}
 
+	args = append(args, fmt.Sprintf("--timeout=%d", t.Milliseconds()), "--dump-dom", url)
+
 	cmd := exec.CommandContext(ctxT, cfg.Path, args...)
+
 	var outb, errb bytes.Buffer
 	cmd.Stdout = &outb
 	cmd.Stderr = &errb
