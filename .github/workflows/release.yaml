@@ -3,10 +3,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  workflow_run:
-    workflows: [ "Test" ]
-    types:
-      - completed
+
 jobs:
   build:
     name: Build
@@ -29,6 +26,9 @@ jobs:
 
       - name: Get dependencies
         run: go mod download
+
+      - name: Run test
+        run: go test ./pkg/...
 
       - name: Release to Github
         run: |
