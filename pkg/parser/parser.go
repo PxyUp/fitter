@@ -59,7 +59,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 
 		if field.Model.ConnectorConfig.ConnectorType == config.Server && field.Model.ConnectorConfig.ServerConfig != nil {
 			newUrl := field.Model.ConnectorConfig.ServerConfig.Url
-			if parsedValue.ToJson() != builder.EmptyString {
+			if parsedValue != nil && parsedValue.ToJson() != builder.EmptyString {
 				newUrl = fmt.Sprintf(field.Model.ConnectorConfig.ServerConfig.Url, parsedValue.ToJson())
 			}
 			connector = connectors.NewAPI(&config.ServerConnectorConfig{
@@ -71,6 +71,9 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 
 		if field.Model.ConnectorConfig.ConnectorType == config.Browser && field.Model.ConnectorConfig.BrowserConfig != nil {
 			newUrl := field.Model.ConnectorConfig.BrowserConfig.Url
+			if parsedValue != nil && parsedValue.ToJson() != builder.EmptyString {
+				newUrl = fmt.Sprintf(field.Model.ConnectorConfig.BrowserConfig.Url, parsedValue.ToJson())
+			}
 			connector = connectors.NewBrowser(&config.BrowserConnectorConfig{
 				Url:      newUrl,
 				Chromium: field.Model.ConnectorConfig.BrowserConfig.Chromium,
