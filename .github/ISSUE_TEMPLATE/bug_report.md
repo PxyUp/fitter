@@ -13,7 +13,7 @@ A clear and concise description of what the bug is.
 **To Reproduce**
 Config part:
 ```json
-Put here config for reproducing
+Put here config for reproduction
 ```
 
 **Expected behavior**
