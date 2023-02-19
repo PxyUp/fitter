@@ -6,6 +6,7 @@
     "connector_config": {
       "response_type": "xpath",
       "connector_type": "browser",
+      "attempts": 2,
       "browser_config": {
         "url": "https://www.theguardian.com/world",
         "chromium": {
@@ -55,6 +56,7 @@
                   "connector_config": {
                     "response_type": "HTML",
                     "connector_type": "browser",
+                    "attempts": 3,
                     "browser_config": {
                       "url": "http://www.quotationspage.com/random.php",
                       "chromium": {

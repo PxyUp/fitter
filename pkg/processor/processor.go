@@ -110,6 +110,8 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 		return Null()
 	}
 
+	connector = connectors.WithAttempts(connector, item.ConnectorConfig.Attempts)
+
 	logger = logger.With("name", item.Name)
 
 	return New(connector, parserFactory, item.Model, notifier.New(item.Name, item.NotifierConfig).WithLogger(logger)).WithLogger(logger)

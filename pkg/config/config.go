@@ -58,6 +58,7 @@ type ConnectorConfig struct {
 	ConnectorType Connector               `json:"connector_type" yaml:"connector_type"`
 	ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
 	BrowserConfig *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
+	Attempts      uint32                  `json:"attempts" yaml:"attempts"`
 }
 
 type BrowserConnectorConfig struct {

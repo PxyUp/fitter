@@ -92,6 +92,8 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 			return builder.Null()
 		}
 
+		connector = connectors.WithAttempts(connector, field.Model.ConnectorConfig.Attempts)
+
 		body, err := connector.Get()
 		if err != nil {
 			return builder.Null()
