@@ -1,13 +1,11 @@
 package parser
 
 import (
-	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/tidwall/gjson"
-	"strings"
 )
 
 var (
@@ -48,7 +46,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 	}
 
 	if field.Formatted != nil {
-		return builder.String(fmt.Sprintf(field.Formatted.Template, parsedValue.ToJson()))
+		return builder.String(format(field.Formatted.Template, parsedValue))
 	}
 
 	if field.Model != nil {
@@ -59,24 +57,16 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 		var connector connectors.Connector
 
 		if field.Model.ConnectorConfig.ConnectorType == config.Server && field.Model.ConnectorConfig.ServerConfig != nil {
-			newUrl := field.Model.ConnectorConfig.ServerConfig.Url
-			if strings.Contains(newUrl, "%s") && parsedValue != nil && parsedValue.ToJson() != builder.EmptyString {
-				newUrl = fmt.Sprintf(field.Model.ConnectorConfig.ServerConfig.Url, parsedValue.ToJson())
-			}
 			connector = connectors.NewAPI(&config.ServerConnectorConfig{
 				Method:  field.Model.ConnectorConfig.ServerConfig.Method,
 				Headers: field.Model.ConnectorConfig.ServerConfig.Headers,
-				Url:     newUrl,
+				Url:     format(field.Model.ConnectorConfig.ServerConfig.Url, parsedValue),
 			}, nil).WithLogger(logger.With("connector", "server"))
 		}
 
 		if field.Model.ConnectorConfig.ConnectorType == config.Browser && field.Model.ConnectorConfig.BrowserConfig != nil {
-			newUrl := field.Model.ConnectorConfig.BrowserConfig.Url
-			if strings.Contains(newUrl, "%s") && parsedValue != nil && parsedValue.ToJson() != builder.EmptyString {
-				newUrl = fmt.Sprintf(field.Model.ConnectorConfig.BrowserConfig.Url, parsedValue.ToJson())
-			}
 			connector = connectors.NewBrowser(&config.BrowserConnectorConfig{
-				Url:      newUrl,
+				Url:      format(field.Model.ConnectorConfig.BrowserConfig.Url, parsedValue),
 				Chromium: field.Model.ConnectorConfig.BrowserConfig.Chromium,
 			}).WithLogger(logger.With("connector", "browser"))
 		}

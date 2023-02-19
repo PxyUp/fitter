@@ -95,7 +95,7 @@
                       "type": "int",
                       "generated": {
                         "formatted": {
-                          "template": "https://news.ycombinator.com/item?id=%s"
+                          "template": "https://news.ycombinator.com/item?id={PL}"
                         }
                       }
                     }
@@ -144,7 +144,7 @@
                                             "type": "int",
                                             "generated": {
                                               "formatted": {
-                                                "template": "https://news.ycombinator.com/item?id=%s"
+                                                "template": "https://news.ycombinator.com/item?id={PL}"
                                               }
                                             }
                                           }
@@ -173,7 +173,7 @@
                                                   "connector_type": "server",
                                                   "server_config": {
                                                     "method": "GET",
-                                                    "url": "https://hacker-news.firebaseio.com/v0/item/%s.json?print=pretty"
+                                                    "url": "https://hacker-news.firebaseio.com/v0/item/{PL}.json?print=pretty"
                                                   }
                                                 }
                                               }
@@ -192,7 +192,7 @@
                             "connector_type": "server",
                             "server_config": {
                               "method": "GET",
-                              "url": "https://hacker-news.firebaseio.com/v0/item/%s.json?print=pretty"
+                              "url": "https://hacker-news.firebaseio.com/v0/item/{PL}.json?print=pretty"
                             }
                           }
                         }

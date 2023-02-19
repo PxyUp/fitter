@@ -142,7 +142,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 													ResponseType:  config.HTML,
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
-														Url:    fmt.Sprintf("%s/html", s.server.URL) + "/%s",
+														Url:    fmt.Sprintf("%s/html", s.server.URL) + "/{PL}",
 													},
 												},
 											},
@@ -161,7 +161,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 													ResponseType:  config.Json,
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
-														Url:    fmt.Sprintf("%s/neighbour", s.server.URL) + "/%s",
+														Url:    fmt.Sprintf("%s/neighbour", s.server.URL) + "/{PL}",
 													},
 												},
 												Model: &config.Model{
@@ -203,7 +203,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 																								ResponseType:  config.Json,
 																								ServerConfig: &config.ServerConnectorConfig{
 																									Method: "GET",
-																									Url:    fmt.Sprintf("%s", s.server.URL) + "/%s",
+																									Url:    fmt.Sprintf("%s", s.server.URL) + "/{PL}",
 																								},
 																							},
 																						},
@@ -246,7 +246,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 													ResponseType:  config.Json,
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
-														Url:    fmt.Sprintf("%s", s.server.URL) + "/%s",
+														Url:    fmt.Sprintf("%s", s.server.URL) + "/{PL}",
 													},
 												},
 											},
@@ -304,7 +304,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 													ResponseType:  config.HTML,
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
-														Url:    fmt.Sprintf("%s/html", s.server.URL) + "/%s",
+														Url:    fmt.Sprintf("%s/html", s.server.URL) + "/{PL}",
 													},
 												},
 											},
@@ -323,7 +323,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 													ResponseType:  config.Json,
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
-														Url:    fmt.Sprintf("%s/neighbour", s.server.URL) + "/%s",
+														Url:    fmt.Sprintf("%s/neighbour", s.server.URL) + "/{PL}",
 													},
 												},
 												Model: &config.Model{
@@ -365,7 +365,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 																								ResponseType:  config.Json,
 																								ServerConfig: &config.ServerConnectorConfig{
 																									Method: "GET",
-																									Url:    fmt.Sprintf("%s", s.server.URL) + "/%s",
+																									Url:    fmt.Sprintf("%s", s.server.URL) + "/{PL}",
 																								},
 																							},
 																						},
@@ -408,7 +408,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 													ResponseType:  config.Json,
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
-														Url:    fmt.Sprintf("%s", s.server.URL) + "/%s",
+														Url:    fmt.Sprintf("%s", s.server.URL) + "/{PL}",
 													},
 												},
 											},
@@ -466,7 +466,7 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 													ResponseType:  config.HTML,
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
-														Url:    fmt.Sprintf("%s/html", s.server.URL) + "/%s",
+														Url:    fmt.Sprintf("%s/html", s.server.URL) + "/{PL}",
 													},
 												},
 											},
@@ -485,7 +485,7 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 													ResponseType:  config.Json,
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
-														Url:    fmt.Sprintf("%s/neighbour", s.server.URL) + "/%s",
+														Url:    fmt.Sprintf("%s/neighbour", s.server.URL) + "/{PL}",
 													},
 												},
 												Model: &config.Model{
@@ -527,7 +527,7 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 																								ResponseType:  config.Json,
 																								ServerConfig: &config.ServerConnectorConfig{
 																									Method: "GET",
-																									Url:    fmt.Sprintf("%s", s.server.URL) + "/%s",
+																									Url:    fmt.Sprintf("%s", s.server.URL) + "/{PL}",
 																								},
 																							},
 																						},
@@ -570,7 +570,7 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 													ResponseType:  config.Json,
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
-														Url:    fmt.Sprintf("%s", s.server.URL) + "/%s",
+														Url:    fmt.Sprintf("%s", s.server.URL) + "/{PL}",
 													},
 												},
 											},
