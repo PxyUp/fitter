@@ -59,7 +59,7 @@
                       "url": "http://www.quotationspage.com/random.php",
                       "chromium": {
                         "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-                        "wait": 5000
+                        "wait": 10000
                       }
                     }
                   }
