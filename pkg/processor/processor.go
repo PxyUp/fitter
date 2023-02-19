@@ -68,7 +68,7 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 		return nil, err
 	}
 
-	result, err := p.parserFactory(body).Parse(p.model)
+	result, err := p.parserFactory(body, p.logger).Parse(p.model)
 
 	p.notifier.Inform(result, err)
 	if err != nil {
@@ -89,10 +89,10 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 
 	var connector connectors.Connector
 	if item.ConnectorConfig.ConnectorType == config.Server && item.ConnectorConfig.ServerConfig != nil {
-		connector = connectors.NewAPI(item.ConnectorConfig.ServerConfig, nil).WithLogger(logger)
+		connector = connectors.NewAPI(item.ConnectorConfig.ServerConfig, nil).WithLogger(logger.With("connector", "server"))
 	}
 	if item.ConnectorConfig.ConnectorType == config.Browser && item.ConnectorConfig.BrowserConfig != nil {
-		connector = connectors.NewBrowser(item.ConnectorConfig.BrowserConfig).WithLogger(logger)
+		connector = connectors.NewBrowser(item.ConnectorConfig.BrowserConfig).WithLogger(logger.With("connector", "browser"))
 	}
 
 	var parserFactory parser.Factory

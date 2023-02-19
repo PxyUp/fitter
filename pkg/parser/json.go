@@ -22,8 +22,9 @@ func NewJson(body []byte) *jsonParser {
 	}
 }
 
-func (j *jsonParser) WithLogger(logger logger.Logger) {
+func (j *jsonParser) WithLogger(logger logger.Logger) *jsonParser {
 	j.logger = logger
+	return j
 }
 
 func (j *jsonParser) Parse(model *config.Model) (*ParseResult, error) {
@@ -170,7 +171,7 @@ func (j *jsonParser) buildBaseField(source gjson.Result, field *config.BaseField
 		if field.Type == config.String {
 			tempValue = builder.PureString(tempValue.ToJson())
 		}
-		generatedValue := buildGeneratedField(tempValue, field.Generated)
+		generatedValue := buildGeneratedField(tempValue, field.Generated, j.logger)
 		if field.Generated.Model != nil {
 			if field.Generated.Model.Type == config.Array || field.Generated.Model.Type == config.Object {
 				if field.Generated.Model.Path != "" {

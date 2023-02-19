@@ -44,8 +44,9 @@ func NewXPath(body []byte) *xpathParser {
 	}
 }
 
-func (x *xpathParser) WithLogger(logger logger.Logger) {
+func (x *xpathParser) WithLogger(logger logger.Logger) *xpathParser {
 	x.logger = logger
+	return x
 }
 
 func (x *xpathParser) Parse(model *config.Model) (*ParseResult, error) {
@@ -229,7 +230,7 @@ func (x *xpathParser) buildBaseField(source *html.Node, field *config.BaseField)
 		if field.Type == config.String {
 			tempValue = builder.PureString(tempValue.ToJson())
 		}
-		generatedValue := buildGeneratedField(tempValue, field.Generated)
+		generatedValue := buildGeneratedField(tempValue, field.Generated, x.logger)
 		if field.Generated.Model != nil {
 			if field.Generated.Model.Type == config.Array || field.Generated.Model.Type == config.Object {
 				if field.Generated.Model.Path != "" {

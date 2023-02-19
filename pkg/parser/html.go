@@ -26,8 +26,9 @@ func NewHTML(body []byte) *htmlParser {
 	}
 }
 
-func (h *htmlParser) WithLogger(logger logger.Logger) {
+func (h *htmlParser) WithLogger(logger logger.Logger) *htmlParser {
 	h.logger = logger
+	return h
 }
 
 func (h *htmlParser) Parse(model *config.Model) (*ParseResult, error) {
@@ -205,7 +206,7 @@ func (h *htmlParser) buildBaseField(source *goquery.Selection, field *config.Bas
 		if field.Type == config.String {
 			tempValue = builder.PureString(tempValue.ToJson())
 		}
-		generatedValue := buildGeneratedField(tempValue, field.Generated)
+		generatedValue := buildGeneratedField(tempValue, field.Generated, h.logger)
 		if field.Generated.Model != nil {
 			if field.Generated.Model.Type == config.Array || field.Generated.Model.Type == config.Object {
 				if field.Generated.Model.Path != "" {

@@ -4,25 +4,26 @@ import (
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors"
+	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/tidwall/gjson"
 )
 
 var (
-	JsonFactory Factory = func(bytes []byte) Parser {
-		return NewJson(bytes)
+	JsonFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
+		return NewJson(bytes).WithLogger(logger.With("parser", "json"))
 	}
 
-	HTMLFactory Factory = func(bytes []byte) Parser {
-		return NewHTML(bytes)
+	HTMLFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
+		return NewHTML(bytes).WithLogger(logger.With("parser", "html"))
 	}
 
-	XPathFactory Factory = func(bytes []byte) Parser {
-		return NewXPath(bytes)
+	XPathFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
+		return NewXPath(bytes).WithLogger(logger.With("parser", "xpath"))
 	}
 )
 
-type Factory func([]byte) Parser
+type Factory func([]byte, logger.Logger) Parser
 
 type Parser interface {
 	Parse(model *config.Model) (*ParseResult, error)
@@ -36,7 +37,7 @@ func (p *ParseResult) ToJson() string {
 	return p.Raw
 }
 
-func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFieldConfig) builder.Jsonable {
+func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFieldConfig, logger logger.Logger) builder.Jsonable {
 	if field.UUID != nil {
 		return builder.UUID(field.UUID)
 	}
@@ -65,7 +66,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 				Method:  field.Model.ConnectorConfig.ServerConfig.Method,
 				Headers: field.Model.ConnectorConfig.ServerConfig.Headers,
 				Url:     newUrl,
-			}, nil)
+			}, nil).WithLogger(logger.With("connector", "server"))
 		}
 
 		if field.Model.ConnectorConfig.ConnectorType == config.Browser && field.Model.ConnectorConfig.BrowserConfig != nil {
@@ -73,7 +74,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 			connector = connectors.NewBrowser(&config.BrowserConnectorConfig{
 				Url:      newUrl,
 				Chromium: field.Model.ConnectorConfig.BrowserConfig.Chromium,
-			})
+			}).WithLogger(logger.With("connector", "browser"))
 		}
 
 		var parserFactory Factory
@@ -96,7 +97,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 			return builder.Null()
 		}
 
-		result, err := parserFactory(body).Parse(field.Model.Model)
+		result, err := parserFactory(body, logger).Parse(field.Model.Model)
 		if err != nil {
 			return builder.Null()
 		}
