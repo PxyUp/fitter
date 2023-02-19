@@ -21,7 +21,7 @@ jobs:
 
       - name: Set env
         id: set_env
-        run: echo ::set-output name=RELEASE_VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+        run: echo "name=RELEASE_VERSION::$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
 
       - name: Get dependencies
         run: go mod download
