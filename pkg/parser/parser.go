@@ -11,15 +11,15 @@ import (
 
 var (
 	JsonFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
-		return NewJson(bytes).WithLogger(logger.With("parser", "json"))
+		return newJson(bytes).WithLogger(logger.With("parser", "json"))
 	}
 
 	HTMLFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
-		return NewHTML(bytes).WithLogger(logger.With("parser", "html"))
+		return newHTML(bytes).WithLogger(logger.With("parser", "html"))
 	}
 
 	XPathFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
-		return NewXPath(bytes).WithLogger(logger.With("parser", "xpath"))
+		return newXPath(bytes).WithLogger(logger.With("parser", "xpath"))
 	}
 )
 

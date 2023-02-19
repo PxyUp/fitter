@@ -17,7 +17,7 @@ type htmlParser struct {
 	parserBody *goquery.Selection
 }
 
-func NewHTML(body []byte) *htmlParser {
+func newHTML(body []byte) *htmlParser {
 	document, _ := goquery.NewDocumentFromReader(bytes.NewReader(body))
 	return &htmlParser{
 		body:       body,

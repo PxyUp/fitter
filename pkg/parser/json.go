@@ -14,7 +14,7 @@ type jsonParser struct {
 	parserBody gjson.Result
 }
 
-func NewJson(body []byte) *jsonParser {
+func newJson(body []byte) *jsonParser {
 	return &jsonParser{
 		body:       body,
 		logger:     logger.Null,

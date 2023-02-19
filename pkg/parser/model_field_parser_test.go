@@ -3,6 +3,7 @@ package parser_test
 import (
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -91,9 +92,9 @@ func (t *testHandler) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 }
 
 func (s *ModelFieldParserSuite) SetupTest() {
-	s.jsonParserObject = parser.NewJson(jsonBodyObject)
-	s.jsonParserArray = parser.NewJson(jsonBodyArray)
-	s.htmlParser = parser.NewHTML(htmlBody)
+	s.jsonParserObject = parser.JsonFactory(jsonBodyObject, logger.Null)
+	s.jsonParserArray = parser.JsonFactory(jsonBodyArray, logger.Null)
+	s.htmlParser = parser.HTMLFactory(htmlBody, logger.Null)
 	s.server = httptest.NewServer(&testHandler{})
 }
 

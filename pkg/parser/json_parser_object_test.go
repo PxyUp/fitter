@@ -3,6 +3,7 @@ package parser_test
 import (
 	"encoding/json"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -32,7 +33,7 @@ func (s *JsonParserObjectSuite) SetupTest() {
 		require.NoError(s.T(), err)
 	}
 	s.body = jsonBody
-	s.parser = parser.NewJson(s.body)
+	s.parser = parser.JsonFactory(s.body, logger.Null)
 }
 
 func (s *JsonParserObjectSuite) Test_ParseSimpleObject() {

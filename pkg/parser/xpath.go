@@ -21,7 +21,7 @@ type xpathParser struct {
 	safeFindOne func(top *html.Node, expr string) *html.Node
 }
 
-func NewXPath(body []byte) *xpathParser {
+func newXPath(body []byte) *xpathParser {
 	document, _ := htmlquery.Parse(bytes.NewReader(body))
 	return &xpathParser{
 		body:       body,

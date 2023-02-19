@@ -3,6 +3,7 @@ package parser_test
 import (
 	"encoding/json"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -32,7 +33,7 @@ func (s *HTMLParserArraySuite) SetupTest() {
 		require.NoError(s.T(), err)
 	}
 	s.body = jsonBody
-	s.parser = parser.NewHTML(s.body)
+	s.parser = parser.HTMLFactory(s.body, logger.Null)
 }
 
 func (s *HTMLParserArraySuite) Test_ParseSimpleObject() {
