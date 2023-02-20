@@ -68,6 +68,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 			connector = connectors.NewBrowser(&config.BrowserConnectorConfig{
 				Url:      format(field.Model.ConnectorConfig.BrowserConfig.Url, parsedValue),
 				Chromium: field.Model.ConnectorConfig.BrowserConfig.Chromium,
+				Docker:   field.Model.ConnectorConfig.BrowserConfig.Docker,
 			}).WithLogger(logger.With("connector", "browser"))
 		}
 

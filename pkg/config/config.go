@@ -24,6 +24,7 @@ type HostRequestLimiter map[string]int64
 type Limits struct {
 	HostRequestLimiter HostRequestLimiter `yaml:"host_request_limiter" json:"host_request_limiter"`
 	ChromiumInstance   uint32             `yaml:"chromium_instance" json:"chromium_instance"`
+	DockerContainers   uint32             `yaml:"docker_containers" json:"docker_containers"`
 }
 
 type Config struct {
@@ -64,6 +65,18 @@ type ConnectorConfig struct {
 type BrowserConnectorConfig struct {
 	Url      string          `json:"url" yaml:"url"`
 	Chromium *ChromiumConfig `json:"chromium" yaml:"chromium"`
+	Docker   *DockerConfig   `json:"docker" yaml:"docker"`
+}
+
+type DockerConfig struct {
+	Image       string   `yaml:"image" json:"image"`
+	EntryPoint  string   `json:"entry_point" yaml:"entry_point"`
+	Timeout     uint32   `yaml:"timeout" json:"timeout"`
+	Wait        uint32   `yaml:"wait" json:"wait"`
+	Flags       []string `yaml:"flags" json:"flags"`
+	Purge       bool     `json:"purge" yaml:"purge"`
+	NoPull      bool     `yaml:"no_pull" json:"no_pull"`
+	PullTimeout uint32   `yaml:"pull_timeout" json:"pull_timeout"`
 }
 
 type ChromiumConfig struct {

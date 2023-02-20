@@ -27,5 +27,9 @@ func (c *browserConnector) Get() ([]byte, error) {
 		return getFromChromium(c.cfg.Url, c.cfg.Chromium, c.logger.With("emulator", "chromium"))
 	}
 
+	if c.cfg.Docker != nil {
+		return getFromDocker(c.cfg.Url, c.cfg.Docker, c.logger.With("emulator", "docker"))
+	}
+
 	return nil, nil
 }
