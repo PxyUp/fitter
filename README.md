@@ -21,6 +21,13 @@ Fitter CLI - small cli command which provide result from Fitter for test/debug/h
 # Environment variables
 1. **FITTER_HTTP_WORKER** - int[1000] - default concurrent HTTP workers
 
+If you're using Docker like Browser connector:
+1. **DOCKER_HOST** - string - (EnvOverrideHost) to set the URL to the docker server.
+2. **DOCKER_API_VERSION** - string - (EnvOverrideAPIVersion) to set the version of the API to use, leave empty for latest.
+3. **DOCKER_CERT_PATH** - string - (EnvOverrideCertPath) to specify the directory from which to load the TLS certificates (ca.pem, cert.pem, key.pem).
+4. **DOCKER_TLS_VERIFY** - bool - (EnvTLSVerify) to enable or disable TLS verification (off by default)
+
+
 # How to Fitter
 
 [Download latest version from the release page](https://github.com/PxyUp/fitter/releases)

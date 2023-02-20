@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	defaultFlags = []string{
+	defaultChromiumFlags = []string{
 		"--headless",
 		"--proxy-auto-detect",
 		"--temp-profile",
@@ -45,7 +45,7 @@ func getFromChromium(url string, cfg *config.ChromiumConfig, logger logger.Logge
 	if len(cfg.Flags) != 0 {
 		args = append(args, cfg.Flags...)
 	} else {
-		args = append(args, defaultFlags...)
+		args = append(args, defaultChromiumFlags...)
 	}
 
 	if cfg.Wait > 0 {

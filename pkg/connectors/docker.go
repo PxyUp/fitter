@@ -14,7 +14,6 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/google/uuid"
 	"io"
-	"io/ioutil"
 	"time"
 )
 
@@ -26,17 +25,26 @@ const (
 
 var (
 	errPullTimeout = errors.New("pull image timeout")
+
+	defaultDockerFlags = []string{
+		"--no-sandbox",
+		"--headless",
+		"--proxy-auto-detect",
+		"--temp-profile",
+		"--incognito",
+		"--disable-logging",
+		"--disable-gpu",
+	}
 )
 
 func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) ([]byte, error) {
 	ctxB := context.Background()
 
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		logger.Errorw("unable to connect to docker server", "error", err.Error())
 		return nil, err
 	}
-	cli.NegotiateAPIVersion(ctxB)
 
 	image := defaultImage
 	if cfg.Image != "" {
@@ -59,7 +67,7 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 		pullFinish := make(chan struct{})
 
 		go func(dataForRead io.Reader) {
-			ioutil.ReadAll(dataForRead)
+			io.ReadAll(dataForRead)
 			close(pullFinish)
 		}(outPull)
 
@@ -80,19 +88,21 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 	ctxT, cancel := context.WithTimeout(ctxB, t)
 	defer cancel()
 
-	args := []string{"--no-sandbox"}
+	var args []string
 
 	if len(cfg.Flags) != 0 {
 		args = append(args, cfg.Flags...)
 	} else {
-		args = append(args, defaultFlags...)
+		args = append(args, defaultDockerFlags...)
 	}
 
-	if cfg.Wait > 0 {
-		args = append(args, fmt.Sprintf("--virtual-time-budget=%d", (time.Duration(cfg.Wait)*time.Millisecond).Milliseconds()))
-	}
+	if len(cfg.Flags) == 0 {
+		if cfg.Wait > 0 {
+			args = append(args, fmt.Sprintf("--virtual-time-budget=%d", (time.Duration(cfg.Wait)*time.Millisecond).Milliseconds()))
+		}
 
-	args = append(args, fmt.Sprintf("--timeout=%d", t.Milliseconds()), "--dump-dom", url)
+		args = append(args, fmt.Sprintf("--timeout=%d", t.Milliseconds()), "--dump-dom", url)
+	}
 
 	var entryPoint []string
 	if cfg.EntryPoint != "" {
@@ -115,12 +125,15 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 		}
 		removeCtx, cancelRemoveFn := context.WithTimeout(context.Background(), timeout)
 		defer cancelRemoveFn()
+
 		errRemove := cli.ContainerRemove(removeCtx, resp.ID, types.ContainerRemoveOptions{
 			Force: true,
 		})
 		if errRemove != nil {
 			logger.Errorw("unable to remove docker container", "error", err.Error())
+			return
 		}
+		logger.Infow("container removed", "id", resp.ID)
 	}()
 
 	if instanceLimit := limitter.DockerLimiter(); instanceLimit != nil {
@@ -144,7 +157,9 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 		errStop := cli.ContainerStop(stopCtx, resp.ID, container.StopOptions{})
 		if errStop != nil {
 			logger.Errorw("unable to stop docker container", "error", err.Error())
+			return
 		}
+		logger.Infow("container stopped", "id", resp.ID)
 	}()
 
 	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
