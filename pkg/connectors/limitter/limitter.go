@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	limitPerHost     = make(map[string]*semaphore.Weighted)
-	chromiumInstance *semaphore.Weighted
-	dockerContainers *semaphore.Weighted
+	limitPerHost       = make(map[string]*semaphore.Weighted)
+	chromiumInstance   *semaphore.Weighted
+	dockerContainers   *semaphore.Weighted
+	playwrightInstance *semaphore.Weighted
 )
 
 func setChromiumInstance(count uint32) {
@@ -16,6 +17,13 @@ func setChromiumInstance(count uint32) {
 		return
 	}
 	chromiumInstance = semaphore.NewWeighted(int64(count))
+}
+
+func setPlaywrightInstance(count uint32) {
+	if count <= 0 {
+		return
+	}
+	playwrightInstance = semaphore.NewWeighted(int64(count))
 }
 
 func setDockerContainers(count uint32) {
@@ -40,6 +48,7 @@ func SetLimits(limits *config.Limits) {
 	setRequestPerHost(limits.HostRequestLimiter)
 	setChromiumInstance(limits.ChromiumInstance)
 	setDockerContainers(limits.DockerContainers)
+	setPlaywrightInstance(limits.PlaywrightInstance)
 }
 
 func HostLimiter(host string) *semaphore.Weighted {
@@ -52,6 +61,10 @@ func HostLimiter(host string) *semaphore.Weighted {
 
 func ChromiumLimiter() *semaphore.Weighted {
 	return chromiumInstance
+}
+
+func PlaywrightLimiter() *semaphore.Weighted {
+	return playwrightInstance
 }
 
 func DockerLimiter() *semaphore.Weighted {

@@ -7,7 +7,7 @@ Fitter CLI - small cli command which provide result from Fitter for test/debug/h
 # Way to collect information
 
 1. **Server** - parsing response from some API's or http request(usage of http.Client)
-2. **Browser** - emulate real browser using chromium + docker + cypress and get DOM information
+2. **Browser** - emulate real browser using chromium + docker + playwright/cypress and get DOM information
 
 **Docker default image**: docker.io/zenika/alpine-chrome
 
@@ -62,7 +62,8 @@ go run cmd/cli/main.go --path=./examples/cli/config_cli.json
 Examples:
 1. [HackerNews + Quotes + Guardian News](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json) - using API + HTML + XPath parsing
 2. **Chromium version** [Guardian News + Quotes](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_browser.json) - using HTML parsing + browser emulation
-2. **Docker version** [Docker version: Guardian News + Quotes](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_docker.json) - using HTML parsing + browser from Docker image
+3. **Docker version** [Docker version: Guardian News + Quotes](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_docker.json) - using HTML parsing + browser from Docker image
+4. **Playwright version** [Playwright version: Guardian News + Quotes](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_playwright.json) - using HTML parsing + browser from Playwright framework
 
 
 ### Limits
@@ -74,7 +75,8 @@ Examples:
       "hacker-news.firebaseio.com": 5 // 5 concurrent request to how
     },
     "chromium_instance": 3, // Max allow 3 parallel chromium instance
-    "docker_containers": 3 // Max allow 3 parallel docker containers
+    "docker_containers": 3, // Max allow 3 parallel docker containers
+    "playwright_instance": 3 // Max allow 3 parallel playwright instance
   },
   "item": {
     ...

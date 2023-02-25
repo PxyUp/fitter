@@ -25,6 +25,7 @@ type Limits struct {
 	HostRequestLimiter HostRequestLimiter `yaml:"host_request_limiter" json:"host_request_limiter"`
 	ChromiumInstance   uint32             `yaml:"chromium_instance" json:"chromium_instance"`
 	DockerContainers   uint32             `yaml:"docker_containers" json:"docker_containers"`
+	PlaywrightInstance uint32             `yaml:"playwright_instance" json:"playwright_instance"`
 }
 
 type Config struct {
@@ -62,10 +63,26 @@ type ConnectorConfig struct {
 	Attempts      uint32                  `json:"attempts" yaml:"attempts"`
 }
 
+type PlaywrightBrowser string
+
+const (
+	Chromium PlaywrightBrowser = "Chromium"
+	FireFox  PlaywrightBrowser = "FireFox"
+	WebKit   PlaywrightBrowser = "WebKit"
+)
+
+type PlaywrightConfig struct {
+	Browser PlaywrightBrowser `json:"browser" yaml:"browser"`
+	Install bool              `yaml:"install" json:"install"`
+	Timeout uint32            `yaml:"timeout" json:"timeout"`
+	Wait    uint32            `yaml:"wait" json:"wait"`
+}
+
 type BrowserConnectorConfig struct {
-	Url      string          `json:"url" yaml:"url"`
-	Chromium *ChromiumConfig `json:"chromium" yaml:"chromium"`
-	Docker   *DockerConfig   `json:"docker" yaml:"docker"`
+	Url        string            `json:"url" yaml:"url"`
+	Chromium   *ChromiumConfig   `json:"chromium" yaml:"chromium"`
+	Docker     *DockerConfig     `json:"docker" yaml:"docker"`
+	Playwright *PlaywrightConfig `json:"playwright" yaml:"playwright"`
 }
 
 type DockerConfig struct {

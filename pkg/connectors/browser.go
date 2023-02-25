@@ -31,5 +31,9 @@ func (c *browserConnector) Get() ([]byte, error) {
 		return getFromDocker(c.cfg.Url, c.cfg.Docker, c.logger.With("emulator", "docker"))
 	}
 
+	if c.cfg.Playwright != nil {
+		return getFromPlaywright(c.cfg.Url, c.cfg.Playwright, c.logger.With("emulator", "playwright"))
+	}
+
 	return nil, nil
 }
