@@ -64,6 +64,9 @@ func (api *apiConnector) WithLogger(logger logger.Logger) *apiConnector {
 }
 
 func (api *apiConnector) Get() ([]byte, error) {
+	if api.url == "" {
+		return nil, errEmpty
+	}
 	req, err := http.NewRequest(api.method, api.url, nil)
 	if err != nil {
 		api.logger.Errorw("unable to create http request", "error", err.Error())

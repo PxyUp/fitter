@@ -11,6 +11,15 @@ import (
 )
 
 func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.Logger) ([]byte, error) {
+	if instanceLimit := limitter.PlaywrightLimiter(); instanceLimit != nil {
+		errInstance := instanceLimit.Acquire(ctx, 1)
+		if errInstance != nil {
+			logger.Errorw("unable to acquire playwright limit semaphore", "url", url, "error", errInstance.Error())
+			return nil, errInstance
+		}
+		defer instanceLimit.Release(1)
+	}
+
 	t := timeout
 	if cfg.Timeout > 0 {
 		t = time.Second * time.Duration(cfg.Timeout)
@@ -34,16 +43,6 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.L
 				logger.Errorw("unable to install playwright", "error", err.Error())
 				return
 			}
-		}
-
-		if instanceLimit := limitter.PlaywrightLimiter(); instanceLimit != nil {
-			errInstance := instanceLimit.Acquire(ctxT, 1)
-			if errInstance != nil {
-				logger.Errorw("unable to acquire playwright limit semaphore", "url", url, "error", errInstance.Error())
-				err = errInstance
-				return
-			}
-			defer instanceLimit.Release(1)
 		}
 
 		pw, err := playwright.Run(&playwright.RunOptions{
@@ -83,20 +82,17 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.L
 			}
 		}
 
-		defer func() {
-			if browserInstance == nil {
-				return
-			}
-			errClose := browserInstance.Close()
-			if errClose != nil {
-				logger.Errorw("could not close browser", "error", err.Error())
-			}
-		}()
-
 		if browserInstance == nil {
 			err = errors.New("empty playwright driver")
 			return
 		}
+
+		defer func() {
+			errClose := browserInstance.Close()
+			if errClose != nil {
+				logger.Errorw("could not close browser", "error", errClose.Error())
+			}
+		}()
 
 		page, err := browserInstance.NewPage()
 		if err != nil {
@@ -104,14 +100,24 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.L
 			return
 		}
 
+		defer func() {
+			errPageClose := page.Close()
+			if errPageClose != nil {
+				logger.Errorw("could not close page", "error", errPageClose.Error())
+			}
+		}()
+
 		tt := timeout
 		if cfg.Wait > 0 {
 			tt = time.Second * time.Duration(cfg.Wait)
 		}
 
-		if _, err = page.Goto(url, playwright.PageGotoOptions{
-			Timeout: playwright.Float(float64(tt.Milliseconds())),
-		}); err != nil {
+		logger.Infof("going to url: %s", url)
+		_, err = page.Goto(url, playwright.PageGotoOptions{
+			Timeout:   playwright.Float(float64(tt.Milliseconds())),
+			WaitUntil: cfg.TypeOfWait,
+		})
+		if err != nil {
 			logger.Errorw("could not goto", "error", err.Error())
 			return
 		}

@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	errMaxAttempt = errors.New("reach max attempt")
+	errEmpty      = errors.New("empty url")
 )
 
 type Connector interface {

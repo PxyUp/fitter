@@ -11,7 +11,7 @@ type pureStringField struct {
 }
 
 func PureString(value string) *pureStringField {
-	value = strings.TrimRight(strings.TrimLeft(value, `"`), `"`)
+	value = strings.TrimRight(strings.TrimLeft(value, `"'`), `"'`)
 	if value == "" {
 		value = EmptyString
 	}

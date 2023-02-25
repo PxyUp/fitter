@@ -1,0 +1,101 @@
+{
+  "limits": {
+    "playwright_instance": 3
+  },
+  "item": {
+    "connector_config": {
+      "response_type": "HTML",
+      "connector_type": "server",
+      "server_config": {
+        "method": "GET",
+        "url": "http://www.citymayors.com/gratis/uk_topcities.html"
+      }
+    },
+    "model": {
+      "type": "array",
+      "array_config": {
+        "root_path": "table table tr:not(:first-child) td:first-child font",
+        "item_config": {
+          "fields": {
+            "name": {
+              "base_field": {
+                "type": "string"
+              }
+            },
+            "temperature": {
+              "base_field": {
+                "type": "string",
+                "generated": {
+                  "model": {
+                    "type": "string",
+                    "path": "temp.temp",
+                    "model": {
+                      "type": "object",
+                      "object_config": {
+                        "fields": {
+                          "temp": {
+                            "base_field": {
+                              "type": "string",
+                              "path": "//div[@id='forecast_list_ul']//td/b/a/@href",
+                              "generated": {
+                                "model": {
+                                  "type": "string",
+                                  "model": {
+                                    "type": "object",
+                                    "object_config": {
+                                      "fields": {
+                                        "temp": {
+                                          "base_field": {
+                                            "type": "string",
+                                            "path": "div.current-temp span.heading"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "connector_config": {
+                                    "response_type": "HTML",
+                                    "connector_type": "browser",
+                                    "attempts": 4,
+                                    "browser_config": {
+                                      "url": "https://openweathermap.org{PL}",
+                                      "playwright": {
+                                        "timeout": 30,
+                                        "wait": 30,
+                                        "install": false,
+                                        "browser": "FireFox",
+                                        "type_of_wait": "networkidle"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "connector_config": {
+                      "response_type": "xpath",
+                      "connector_type": "browser",
+                      "attempts": 3,
+                      "browser_config": {
+                        "url": "https://openweathermap.org/find?q={PL}",
+                        "playwright": {
+                          "timeout": 30,
+                          "wait": 30,
+                          "install": false,
+                          "browser": "Chromium"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

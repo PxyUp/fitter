@@ -1,5 +1,7 @@
 package config
 
+import "github.com/playwright-community/playwright-go"
+
 type Connector string
 
 type ParserType string
@@ -72,10 +74,11 @@ const (
 )
 
 type PlaywrightConfig struct {
-	Browser PlaywrightBrowser `json:"browser" yaml:"browser"`
-	Install bool              `yaml:"install" json:"install"`
-	Timeout uint32            `yaml:"timeout" json:"timeout"`
-	Wait    uint32            `yaml:"wait" json:"wait"`
+	Browser    PlaywrightBrowser          `json:"browser" yaml:"browser"`
+	Install    bool                       `yaml:"install" json:"install"`
+	Timeout    uint32                     `yaml:"timeout" json:"timeout"`
+	Wait       uint32                     `yaml:"wait" json:"wait"`
+	TypeOfWait *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
 }
 
 type BrowserConnectorConfig struct {

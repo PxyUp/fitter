@@ -23,6 +23,9 @@ func (c *browserConnector) WithLogger(logger logger.Logger) *browserConnector {
 }
 
 func (c *browserConnector) Get() ([]byte, error) {
+	if c.cfg.Url == "" {
+		return nil, errEmpty
+	}
 	if c.cfg.Chromium != nil {
 		return getFromChromium(c.cfg.Url, c.cfg.Chromium, c.logger.With("emulator", "chromium"))
 	}

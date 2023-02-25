@@ -25,21 +25,21 @@ var (
 func getFromChromium(url string, cfg *config.ChromiumConfig, logger logger.Logger) ([]byte, error) {
 	ctxB := context.Background()
 
-	if instanceLimit := limitter.ChromiumLimiter(); instanceLimit != nil {
-		errInstance := instanceLimit.Acquire(ctxB, 1)
-		if errInstance != nil {
-			logger.Errorw("unable to acquire chromium limit semaphore", "url", url, "error", errInstance.Error())
-			return nil, errInstance
-		}
-		defer instanceLimit.Release(1)
-	}
-
 	t := timeout
 	if cfg.Timeout > 0 {
 		t = time.Second * time.Duration(cfg.Timeout)
 	}
 	ctxT, cancel := context.WithTimeout(ctxB, t)
 	defer cancel()
+
+	if instanceLimit := limitter.ChromiumLimiter(); instanceLimit != nil {
+		errInstance := instanceLimit.Acquire(ctx, 1)
+		if errInstance != nil {
+			logger.Errorw("unable to acquire chromium limit semaphore", "url", url, "error", errInstance.Error())
+			return nil, errInstance
+		}
+		defer instanceLimit.Release(1)
+	}
 
 	var args []string
 	if len(cfg.Flags) != 0 {

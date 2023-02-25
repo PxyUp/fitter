@@ -137,7 +137,7 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 	}()
 
 	if instanceLimit := limitter.DockerLimiter(); instanceLimit != nil {
-		errInstance := instanceLimit.Acquire(ctxT, 1)
+		errInstance := instanceLimit.Acquire(ctx, 1)
 		if errInstance != nil {
 			logger.Errorw("unable to acquire docker limit semaphore", "url", url, "error", errInstance.Error())
 			return nil, errInstance
