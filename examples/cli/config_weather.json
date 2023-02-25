@@ -14,16 +14,24 @@
     "model": {
       "type": "array",
       "array_config": {
-        "root_path": "table table tr:not(:first-child) td:first-child font",
+        "root_path": "table table tr:not(:first-child)",
         "item_config": {
           "fields": {
             "name": {
               "base_field": {
+                "path": "td:nth-of-type(1) font",
+                "type": "string"
+              }
+            },
+            "population": {
+              "base_field": {
+                "path": "td:nth-of-type(2) font",
                 "type": "string"
               }
             },
             "temperature": {
               "base_field": {
+                "path": "td:first-child font",
                 "type": "string",
                 "generated": {
                   "model": {
