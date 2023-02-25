@@ -4,6 +4,9 @@ Fitter - new way for collect information from the API's/Websites
 
 Fitter CLI - small cli command which provide result from Fitter for test/debug/home usage
 
+![](https://github.com/PxyUp/fitter/blob/master/demo.gif)
+
+
 # Way to collect information
 
 1. **Server** - parsing response from some API's or http request(usage of http.Client)
