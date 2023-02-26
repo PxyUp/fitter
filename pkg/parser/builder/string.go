@@ -16,5 +16,5 @@ func String(value string) *stringField {
 }
 
 func (s *stringField) ToJson() string {
-	return fmt.Sprintf(`"%s"`, strings.ReplaceAll(strings.ReplaceAll(s.value, `"`, `\"`), `'`, `\'`))
+	return fmt.Sprintf(`"%s"`, strings.ReplaceAll(s.value, `"`, `\"`))
 }
