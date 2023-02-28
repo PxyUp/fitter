@@ -1,6 +1,6 @@
 {
   "limits": {
-    "playwright_instance": 3
+    "playwright_instance": 15
   },
   "item": {
     "connector_config": {
