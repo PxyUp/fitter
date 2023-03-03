@@ -35,6 +35,16 @@ func main() {
 							},
 						},
 					},
+					"generated_array": {
+						ArrayConfig: &config.ArrayConfig{
+							RootPath: "@this|@keys",
+							ItemConfig: &config.ObjectConfig{
+								Field: &config.BaseField{
+									Type: config.String,
+								},
+							},
+						},
+					},
 				},
 			},
 		},

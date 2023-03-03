@@ -77,6 +77,16 @@ func main() {
 							},
 						},
 					},
+					"generated_array": {
+						ArrayConfig: &config.ArrayConfig{
+							RootPath: "@this|@keys",
+							ItemConfig: &config.ObjectConfig{
+								Field: &config.BaseField{
+									Type: config.String,
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -86,12 +96,17 @@ func main() {
 	}
 	fmt.Println(res.ToJson())
 }
+
 ```
 
 Output:
 
 ```json
-{"my_id": 3653,"generated_id": "2b2c5402-a3ea-4002-989b-2816b65c7231"}
+{
+  "generated_array": ["id","uid","brand","equipment"],
+  "my_id": 6000,
+  "generated_id": "26b08b73-2f2e-444d-bcf2-dac77ac3130e"
+}
 ```
 
 # How to use Fitter
