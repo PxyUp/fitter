@@ -4,6 +4,8 @@ Fitter - new way for collect information from the API's/Websites
 
 Fitter CLI - small cli command which provide result from Fitter for test/debug/home usage
 
+Fitter Lib - library which provide functional of fitter CLI as a library
+
 ![](https://github.com/PxyUp/fitter/blob/master/demo.gif)
 
 
@@ -31,7 +33,68 @@ If you're using Docker like Browser connector:
 4. **DOCKER_TLS_VERIFY** - bool - (EnvTLSVerify) to enable or disable TLS verification (off by default)
 
 
-# How to Fitter
+# Use like a library
+
+```bash
+go get github.com/PxyUp/fitter
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/PxyUp/fitter/lib"
+	"github.com/PxyUp/fitter/pkg/config"
+	"log"
+	"net/http"
+)
+
+func main() {
+	res, err := lib.Parse(&config.Item{
+		ConnectorConfig: &config.ConnectorConfig{
+			ConnectorType: config.Server,
+			ResponseType:  config.Json,
+			ServerConfig: &config.ServerConnectorConfig{
+				Method: http.MethodGet,
+				Url:    "https://random-data-api.com/api/appliance/random_appliance",
+			},
+		},
+		Model: &config.Model{
+			Type: config.ObjectModel,
+			ObjectConfig: &config.ObjectConfig{
+				Fields: map[string]*config.Field{
+					"my_id": {
+						BaseField: &config.BaseField{
+							Type: config.Int,
+							Path: "id",
+						},
+					},
+					"generated_id": {
+						BaseField: &config.BaseField{
+							Generated: &config.GeneratedFieldConfig{
+								UUID: &config.UUIDGeneratedFieldConfig{},
+							},
+						},
+					},
+				},
+			},
+		},
+	}, nil, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(res.ToJson())
+}
+```
+
+Output:
+
+```json
+{"my_id": 3653,"generated_id": "2b2c5402-a3ea-4002-989b-2816b65c7231"}
+```
+
+# How to use Fitter
 
 [Download latest version from the release page](https://github.com/PxyUp/fitter/releases)
 

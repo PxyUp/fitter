@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/PxyUp/fitter/lib"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/registry"
 	"github.com/atotto/clipboard"
 	"gopkg.in/yaml.v3"
 	"log"
@@ -54,9 +54,7 @@ func main() {
 	}
 
 	cfg := getConfig(*filePath)
-	name := "fitter_cli"
-	cfg.Item.Name = name
-	res, err := registry.FromItem(cfg, log).Get(name).Process()
+	res, err := lib.Parse(cfg.Item, cfg.Limits, log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return
