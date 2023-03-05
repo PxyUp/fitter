@@ -111,7 +111,61 @@ func (h *htmlParser) buildObjectField(parent *goquery.Selection, fields map[stri
 	return builder.Object(kv)
 }
 
+func (h *htmlParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jsonable {
+	values := make([]builder.Jsonable, len(cfg.Items))
+
+	var wg sync.WaitGroup
+
+	for lKey, lValue := range cfg.Items {
+		key := lKey
+		value := lValue
+		wg.Add(1)
+		go func(k uint32, v *config.Field) {
+			defer wg.Done()
+
+			var fnValue builder.Jsonable
+			defer func() {
+				if fnValue == nil {
+					return
+				}
+				values[int(k)] = fnValue
+			}()
+
+			if v.BaseField != nil {
+				if v.BaseField.Path == "" {
+					fnValue = h.buildBaseField(h.parserBody, v.BaseField)
+					return
+				}
+				fnValue = h.buildBaseField(h.parserBody.Find(v.BaseField.Path), v.BaseField)
+				return
+			}
+
+			if v.ObjectConfig != nil {
+				fnValue = h.buildObjectField(h.parserBody, v.ObjectConfig.Fields)
+				return
+			}
+
+			if v.ArrayConfig != nil {
+				if v.ArrayConfig.RootPath == "" {
+					fnValue = h.buildArrayField(h.parserBody, v.ArrayConfig)
+					return
+				}
+				fnValue = h.buildArrayField(h.parserBody.Find(v.ArrayConfig.RootPath), v.ArrayConfig)
+			}
+		}(key, value)
+
+	}
+
+	wg.Wait()
+
+	return builder.Array(values)
+}
+
 func (h *htmlParser) buildArrayField(parent *goquery.Selection, array *config.ArrayConfig) builder.Jsonable {
+	if array.StaticConfig != nil {
+		return h.buildStaticArray(array.StaticConfig)
+	}
+
 	values := make([]builder.Jsonable, parent.Length())
 
 	if array.ItemConfig.Field != nil {

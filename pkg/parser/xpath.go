@@ -77,6 +77,56 @@ func (x *xpathParser) buildObject(object *config.ObjectConfig) builder.Jsonable 
 	return x.buildObjectField(x.parserBody, object.Fields)
 }
 
+func (x *xpathParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jsonable {
+	values := make([]builder.Jsonable, len(cfg.Items))
+
+	var wg sync.WaitGroup
+
+	for lKey, lValue := range cfg.Items {
+		key := lKey
+		value := lValue
+		wg.Add(1)
+		go func(k uint32, v *config.Field) {
+			defer wg.Done()
+
+			var fnValue builder.Jsonable
+			defer func() {
+				if fnValue == nil {
+					return
+				}
+				values[k] = fnValue
+			}()
+
+			if v.BaseField != nil {
+				if v.BaseField.Path == "" {
+					fnValue = x.buildBaseField(x.parserBody, v.BaseField)
+					return
+				}
+				fnValue = x.buildBaseField(x.safeFindOne(x.parserBody, v.BaseField.Path), v.BaseField)
+				return
+			}
+
+			if v.ObjectConfig != nil {
+				fnValue = x.buildObjectField(x.parserBody, v.ObjectConfig.Fields)
+				return
+			}
+
+			if v.ArrayConfig != nil {
+				if v.ArrayConfig.RootPath == "" {
+					fnValue = x.buildArrayField(x.safeFind(x.parserBody, "."), v.ArrayConfig)
+					return
+				}
+				fnValue = x.buildArrayField(x.safeFind(x.parserBody, v.ArrayConfig.RootPath), v.ArrayConfig)
+			}
+		}(key, value)
+
+	}
+
+	wg.Wait()
+
+	return builder.Array(values)
+}
+
 func (x *xpathParser) buildObjectField(parent *html.Node, fields map[string]*config.Field) builder.Jsonable {
 	kv := make(map[string]builder.Jsonable)
 	var wg sync.WaitGroup
@@ -130,6 +180,10 @@ func (x *xpathParser) buildObjectField(parent *html.Node, fields map[string]*con
 }
 
 func (x *xpathParser) buildArrayField(parent []*html.Node, array *config.ArrayConfig) builder.Jsonable {
+	if array.StaticConfig != nil {
+		return x.buildStaticArray(array.StaticConfig)
+	}
+
 	values := make([]builder.Jsonable, len(parent))
 
 	if array.ItemConfig.Field != nil {

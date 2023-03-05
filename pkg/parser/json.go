@@ -49,6 +49,56 @@ func (j *jsonParser) buildObject(object *config.ObjectConfig) builder.Jsonable {
 	return j.buildObjectField(j.parserBody, object.Fields)
 }
 
+func (j *jsonParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jsonable {
+	values := make([]builder.Jsonable, len(cfg.Items))
+
+	var wg sync.WaitGroup
+
+	for lKey, lValue := range cfg.Items {
+		key := lKey
+		value := lValue
+		wg.Add(1)
+		go func(k uint32, v *config.Field) {
+			defer wg.Done()
+
+			var fnValue builder.Jsonable
+			defer func() {
+				if fnValue == nil {
+					return
+				}
+				values[k] = fnValue
+			}()
+
+			if v.BaseField != nil {
+				if v.BaseField.Path == "" {
+					fnValue = j.buildBaseField(j.parserBody, v.BaseField)
+					return
+				}
+				fnValue = j.buildBaseField(j.parserBody.Get(v.BaseField.Path), v.BaseField)
+				return
+			}
+
+			if v.ObjectConfig != nil {
+				fnValue = j.buildObjectField(j.parserBody, v.ObjectConfig.Fields)
+				return
+			}
+
+			if v.ArrayConfig != nil {
+				if v.ArrayConfig.RootPath == "" {
+					fnValue = j.buildArrayField(j.parserBody, v.ArrayConfig)
+					return
+				}
+				fnValue = j.buildArrayField(j.parserBody.Get(v.ArrayConfig.RootPath), v.ArrayConfig)
+			}
+		}(key, value)
+
+	}
+
+	wg.Wait()
+
+	return builder.Array(values)
+}
+
 func (j *jsonParser) buildObjectField(parent gjson.Result, fields map[string]*config.Field) builder.Jsonable {
 	kv := make(map[string]builder.Jsonable)
 	var mutex sync.Mutex
@@ -102,6 +152,10 @@ func (j *jsonParser) buildObjectField(parent gjson.Result, fields map[string]*co
 }
 
 func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayConfig) builder.Jsonable {
+	if array.StaticConfig != nil {
+		return j.buildStaticArray(array.StaticConfig)
+	}
+
 	values := make([]builder.Jsonable, len(parent.Array()))
 
 	if array.ItemConfig.Field != nil {

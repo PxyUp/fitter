@@ -36,6 +36,44 @@ func (s *HTMLParserArraySuite) SetupTest() {
 	s.parser = parser.HTMLFactory(s.body, logger.Null)
 }
 
+func (s *HTMLParserArraySuite) Test_StaticArray() {
+	res, err := s.parser.Parse(&config.Model{
+		Type: config.ArrayModel,
+		ArrayConfig: &config.ArrayConfig{
+			StaticConfig: &config.StaticArrayConfig{
+				Items: map[uint32]*config.Field{
+					0: {
+						BaseField: &config.BaseField{
+							Type: config.String,
+							Path: "title",
+						},
+					},
+					1: {
+						ObjectConfig: &config.ObjectConfig{
+							Fields: map[string]*config.Field{
+								"title": {
+									BaseField: &config.BaseField{
+										Type: config.String,
+										Path: "h2",
+									},
+								},
+								"intro": {
+									BaseField: &config.BaseField{
+										Type: config.String,
+										Path: ".w3-main .intro",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "[\"HTML Headings\",{\"title\": \"Tutorials\",\"intro\": \"HTML headings are titles or subtitles that you want to display on a webpage.\"}]\n", res.Raw)
+}
+
 func (s *HTMLParserArraySuite) Test_ParseSimpleObject() {
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ObjectModel,

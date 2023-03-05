@@ -47,8 +47,13 @@ type ObjectConfig struct {
 }
 
 type ArrayConfig struct {
-	RootPath   string        `json:"root_path" yaml:"root_path"`
-	ItemConfig *ObjectConfig `json:"item_config" yaml:"item_config"`
+	RootPath     string             `json:"root_path" yaml:"root_path"`
+	ItemConfig   *ObjectConfig      `json:"item_config" yaml:"item_config"`
+	StaticConfig *StaticArrayConfig `json:"static_array"  yaml:"static_array"`
+}
+
+type StaticArrayConfig struct {
+	Items map[uint32]*Field `yaml:"items" json:"items"`
 }
 
 type Model struct {

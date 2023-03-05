@@ -36,6 +36,38 @@ func (s *JsonParserObjectSuite) SetupTest() {
 	s.parser = parser.JsonFactory(s.body, logger.Null)
 }
 
+func (s *JsonParserObjectSuite) Test_StaticArray() {
+	res, err := s.parser.Parse(&config.Model{
+		Type: config.ArrayModel,
+		ArrayConfig: &config.ArrayConfig{
+			StaticConfig: &config.StaticArrayConfig{
+				Items: map[uint32]*config.Field{
+					0: {
+						BaseField: &config.BaseField{
+							Type: config.String,
+							Path: "gender",
+						},
+					},
+					1: {
+						ObjectConfig: &config.ObjectConfig{
+							Fields: map[string]*config.Field{
+								"test": {
+									BaseField: &config.BaseField{
+										Type: config.String,
+										Path: "friends.0.name",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "[\"male\",{\"test\": \"Cooley Spence\"}]", res.Raw)
+}
+
 func (s *JsonParserObjectSuite) Test_ParseSimpleObject() {
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ObjectModel,

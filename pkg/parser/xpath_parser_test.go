@@ -36,6 +36,38 @@ func (s *XPathParserArraySuite) SetupTest() {
 	s.parser = parser.XPathFactory(s.body, logger.Null)
 }
 
+func (s *XPathParserArraySuite) Test_StaticArray() {
+	res, err := s.parser.Parse(&config.Model{
+		Type: config.ArrayModel,
+		ArrayConfig: &config.ArrayConfig{
+			StaticConfig: &config.StaticArrayConfig{
+				Items: map[uint32]*config.Field{
+					0: {
+						BaseField: &config.BaseField{
+							Type: config.String,
+							Path: "//h2",
+						},
+					},
+					1: {
+						ObjectConfig: &config.ObjectConfig{
+							Fields: map[string]*config.Field{
+								"intro": {
+									BaseField: &config.BaseField{
+										Type: config.String,
+										Path: "//div[contains(@class, 'w3-main')]//*[contains(@class, 'intro')]",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "[\"Tutorials\",{\"intro\": \"HTML headings are titles or subtitles that you want to display on a webpage.\"}]", res.Raw)
+}
+
 func (s *XPathParserArraySuite) Test_ParseSimpleObject() {
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ObjectModel,
