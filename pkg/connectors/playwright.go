@@ -7,7 +7,14 @@ import (
 	"github.com/PxyUp/fitter/pkg/connectors/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/playwright-community/playwright-go"
+	"go.uber.org/atomic"
+	"golang.org/x/sync/semaphore"
 	"time"
+)
+
+var (
+	installPlaywrightSem = semaphore.NewWeighted(1)
+	installedPlaywright  = atomic.NewBool(false)
 )
 
 func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.Logger) ([]byte, error) {
@@ -36,13 +43,31 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.L
 	go func() {
 		defer close(res)
 		if cfg.Install {
-			err = playwright.Install(&playwright.RunOptions{
-				Verbose: false,
-			})
+			err = installPlaywrightSem.Acquire(ctxT, 1)
 			if err != nil {
 				logger.Errorw("unable to install playwright", "error", err.Error())
 				return
 			}
+
+			func() {
+				defer installPlaywrightSem.Release(1)
+				if installedPlaywright.Load() {
+					logger.Info("playwright already installed")
+					return
+				}
+
+				logger.Info("run only one playwright installation in parallel")
+
+				err = playwright.Install(&playwright.RunOptions{
+					Verbose: false,
+				})
+				if err != nil {
+					logger.Errorw("unable to install playwright", "error", err.Error())
+					return
+				}
+				installedPlaywright.Store(true)
+			}()
+
 		}
 
 		pw, err := playwright.Run(&playwright.RunOptions{
