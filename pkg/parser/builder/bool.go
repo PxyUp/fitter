@@ -12,6 +12,10 @@ func Bool(value bool) *boolField {
 	}
 }
 
+func (s *boolField) IsEmpty() bool {
+	return false
+}
+
 func (s *boolField) ToJson() string {
 	return fmt.Sprintf(`%v`, s.value)
 }

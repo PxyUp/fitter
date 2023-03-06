@@ -17,6 +17,10 @@ func Static(cfg *config.StaticGeneratedFieldConfig) *static {
 	}
 }
 
+func (s *static) IsEmpty() bool {
+	return false
+}
+
 func (s *static) ToJson() string {
 	switch s.fieldType {
 	case config.Null:

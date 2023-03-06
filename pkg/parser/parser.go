@@ -32,6 +32,10 @@ type ParseResult struct {
 	Raw string `json:"raw"`
 }
 
+func (p *ParseResult) IsEmpty() bool {
+	return len(p.Raw) == 0
+}
+
 func (p *ParseResult) ToJson() string {
 	return p.Raw
 }

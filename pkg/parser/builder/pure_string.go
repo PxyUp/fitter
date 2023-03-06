@@ -10,6 +10,10 @@ type pureStringField struct {
 	value string
 }
 
+func (s *pureStringField) IsEmpty() bool {
+	return len(s.value) == 0
+}
+
 func PureString(value string) *pureStringField {
 	value = strings.TrimRight(strings.TrimLeft(value, `"'`), `"'`)
 	if value == "" {

@@ -10,6 +10,20 @@ func Array(items []Jsonable) *arrayField {
 	}
 }
 
+func (s *arrayField) IsEmpty() bool {
+	if len(s.values) == 0 {
+		return true
+	}
+
+	for _, v := range s.values {
+		if !v.IsEmpty() {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (s *arrayField) ToJson() string {
 	str := "["
 

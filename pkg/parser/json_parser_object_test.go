@@ -36,6 +36,60 @@ func (s *JsonParserObjectSuite) SetupTest() {
 	s.parser = parser.JsonFactory(s.body, logger.Null)
 }
 
+func (s *JsonParserObjectSuite) Test_FirstOf() {
+	res, err := s.parser.Parse(&config.Model{
+		Type: config.ObjectModel,
+		ObjectConfig: &config.ObjectConfig{
+			Fields: map[string]*config.Field{
+				"title": {
+					BaseField: &config.BaseField{
+						FirstOf: []*config.BaseField{
+							{
+								Type: config.String,
+								Path: "asdfasfasfasf",
+							},
+							{
+								Type: config.String,
+								Path: "name",
+							},
+						},
+					},
+				},
+				"object": {
+					FirstOf: []*config.Field{
+						{
+							ObjectConfig: &config.ObjectConfig{
+								Fields: map[string]*config.Field{
+									"title": {
+										BaseField: &config.BaseField{
+											Type: config.String,
+											Path: "asdfasfasfasf",
+										},
+									},
+								},
+							},
+						},
+						{
+							ObjectConfig: &config.ObjectConfig{
+								Fields: map[string]*config.Field{
+									"title": {
+										BaseField: &config.BaseField{
+											Type: config.String,
+											Path: "name",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "{\"object\": {\"title\": \"Henderson Gonzales\"},\"title\": \"Henderson Gonzales\"}\n", res.Raw)
+}
+
 func (s *JsonParserObjectSuite) Test_StaticArray() {
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ArrayModel,

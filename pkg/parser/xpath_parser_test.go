@@ -36,6 +36,60 @@ func (s *XPathParserArraySuite) SetupTest() {
 	s.parser = parser.XPathFactory(s.body, logger.Null)
 }
 
+func (s *XPathParserArraySuite) Test_FirstOf() {
+	res, err := s.parser.Parse(&config.Model{
+		Type: config.ObjectModel,
+		ObjectConfig: &config.ObjectConfig{
+			Fields: map[string]*config.Field{
+				"title": {
+					BaseField: &config.BaseField{
+						FirstOf: []*config.BaseField{
+							{
+								Type: config.String,
+								Path: "/asdfasfasfasf",
+							},
+							{
+								Type: config.String,
+								Path: "/html/head/title",
+							},
+						},
+					},
+				},
+				"object": {
+					FirstOf: []*config.Field{
+						{
+							ObjectConfig: &config.ObjectConfig{
+								Fields: map[string]*config.Field{
+									"title": {
+										BaseField: &config.BaseField{
+											Type: config.String,
+											Path: "/asdfasfasfasf",
+										},
+									},
+								},
+							},
+						},
+						{
+							ObjectConfig: &config.ObjectConfig{
+								Fields: map[string]*config.Field{
+									"title": {
+										BaseField: &config.BaseField{
+											Type: config.String,
+											Path: "/html/head/title",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "{\"object\": {\"title\": \"HTML Headings\"},\"title\": \"HTML Headings\"}\n", res.Raw)
+}
+
 func (s *XPathParserArraySuite) Test_StaticArray() {
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ArrayModel,

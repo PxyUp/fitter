@@ -49,10 +49,7 @@ func (h *htmlParser) Parse(model *config.Model) (*ParseResult, error) {
 }
 
 func (h *htmlParser) buildArray(array *config.ArrayConfig) builder.Jsonable {
-	if array.RootPath == "" {
-		return h.buildArrayField(h.parserBody, array)
-	}
-	return h.buildArrayField(h.parserBody.Find(array.RootPath), array)
+	return h.buildArrayField(h.parserBody, array)
 }
 
 func (h *htmlParser) buildObject(object *config.ObjectConfig) builder.Jsonable {
@@ -71,39 +68,10 @@ func (h *htmlParser) buildObjectField(parent *goquery.Selection, fields map[stri
 		go func(k string, v *config.Field) {
 			defer wg.Done()
 
-			var fnValue builder.Jsonable
-			defer func() {
-				if fnValue == nil {
-					return
-				}
-				mutex.Lock()
-				kv[k] = fnValue
-				mutex.Unlock()
-			}()
-
-			if v.BaseField != nil {
-				if v.BaseField.Path == "" {
-					fnValue = h.buildBaseField(parent, v.BaseField)
-					return
-				}
-				fnValue = h.buildBaseField(parent.Find(v.BaseField.Path), v.BaseField)
-				return
-			}
-
-			if v.ObjectConfig != nil {
-				fnValue = h.buildObjectField(parent, v.ObjectConfig.Fields)
-				return
-			}
-
-			if v.ArrayConfig != nil {
-				if v.ArrayConfig.RootPath == "" {
-					fnValue = h.buildArrayField(parent, v.ArrayConfig)
-					return
-				}
-				fnValue = h.buildArrayField(parent.Find(v.ArrayConfig.RootPath), v.ArrayConfig)
-			}
+			mutex.Lock()
+			kv[k] = h.resolveField(parent, v)
+			mutex.Unlock()
 		}(key, value)
-
 	}
 
 	wg.Wait()
@@ -123,35 +91,7 @@ func (h *htmlParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jso
 		go func(k uint32, v *config.Field) {
 			defer wg.Done()
 
-			var fnValue builder.Jsonable
-			defer func() {
-				if fnValue == nil {
-					return
-				}
-				values[int(k)] = fnValue
-			}()
-
-			if v.BaseField != nil {
-				if v.BaseField.Path == "" {
-					fnValue = h.buildBaseField(h.parserBody, v.BaseField)
-					return
-				}
-				fnValue = h.buildBaseField(h.parserBody.Find(v.BaseField.Path), v.BaseField)
-				return
-			}
-
-			if v.ObjectConfig != nil {
-				fnValue = h.buildObjectField(h.parserBody, v.ObjectConfig.Fields)
-				return
-			}
-
-			if v.ArrayConfig != nil {
-				if v.ArrayConfig.RootPath == "" {
-					fnValue = h.buildArrayField(h.parserBody, v.ArrayConfig)
-					return
-				}
-				fnValue = h.buildArrayField(h.parserBody.Find(v.ArrayConfig.RootPath), v.ArrayConfig)
-			}
+			values[int(k)] = h.resolveField(h.parserBody, v)
 		}(key, value)
 
 	}
@@ -161,9 +101,43 @@ func (h *htmlParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jso
 	return builder.Array(values)
 }
 
+func (h *htmlParser) buildFirstOfField(parent *goquery.Selection, fields []*config.Field) builder.Jsonable {
+	for _, value := range fields {
+		tempValue := h.resolveField(parent, value)
+		if !tempValue.IsEmpty() {
+			return tempValue
+		}
+	}
+
+	return builder.Null()
+}
+
+func (h *htmlParser) resolveField(parent *goquery.Selection, field *config.Field) builder.Jsonable {
+	if len(field.FirstOf) != 0 {
+		return h.buildFirstOfField(parent, field.FirstOf)
+	}
+
+	if field.BaseField != nil {
+		return h.buildBaseField(parent, field.BaseField)
+	}
+
+	if field.ObjectConfig != nil {
+		return h.buildObjectField(parent, field.ObjectConfig.Fields)
+	}
+
+	if field.ArrayConfig != nil {
+		return h.buildArrayField(parent, field.ArrayConfig)
+	}
+	return builder.Null()
+}
+
 func (h *htmlParser) buildArrayField(parent *goquery.Selection, array *config.ArrayConfig) builder.Jsonable {
 	if array.StaticConfig != nil {
 		return h.buildStaticArray(array.StaticConfig)
+	}
+
+	if array.RootPath != "" {
+		parent = parent.Find(array.RootPath)
 	}
 
 	values := make([]builder.Jsonable, parent.Length())
@@ -175,11 +149,7 @@ func (h *htmlParser) buildArrayField(parent *goquery.Selection, array *config.Ar
 			go func(index int, selection *goquery.Selection) {
 				defer wg.Done()
 
-				if array.ItemConfig.Field.Path == "" {
-					values[index] = h.buildBaseField(selection, array.ItemConfig.Field)
-					return
-				}
-				values[index] = h.buildBaseField(selection.Find(array.ItemConfig.Field.Path), array.ItemConfig.Field)
+				values[index] = h.buildBaseField(selection, array.ItemConfig.Field)
 			}(i, s)
 
 		})
@@ -193,11 +163,8 @@ func (h *htmlParser) buildArrayField(parent *goquery.Selection, array *config.Ar
 			wg.Add(1)
 			go func(index int, selection *goquery.Selection) {
 				defer wg.Done()
-				if array.ItemConfig.ArrayConfig.RootPath == "" {
-					values[index] = h.buildArrayField(selection, array.ItemConfig.ArrayConfig)
-				} else {
-					values[index] = h.buildArrayField(selection.Find(array.ItemConfig.ArrayConfig.RootPath), array.ItemConfig.ArrayConfig)
-				}
+
+				values[index] = h.buildArrayField(selection, array.ItemConfig.ArrayConfig)
 			}(i, s)
 		})
 		wg.Wait()
@@ -253,7 +220,26 @@ func (h *htmlParser) fillUpBaseField(source *goquery.Selection, field *config.Ba
 	return builder.Null()
 }
 
+func (h *htmlParser) buildFirstOfBaseField(source *goquery.Selection, fields []*config.BaseField) builder.Jsonable {
+	for _, value := range fields {
+		tempValue := h.buildBaseField(source, value)
+		if !tempValue.IsEmpty() {
+			return tempValue
+		}
+	}
+
+	return builder.Null()
+}
+
 func (h *htmlParser) buildBaseField(source *goquery.Selection, field *config.BaseField) builder.Jsonable {
+	if len(field.FirstOf) != 0 {
+		return h.buildFirstOfBaseField(source, field.FirstOf)
+	}
+
+	if field.Path != "" {
+		source = source.Find(field.Path)
+	}
+
 	tempValue := h.fillUpBaseField(source, field)
 
 	if field.Generated != nil {

@@ -12,6 +12,10 @@ func Float(value float32) *floatField {
 	}
 }
 
+func (s *floatField) IsEmpty() bool {
+	return false
+}
+
 func (s *floatField) ToJson() string {
 	return fmt.Sprintf(`%f`, s.value)
 }

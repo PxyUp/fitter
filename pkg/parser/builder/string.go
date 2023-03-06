@@ -15,6 +15,10 @@ func String(value string) *stringField {
 	}
 }
 
+func (s *stringField) IsEmpty() bool {
+	return len(s.value) == 0
+}
+
 func (s *stringField) ToJson() string {
 	return fmt.Sprintf(`"%s"`, strings.ReplaceAll(s.value, `"`, `\"`))
 }

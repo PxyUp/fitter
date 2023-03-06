@@ -12,6 +12,19 @@ func Object(values map[string]Jsonable) *objectField {
 	}
 }
 
+func (s *objectField) IsEmpty() bool {
+	if len(s.kv) == 0 {
+		return true
+	}
+
+	for _, v := range s.kv {
+		if !v.IsEmpty() {
+			return false
+		}
+	}
+	return true
+}
+
 func (o *objectField) ToJson() string {
 	str := "{"
 	index := 0

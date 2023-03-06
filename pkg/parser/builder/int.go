@@ -12,6 +12,10 @@ func Int(value int) *intField {
 	}
 }
 
+func (s *intField) IsEmpty() bool {
+	return false
+}
+
 func (s *intField) ToJson() string {
 	return fmt.Sprintf(`%d`, s.value)
 }

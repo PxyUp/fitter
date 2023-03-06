@@ -67,9 +67,6 @@ func (x *xpathParser) Parse(model *config.Model) (*ParseResult, error) {
 }
 
 func (x *xpathParser) buildArray(array *config.ArrayConfig) builder.Jsonable {
-	if array.RootPath == "" {
-		return x.buildArrayField(x.safeFind(x.parserBody, "."), array)
-	}
 	return x.buildArrayField(x.safeFind(x.parserBody, array.RootPath), array)
 }
 
@@ -89,35 +86,8 @@ func (x *xpathParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Js
 		go func(k uint32, v *config.Field) {
 			defer wg.Done()
 
-			var fnValue builder.Jsonable
-			defer func() {
-				if fnValue == nil {
-					return
-				}
-				values[k] = fnValue
-			}()
+			values[k] = x.resolveField(x.parserBody, v)
 
-			if v.BaseField != nil {
-				if v.BaseField.Path == "" {
-					fnValue = x.buildBaseField(x.parserBody, v.BaseField)
-					return
-				}
-				fnValue = x.buildBaseField(x.safeFindOne(x.parserBody, v.BaseField.Path), v.BaseField)
-				return
-			}
-
-			if v.ObjectConfig != nil {
-				fnValue = x.buildObjectField(x.parserBody, v.ObjectConfig.Fields)
-				return
-			}
-
-			if v.ArrayConfig != nil {
-				if v.ArrayConfig.RootPath == "" {
-					fnValue = x.buildArrayField(x.safeFind(x.parserBody, "."), v.ArrayConfig)
-					return
-				}
-				fnValue = x.buildArrayField(x.safeFind(x.parserBody, v.ArrayConfig.RootPath), v.ArrayConfig)
-			}
 		}(key, value)
 
 	}
@@ -125,6 +95,37 @@ func (x *xpathParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Js
 	wg.Wait()
 
 	return builder.Array(values)
+}
+
+func (x *xpathParser) buildFirstOfField(parent *html.Node, fields []*config.Field) builder.Jsonable {
+	for _, value := range fields {
+		tempValue := x.resolveField(parent, value)
+		if !tempValue.IsEmpty() {
+			return tempValue
+		}
+	}
+
+	return builder.Null()
+}
+
+func (x *xpathParser) resolveField(parent *html.Node, field *config.Field) builder.Jsonable {
+	if len(field.FirstOf) != 0 {
+		return x.buildFirstOfField(parent, field.FirstOf)
+	}
+
+	if field.BaseField != nil {
+		return x.buildBaseField(parent, field.BaseField)
+	}
+
+	if field.ObjectConfig != nil {
+		return x.buildObjectField(parent, field.ObjectConfig.Fields)
+	}
+
+	if field.ArrayConfig != nil {
+		return x.buildArrayField(x.safeFind(parent, field.ArrayConfig.RootPath), field.ArrayConfig)
+	}
+
+	return builder.Null()
 }
 
 func (x *xpathParser) buildObjectField(parent *html.Node, fields map[string]*config.Field) builder.Jsonable {
@@ -139,37 +140,10 @@ func (x *xpathParser) buildObjectField(parent *html.Node, fields map[string]*con
 		go func(k string, v *config.Field) {
 			defer wg.Done()
 
-			var fnValue builder.Jsonable
-			defer func() {
-				if fnValue == nil {
-					return
-				}
-				mutex.Lock()
-				kv[k] = fnValue
-				mutex.Unlock()
-			}()
+			mutex.Lock()
+			kv[k] = x.resolveField(parent, v)
+			mutex.Unlock()
 
-			if v.BaseField != nil {
-				if v.BaseField.Path == "" {
-					fnValue = x.buildBaseField(parent, v.BaseField)
-					return
-				}
-				fnValue = x.buildBaseField(x.safeFindOne(parent, v.BaseField.Path), v.BaseField)
-				return
-			}
-
-			if v.ObjectConfig != nil {
-				fnValue = x.buildObjectField(parent, v.ObjectConfig.Fields)
-				return
-			}
-
-			if v.ArrayConfig != nil {
-				if v.ArrayConfig.RootPath == "" {
-					fnValue = x.buildArrayField(x.safeFind(parent, "."), v.ArrayConfig)
-					return
-				}
-				fnValue = x.buildArrayField(x.safeFind(parent, v.ArrayConfig.RootPath), v.ArrayConfig)
-			}
 		}(key, value)
 
 	}
@@ -195,11 +169,7 @@ func (x *xpathParser) buildArrayField(parent []*html.Node, array *config.ArrayCo
 			go func(index int, selection *html.Node) {
 				defer wg.Done()
 
-				if array.ItemConfig.Field.Path == "" {
-					values[index] = x.buildBaseField(selection, array.ItemConfig.Field)
-					return
-				}
-				values[index] = x.buildBaseField(x.safeFindOne(selection, array.ItemConfig.Field.Path), array.ItemConfig.Field)
+				values[index] = x.buildBaseField(selection, array.ItemConfig.Field)
 			}(i, s)
 
 		}
@@ -215,11 +185,8 @@ func (x *xpathParser) buildArrayField(parent []*html.Node, array *config.ArrayCo
 			wg.Add(1)
 			go func(index int, selection *html.Node) {
 				defer wg.Done()
-				if array.ItemConfig.ArrayConfig.RootPath == "" {
-					values[index] = x.buildArrayField(x.safeFind(selection, "."), array.ItemConfig.ArrayConfig)
-				} else {
-					values[index] = x.buildArrayField(x.safeFind(selection, array.ItemConfig.ArrayConfig.RootPath), array.ItemConfig.ArrayConfig)
-				}
+
+				values[index] = x.buildArrayField(x.safeFind(selection, array.ItemConfig.ArrayConfig.RootPath), array.ItemConfig.ArrayConfig)
 			}(i, s)
 		}
 		wg.Wait()
@@ -277,7 +244,26 @@ func (x *xpathParser) fillUpBaseField(source *html.Node, field *config.BaseField
 	return builder.Null()
 }
 
+func (x *xpathParser) buildFirstOfBaseField(source *html.Node, fields []*config.BaseField) builder.Jsonable {
+	for _, value := range fields {
+		tempValue := x.buildBaseField(source, value)
+		if !tempValue.IsEmpty() {
+			return tempValue
+		}
+	}
+
+	return builder.Null()
+}
+
 func (x *xpathParser) buildBaseField(source *html.Node, field *config.BaseField) builder.Jsonable {
+	if len(field.FirstOf) != 0 {
+		return x.buildFirstOfBaseField(source, field.FirstOf)
+	}
+
+	if field.Path != "" {
+		source = x.safeFindOne(source, field.Path)
+	}
+
 	tempValue := x.fillUpBaseField(source, field)
 
 	if field.Generated != nil {

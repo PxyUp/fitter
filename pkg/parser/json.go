@@ -39,10 +39,7 @@ func (j *jsonParser) Parse(model *config.Model) (*ParseResult, error) {
 }
 
 func (j *jsonParser) buildArray(array *config.ArrayConfig) builder.Jsonable {
-	if array.RootPath == "" {
-		return j.buildArrayField(j.parserBody, array)
-	}
-	return j.buildArrayField(j.parserBody.Get(array.RootPath), array)
+	return j.buildArrayField(j.parserBody, array)
 }
 
 func (j *jsonParser) buildObject(object *config.ObjectConfig) builder.Jsonable {
@@ -61,35 +58,7 @@ func (j *jsonParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jso
 		go func(k uint32, v *config.Field) {
 			defer wg.Done()
 
-			var fnValue builder.Jsonable
-			defer func() {
-				if fnValue == nil {
-					return
-				}
-				values[k] = fnValue
-			}()
-
-			if v.BaseField != nil {
-				if v.BaseField.Path == "" {
-					fnValue = j.buildBaseField(j.parserBody, v.BaseField)
-					return
-				}
-				fnValue = j.buildBaseField(j.parserBody.Get(v.BaseField.Path), v.BaseField)
-				return
-			}
-
-			if v.ObjectConfig != nil {
-				fnValue = j.buildObjectField(j.parserBody, v.ObjectConfig.Fields)
-				return
-			}
-
-			if v.ArrayConfig != nil {
-				if v.ArrayConfig.RootPath == "" {
-					fnValue = j.buildArrayField(j.parserBody, v.ArrayConfig)
-					return
-				}
-				fnValue = j.buildArrayField(j.parserBody.Get(v.ArrayConfig.RootPath), v.ArrayConfig)
-			}
+			values[k] = j.resolveField(j.parserBody, v)
 		}(key, value)
 
 	}
@@ -112,37 +81,9 @@ func (j *jsonParser) buildObjectField(parent gjson.Result, fields map[string]*co
 		go func(k string, v *config.Field) {
 			defer wg.Done()
 
-			var fnValue builder.Jsonable
-			defer func() {
-				if fnValue == nil {
-					return
-				}
-				mutex.Lock()
-				kv[k] = fnValue
-				mutex.Unlock()
-			}()
-
-			if v.BaseField != nil {
-				if v.BaseField.Path == "" {
-					fnValue = j.buildBaseField(parent, v.BaseField)
-					return
-				}
-				fnValue = j.buildBaseField(parent.Get(v.BaseField.Path), v.BaseField)
-				return
-			}
-
-			if v.ObjectConfig != nil {
-				fnValue = j.buildObjectField(parent, v.ObjectConfig.Fields)
-				return
-			}
-
-			if v.ArrayConfig != nil {
-				if v.ArrayConfig.RootPath == "" {
-					fnValue = j.buildArrayField(parent, v.ArrayConfig)
-					return
-				}
-				fnValue = j.buildArrayField(parent.Get(v.ArrayConfig.RootPath), v.ArrayConfig)
-			}
+			mutex.Lock()
+			kv[k] = j.resolveField(parent, v)
+			mutex.Unlock()
 		}(key, value)
 	}
 
@@ -151,9 +92,44 @@ func (j *jsonParser) buildObjectField(parent gjson.Result, fields map[string]*co
 	return builder.Object(kv)
 }
 
+func (j *jsonParser) buildFirstOfField(source gjson.Result, fields []*config.Field) builder.Jsonable {
+	for _, value := range fields {
+		tempValue := j.resolveField(source, value)
+		if !tempValue.IsEmpty() {
+			return tempValue
+		}
+	}
+
+	return builder.Null()
+}
+
+func (j *jsonParser) resolveField(parent gjson.Result, field *config.Field) builder.Jsonable {
+	if len(field.FirstOf) != 0 {
+		return j.buildFirstOfField(parent, field.FirstOf)
+	}
+
+	if field.BaseField != nil {
+		return j.buildBaseField(parent, field.BaseField)
+	}
+
+	if field.ObjectConfig != nil {
+		return j.buildObjectField(parent, field.ObjectConfig.Fields)
+	}
+
+	if field.ArrayConfig != nil {
+		return j.buildArrayField(parent, field.ArrayConfig)
+	}
+
+	return builder.Null()
+}
+
 func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayConfig) builder.Jsonable {
 	if array.StaticConfig != nil {
 		return j.buildStaticArray(array.StaticConfig)
+	}
+
+	if array.RootPath != "" {
+		parent = parent.Get(array.RootPath)
 	}
 
 	values := make([]builder.Jsonable, len(parent.Array()))
@@ -168,11 +144,7 @@ func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayCon
 			go func(index int, res gjson.Result) {
 				defer wg.Done()
 
-				if array.ItemConfig.Field.Path == "" {
-					values[index] = j.buildBaseField(res, array.ItemConfig.Field)
-					return
-				}
-				values[index] = j.buildBaseField(res.Get(array.ItemConfig.Field.Path), array.ItemConfig.Field)
+				values[index] = j.buildBaseField(res, array.ItemConfig.Field)
 			}(i, r)
 
 		}
@@ -190,11 +162,7 @@ func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayCon
 			go func(index int, res gjson.Result) {
 				defer wg.Done()
 
-				if array.ItemConfig.ArrayConfig.RootPath == "" {
-					values[index] = j.buildArrayField(res, array.ItemConfig.ArrayConfig)
-					return
-				}
-				values[index] = j.buildArrayField(res.Get(array.ItemConfig.ArrayConfig.RootPath), array.ItemConfig.ArrayConfig)
+				values[index] = j.buildArrayField(res, array.ItemConfig.ArrayConfig)
 			}(i, r)
 		}
 		wg.Wait()
@@ -218,7 +186,26 @@ func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayCon
 	return builder.Array(values)
 }
 
+func (j *jsonParser) buildFirstOfBaseField(source gjson.Result, fields []*config.BaseField) builder.Jsonable {
+	for _, value := range fields {
+		tempValue := j.buildBaseField(source, value)
+		if !tempValue.IsEmpty() {
+			return tempValue
+		}
+	}
+
+	return builder.Null()
+}
+
 func (j *jsonParser) buildBaseField(source gjson.Result, field *config.BaseField) builder.Jsonable {
+	if len(field.FirstOf) != 0 {
+		return j.buildFirstOfBaseField(source, field.FirstOf)
+	}
+
+	if field.Path != "" {
+		source = source.Get(field.Path)
+	}
+
 	tempValue := fillUpBaseField(source, field)
 
 	if field.Generated != nil {
