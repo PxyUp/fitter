@@ -47,7 +47,7 @@ func main() {
 
 	cfg := getConfig(*filePath)
 	if cfg == nil {
-		log.Fatalf("empty config file %s", filePath)
+		log.Fatalf("empty config file %s", *filePath)
 		return
 	}
 	ctx, cancel := context.WithCancel(context.Background())

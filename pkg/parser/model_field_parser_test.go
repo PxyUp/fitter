@@ -201,7 +201,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 																							ConnectorConfig: &config.ConnectorConfig{
 																								ConnectorType: config.Server,
 																								ResponseType:  config.Json,
-																								Url:           fmt.Sprintf("%s", s.server.URL) + "/{PL}",
+																								Url:           s.server.URL + "/{PL}",
 																								ServerConfig: &config.ServerConnectorConfig{
 																									Method: "GET",
 																								},
@@ -244,7 +244,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 												ConnectorConfig: &config.ConnectorConfig{
 													ConnectorType: config.Server,
 													ResponseType:  config.Json,
-													Url:           fmt.Sprintf("%s", s.server.URL) + "/{PL}",
+													Url:           s.server.URL + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},
@@ -363,7 +363,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 																							ConnectorConfig: &config.ConnectorConfig{
 																								ConnectorType: config.Server,
 																								ResponseType:  config.Json,
-																								Url:           fmt.Sprintf("%s", s.server.URL) + "/{PL}",
+																								Url:           s.server.URL + "/{PL}",
 																								ServerConfig: &config.ServerConnectorConfig{
 																									Method: "GET",
 																								},
@@ -406,7 +406,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 												ConnectorConfig: &config.ConnectorConfig{
 													ConnectorType: config.Server,
 													ResponseType:  config.Json,
-													Url:           fmt.Sprintf("%s", s.server.URL) + "/{PL}",
+													Url:           s.server.URL + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},
@@ -525,7 +525,7 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 																							ConnectorConfig: &config.ConnectorConfig{
 																								ConnectorType: config.Server,
 																								ResponseType:  config.Json,
-																								Url:           fmt.Sprintf("%s", s.server.URL) + "/{PL}",
+																								Url:           s.server.URL + "/{PL}",
 																								ServerConfig: &config.ServerConnectorConfig{
 																									Method: "GET",
 																								},
@@ -568,7 +568,7 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 												ConnectorConfig: &config.ConnectorConfig{
 													ConnectorType: config.Server,
 													ResponseType:  config.Json,
-													Url:           fmt.Sprintf("%s", s.server.URL) + "/{PL}",
+													Url:           s.server.URL + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},

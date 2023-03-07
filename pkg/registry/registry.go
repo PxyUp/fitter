@@ -22,7 +22,9 @@ type localRegistry struct {
 }
 
 func NewFromConfig(config *config.Config, logger logger.Logger) *localRegistry {
-	limitter.SetLimits(config.Limits)
+	if config != nil {
+		limitter.SetLimits(config.Limits)
+	}
 
 	kv := make(map[string]processor.Processor)
 	if config != nil {

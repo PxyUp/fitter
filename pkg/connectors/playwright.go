@@ -15,6 +15,7 @@ import (
 var (
 	installPlaywrightSem = semaphore.NewWeighted(1)
 	installedPlaywright  = atomic.NewBool(false)
+	errNoDriver          = errors.New("empty playwright driver")
 )
 
 func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.Logger) ([]byte, error) {
@@ -67,7 +68,6 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.L
 				}
 				installedPlaywright.Store(true)
 			}()
-
 		}
 
 		pw, err := playwright.Run(&playwright.RunOptions{
@@ -108,7 +108,8 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.L
 		}
 
 		if browserInstance == nil {
-			err = errors.New("empty playwright driver")
+			err = errNoDriver
+			logger.Errorw("could not launch", "error", err.Error())
 			return
 		}
 
@@ -156,7 +157,7 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.L
 
 	select {
 	case <-res:
-		return []byte(content), nil
+		return []byte(content), err
 	case <-ctxT.Done():
 		return nil, ctxT.Err()
 	}

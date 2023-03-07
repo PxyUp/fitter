@@ -71,6 +71,6 @@ func main() {
 	}
 	fmt.Fprintln(os.Stdout, result)
 	if *copyFlag {
-		clipboard.WriteAll(result)
+		_ = clipboard.WriteAll(result)
 	}
 }

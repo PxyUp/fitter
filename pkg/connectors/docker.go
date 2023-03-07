@@ -67,7 +67,7 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 		pullFinish := make(chan struct{})
 
 		go func(dataForRead io.Reader) {
-			io.ReadAll(dataForRead)
+			_, _ = io.ReadAll(dataForRead)
 			close(pullFinish)
 		}(outPull)
 

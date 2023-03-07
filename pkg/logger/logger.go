@@ -25,27 +25,21 @@ func (n null) With(fields ...string) Logger {
 }
 
 func (n null) Infof(msg string, fields ...any) {
-	return
 }
 
 func (n null) Info(msg string) {
-	return
 }
 
 func (n null) Infow(msg string, fields ...string) {
-	return
 }
 
 func (n null) Error(msg string) {
-	return
 }
 
 func (n null) Errorf(msg string, fields ...any) {
-	return
 }
 
 func (n null) Errorw(msg string, fields ...string) {
-	return
 }
 
 var (

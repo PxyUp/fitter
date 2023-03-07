@@ -19,7 +19,7 @@ const (
 
 type Field struct {
 	BaseField    *BaseField    `json:"base_field" yaml:"base_field"`
-	ObjectConfig *ObjectConfig `yaml:"object_config" yaml:"object_config"`
+	ObjectConfig *ObjectConfig `json:"object_config" yaml:"object_config"`
 	ArrayConfig  *ArrayConfig  `json:"array_config" yaml:"array_config"`
 
 	FirstOf []*Field `json:"first_of" yaml:"first_of"`

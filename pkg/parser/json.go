@@ -52,7 +52,7 @@ func (j *jsonParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jso
 		length = int(cfg.Length)
 	}
 	values := make([]builder.Jsonable, length)
-	
+
 	var wg sync.WaitGroup
 
 	for lKey, lValue := range cfg.Items {

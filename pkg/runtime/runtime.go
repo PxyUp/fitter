@@ -37,7 +37,7 @@ func (r *runtime) createRunTime(updates <-chan string) {
 			case <-r.ctx.Done():
 				return
 			case name := <-updates:
-				reg.Get(name).Process()
+				_, _ = reg.Get(name).Process()
 			}
 		}
 	}()

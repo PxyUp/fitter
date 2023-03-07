@@ -10,8 +10,6 @@ import (
 )
 
 var (
-	null = &nullProcessor{}
-
 	errEmpty       = errors.New("empty response")
 	errMissingName = errors.New("missing name in configuration of the fitter")
 )
