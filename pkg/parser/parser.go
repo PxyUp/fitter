@@ -61,16 +61,14 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 		var connector connectors.Connector
 
 		if field.Model.ConnectorConfig.ConnectorType == config.Server && field.Model.ConnectorConfig.ServerConfig != nil {
-			connector = connectors.NewAPI(&config.ServerConnectorConfig{
+			connector = connectors.NewAPI(format(field.Model.ConnectorConfig.Url, parsedValue), &config.ServerConnectorConfig{
 				Method:  field.Model.ConnectorConfig.ServerConfig.Method,
 				Headers: field.Model.ConnectorConfig.ServerConfig.Headers,
-				Url:     format(field.Model.ConnectorConfig.ServerConfig.Url, parsedValue),
 			}, nil).WithLogger(logger.With("connector", "server"))
 		}
 
 		if field.Model.ConnectorConfig.ConnectorType == config.Browser && field.Model.ConnectorConfig.BrowserConfig != nil {
-			connector = connectors.NewBrowser(&config.BrowserConnectorConfig{
-				Url:        format(field.Model.ConnectorConfig.BrowserConfig.Url, parsedValue),
+			connector = connectors.NewBrowser(format(field.Model.ConnectorConfig.Url, parsedValue), &config.BrowserConnectorConfig{
 				Chromium:   field.Model.ConnectorConfig.BrowserConfig.Chromium,
 				Docker:     field.Model.ConnectorConfig.BrowserConfig.Docker,
 				Playwright: field.Model.ConnectorConfig.BrowserConfig.Playwright,

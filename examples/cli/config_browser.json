@@ -7,8 +7,8 @@
       "response_type": "xpath",
       "connector_type": "browser",
       "attempts": 2,
+      "url": "https://www.theguardian.com/world",
       "browser_config": {
-        "url": "https://www.theguardian.com/world",
         "chromium": {
           "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
           "wait": 10000
@@ -57,8 +57,8 @@
                     "response_type": "HTML",
                     "connector_type": "browser",
                     "attempts": 3,
+                    "url": "http://www.quotationspage.com/random.php",
                     "browser_config": {
-                      "url": "http://www.quotationspage.com/random.php",
                       "chromium": {
                         "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
                         "wait": 10000

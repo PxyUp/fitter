@@ -13,9 +13,9 @@ func main() {
 		ConnectorConfig: &config.ConnectorConfig{
 			ConnectorType: config.Server,
 			ResponseType:  config.Json,
+			Url:           "https://random-data-api.com/api/appliance/random_appliance",
 			ServerConfig: &config.ServerConnectorConfig{
 				Method: http.MethodGet,
-				Url:    "https://random-data-api.com/api/appliance/random_appliance",
 			},
 		},
 		Model: &config.Model{

@@ -6,9 +6,9 @@
     "connector_config": {
       "response_type": "HTML",
       "connector_type": "server",
+      "url": "http://www.citymayors.com/gratis/uk_topcities.html",
       "server_config": {
-        "method": "GET",
-        "url": "http://www.citymayors.com/gratis/uk_topcities.html"
+        "method": "GET"
       }
     },
     "model": {
@@ -65,8 +65,8 @@
                                     "response_type": "HTML",
                                     "connector_type": "browser",
                                     "attempts": 4,
+                                    "url": "https://openweathermap.org{PL}",
                                     "browser_config": {
-                                      "url": "https://openweathermap.org{PL}",
                                       "playwright": {
                                         "timeout": 30,
                                         "wait": 30,
@@ -87,8 +87,8 @@
                       "response_type": "xpath",
                       "connector_type": "browser",
                       "attempts": 3,
+                      "url": "https://openweathermap.org/find?q={PL}",
                       "browser_config": {
-                        "url": "https://openweathermap.org/find?q={PL}",
                         "playwright": {
                           "timeout": 30,
                           "wait": 30,

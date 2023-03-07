@@ -91,6 +91,7 @@ func (s *JsonParserObjectSuite) Test_FirstOf() {
 }
 
 func (s *JsonParserObjectSuite) Test_StaticArray() {
+
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{

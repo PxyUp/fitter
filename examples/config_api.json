@@ -5,9 +5,9 @@
       "connector_config": {
         "response_type": "json",
         "connector_type": "server",
+        "url": "https://chroniclingamerica.loc.gov/search/titles/results/?terms=michigan&format=json",
         "server_config": {
-          "method": "GET",
-          "url": "https://chroniclingamerica.loc.gov/search/titles/results/?terms=michigan&format=json"
+          "method": "GET"
         }
       },
       "trigger_config": {

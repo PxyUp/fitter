@@ -5,9 +5,9 @@
       "connector_config": {
         "response_type": "HTML",
         "connector_type": "server",
+        "url": "https://www.w3schools.com/html/html_examples.asp",
         "server_config": {
-          "method": "GET",
-          "url": "https://www.w3schools.com/html/html_examples.asp"
+          "method": "GET"
         }
       },
       "trigger_config": {

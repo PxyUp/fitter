@@ -66,6 +66,7 @@ type ConnectorConfig struct {
 	ResponseType  ParserType              `json:"response_type" yaml:"response_type"`
 	ConnectorType Connector               `json:"connector_type" yaml:"connector_type"`
 	ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
+	Url           string                  `json:"url" yaml:"url"`
 	BrowserConfig *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
 	Attempts      uint32                  `json:"attempts" yaml:"attempts"`
 }
@@ -87,7 +88,6 @@ type PlaywrightConfig struct {
 }
 
 type BrowserConnectorConfig struct {
-	Url        string            `json:"url" yaml:"url"`
 	Chromium   *ChromiumConfig   `json:"chromium" yaml:"chromium"`
 	Docker     *DockerConfig     `json:"docker" yaml:"docker"`
 	Playwright *PlaywrightConfig `json:"playwright" yaml:"playwright"`
@@ -114,7 +114,6 @@ type ChromiumConfig struct {
 type ServerConnectorConfig struct {
 	Method  string            `json:"method" yaml:"method"`
 	Headers map[string]string `yaml:"headers" json:"headers"`
-	Url     string            `json:"url" yaml:"url"`
 }
 
 type TriggerConfig struct {

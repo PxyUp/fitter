@@ -48,11 +48,11 @@ func init() {
 	sem = semaphore.NewWeighted(int64(defaultConcurrentRequest))
 }
 
-func NewAPI(cfg *config.ServerConnectorConfig, client *http.Client) *apiConnector {
+func NewAPI(url string, cfg *config.ServerConnectorConfig, client *http.Client) *apiConnector {
 	return &apiConnector{
 		headers: cfg.Headers,
 		client:  client,
-		url:     cfg.Url,
+		url:     url,
 		method:  cfg.Method,
 		logger:  logger.Null,
 	}

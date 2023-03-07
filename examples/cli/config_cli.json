@@ -8,9 +8,9 @@
     "connector_config": {
       "response_type": "json",
       "connector_type": "server",
+      "url": "https://hacker-news.firebaseio.com/v0/beststories.json?print=pretty&limitToFirst=10&orderBy=%22$key%22",
       "server_config": {
-        "method": "GET",
-        "url": "https://hacker-news.firebaseio.com/v0/beststories.json?print=pretty&limitToFirst=10&orderBy=%22$key%22"
+        "method": "GET"
       }
     },
     "model": {
@@ -44,9 +44,9 @@
                   "connector_config": {
                     "response_type": "xpath",
                     "connector_type": "server",
+                    "url": "https://www.theguardian.com/world",
                     "server_config": {
-                      "method": "GET",
-                      "url": "https://www.theguardian.com/world"
+                      "method": "GET"
                     }
                   }
                 }
@@ -72,9 +72,9 @@
                   "connector_config": {
                     "response_type": "HTML",
                     "connector_type": "server",
+                    "url": "http://www.quotationspage.com/random.php",
                     "server_config": {
-                      "method": "GET",
-                      "url": "http://www.quotationspage.com/random.php"
+                      "method": "GET"
                     }
                   }
                 }
@@ -171,9 +171,9 @@
                                                 "connector_config": {
                                                   "response_type": "json",
                                                   "connector_type": "server",
+                                                  "url": "https://hacker-news.firebaseio.com/v0/item/{PL}.json?print=pretty",
                                                   "server_config": {
-                                                    "method": "GET",
-                                                    "url": "https://hacker-news.firebaseio.com/v0/item/{PL}.json?print=pretty"
+                                                    "method": "GET"
                                                   }
                                                 }
                                               }
@@ -190,9 +190,9 @@
                           "connector_config": {
                             "response_type": "json",
                             "connector_type": "server",
+                            "url": "https://hacker-news.firebaseio.com/v0/item/{PL}.json?print=pretty",
                             "server_config": {
-                              "method": "GET",
-                              "url": "https://hacker-news.firebaseio.com/v0/item/{PL}.json?print=pretty"
+                              "method": "GET"
                             }
                           }
                         }
