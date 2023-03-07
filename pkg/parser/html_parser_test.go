@@ -207,6 +207,33 @@ func (s *HTMLParserArraySuite) Test_ReturnSimpleArray() {
 	assert.JSONEq(s.T(), "{\"menu\": [\"\",\"\",\"HTML\",\"CSS\",\"JAVASCRIPT\",\"SQL\",\"PYTHON\",\"JAVA\",\"PHP\",\"BOOTSTRAP\",\"HOW TO\",\"W3.CSS\",\"C\",\"C++\",\"C#\",\"REACT\",\"R\",\"JQUERY\",\"DJANGO\",\"TYPESCRIPT\",\"NODEJS\",\"MYSQL\",\"\uE802\",\"\uE801\",\"\uE80B\"]}\n", res.Raw)
 }
 
+func (s *HTMLParserArraySuite) Test_ReturnSimpleArray_Index() {
+	res, err := s.parser.Parse(&config.Model{
+		Type: config.ObjectModel,
+		ObjectConfig: &config.ObjectConfig{
+			Fields: map[string]*config.Field{
+				"menu": {
+					ArrayConfig: &config.ArrayConfig{
+						RootPath: "#topnav .w3-bar.w3-left a",
+						ItemConfig: &config.ObjectConfig{
+							Field: &config.BaseField{
+								Type: config.String,
+								Generated: &config.GeneratedFieldConfig{
+									Formatted: &config.FormattedFieldConfig{
+										Template: "{PL} {INDEX}",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "{\"menu\": [\"{PL} 0\",\"{PL} 1\",\"HTML 2\",\"CSS 3\",\"JAVASCRIPT 4\",\"SQL 5\",\"PYTHON 6\",\"JAVA 7\",\"PHP 8\",\"BOOTSTRAP 9\",\"HOW TO 10\",\"W3.CSS 11\",\"C 12\",\"C++ 13\",\"C# 14\",\"REACT 15\",\"R 16\",\"JQUERY 17\",\"DJANGO 18\",\"TYPESCRIPT 19\",\"NODEJS 20\",\"MYSQL 21\",\"\uE802 22\",\"\uE801 23\",\"\uE80B 24\"]}\n", res.Raw)
+}
+
 func (s *HTMLParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ObjectModel,

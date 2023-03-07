@@ -111,6 +111,28 @@ func (s *JsonParserArraySuite) Test_ReturnSimpleArray() {
 	assert.JSONEq(s.T(), "[\"nolanlester@qimonk.com\",\"hendersongonzales@megall.com\"]", res.Raw)
 }
 
+func (s *JsonParserArraySuite) Test_ReturnSimpleArray_Index() {
+	res, err := s.parser.Parse(&config.Model{
+		Type: config.ArrayModel,
+		ArrayConfig: &config.ArrayConfig{
+			RootPath: "",
+			ItemConfig: &config.ObjectConfig{
+				Field: &config.BaseField{
+					Type: config.String,
+					Path: "email",
+					Generated: &config.GeneratedFieldConfig{
+						Formatted: &config.FormattedFieldConfig{
+							Template: "EMAIL: {PL} INDEX: {INDEX}",
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "[\"EMAIL: nolanlester@qimonk.com INDEX: 0\",\"EMAIL: hendersongonzales@megall.com INDEX: 1\"]\n", res.Raw)
+}
+
 func (s *JsonParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ArrayModel,

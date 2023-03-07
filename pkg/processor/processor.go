@@ -88,6 +88,9 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 	}
 
 	var connector connectors.Connector
+	if item.ConnectorConfig.ConnectorType == config.JSONStringConnector && item.ConnectorConfig.JsonConfig != nil {
+		connector = connectors.NewJSON(item.ConnectorConfig.JsonConfig).WithLogger(logger.With("connector", "json"))
+	}
 	if item.ConnectorConfig.ConnectorType == config.Server && item.ConnectorConfig.ServerConfig != nil {
 		connector = connectors.NewAPI(item.ConnectorConfig.Url, item.ConnectorConfig.ServerConfig, nil).WithLogger(logger.With("connector", "server"))
 	}

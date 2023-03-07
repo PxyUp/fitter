@@ -147,6 +147,7 @@ type ConnectorConfig struct {
     ResponseType  ParserType              `json:"response_type" yaml:"response_type"`
     ConnectorType Connector               `json:"connector_type" yaml:"connector_type"`
     ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
+    JsonConfig    *JsonConnectorConfig    `json:"json_config" yaml:"json_config"`
     BrowserConfig *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
     Attempts      uint32                  `json:"attempts" yaml:"attempts"`
     Url           string                  `json:"url" yaml:"url"`
@@ -154,13 +155,14 @@ type ConnectorConfig struct {
 ```
 
 - ResponseType - enum["HTML", "json","xpath"] - in which format data comes from the connector
-- ConnectorType - enum["server", "browser"] - way how to fetch data
+- ConnectorType - enum["server", "browser", "json"] - way how to fetch data
 - Attempts - how many attempts to use for fetch data by connector
 - Url - define which address to request
 
 Config can be one of:
 - [ServerConfig](#serverconnectorconfig) - only if type of connector "server"
 - [BrowserConfig](#browserconnectorconfig) - only if type of connector "browser"
+- [JsonConfig](#jsonconnectorconfig) - only if type of connector "json"
 
 Example:
 ```json
@@ -177,6 +179,26 @@ Example:
       "browser": "Chromium"
     }
   }
+}
+```
+
+### JsonConnectorConfig
+Connector type which fetch data from provided JSON string
+```go
+type JsonConnectorConfig struct {
+	Json string `json:"json" yaml:"json"`
+}
+```
+
+- Json - valid json string
+
+
+Example:
+
+https://github.com/PxyUp/fitter/blob/master/examples/cli/config_connector_json.json#L5
+```json
+{
+  "json": "[1,2,3,4,5]"
 }
 ```
 
@@ -580,8 +602,8 @@ type FormattedFieldConfig struct {
 }
 ```
 
-- Template - template in with placeholder {PL} where [parent](#basefield) value will be injected like string
-
+- Template - template in with placeholder [{PL}](#placeholder-list) where [parent](#basefield) value will be injected like string
+ 
 Example:
 https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json#L98
 ```json
@@ -605,7 +627,7 @@ type ModelField struct {
 }
 ```
 
-- [ConnectorConfig](#connector) - which connector to use. Important: URL in the connector can be with inject of the parent value as a string
+- [ConnectorConfig](#connector) - which connector to use. Important: URL in the connector can be with [inject of the parent value as a string](#placeholder-list)
 - [Model](#model) - configuration of the underhood model
 - GeneratedFieldType - enum["null", "boolean", "string", "int","int64","float","float64", "array", "object"] - type of generated field
 - Path - in case we cant extract some information from generated field we can use json selector for extract
@@ -704,11 +726,13 @@ Provide static(fixed length) array generation
 ```go
 type StaticArrayConfig struct {
     Items map[uint32]*Field `yaml:"items" json:"items"`
+    Length uint32            `yaml:"length" json:"length"`
 }
 ```
 - [Items](#field) - map[uint32]*[Field](#field) - key is index in array, value is field definition
+- Length - if set(1+) can be used for define custom length of array
 
-Example:
+Examples:
 ```json
 {
   "0": {
@@ -719,6 +743,23 @@ Example:
   }
 }
 ```
+
+```json
+{
+  "length": 4,
+  "0": {
+    "base_field": {
+      "type": "string",
+      "path": "div.current-temp span.heading"
+    }
+  }
+}
+```
+
+##### Placeholder list
+1. {PL} - for inject value
+2. {INDEX} - for inject index in parent array
+3. {HUMAN_INDEX} - for inject index in parent array in human way
 
 ## Limits
 Provide limitation for prevent DDOS, big usage of memory

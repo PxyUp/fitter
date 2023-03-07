@@ -1,0 +1,26 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "json",
+      "connector_type": "json",
+      "json_config": {
+        "json": "[1,2,3,4,5]"
+      }
+    },
+    "model": {
+      "type": "array",
+      "array_config": {
+        "item_config": {
+          "field": {
+            "type": "int",
+            "generated": {
+              "formatted": {
+                "template": "PAGE: {PL} INDEX: {INDEX}"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

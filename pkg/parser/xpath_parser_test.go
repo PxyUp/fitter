@@ -228,6 +228,38 @@ func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 	assert.JSONEq(s.T(), "{\"menu\": [[\"TEST_1\",\"TEST_2\"],[\"TEST_3\",\"TEST_4\"]]}\n", res.Raw)
 }
 
+func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray_Index() {
+	res, err := s.parser.Parse(&config.Model{
+		Type: config.ObjectModel,
+		ObjectConfig: &config.ObjectConfig{
+			Fields: map[string]*config.Field{
+				"menu": {
+					ArrayConfig: &config.ArrayConfig{
+						RootPath: "//*[@id='test_array']/div",
+						ItemConfig: &config.ObjectConfig{
+							ArrayConfig: &config.ArrayConfig{
+								RootPath: "a",
+								ItemConfig: &config.ObjectConfig{
+									Field: &config.BaseField{
+										Type: config.String,
+										Generated: &config.GeneratedFieldConfig{
+											Formatted: &config.FormattedFieldConfig{
+												Template: "{PL} {INDEX}",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "{\"menu\": [[\"TEST_1 0\",\"TEST_2 1\"],[\"TEST_3 0\",\"TEST_4 1\"]]}\n", res.Raw)
+}
+
 func (s *XPathParserArraySuite) Test_ReturnNestedArray() {
 	res, err := s.parser.Parse(&config.Model{
 		Type: config.ArrayModel,

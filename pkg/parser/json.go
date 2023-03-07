@@ -47,8 +47,12 @@ func (j *jsonParser) buildObject(object *config.ObjectConfig) builder.Jsonable {
 }
 
 func (j *jsonParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jsonable {
-	values := make([]builder.Jsonable, len(cfg.Items))
-
+	length := len(cfg.Items)
+	if cfg.Length > 0 {
+		length = int(cfg.Length)
+	}
+	values := make([]builder.Jsonable, length)
+	
 	var wg sync.WaitGroup
 
 	for lKey, lValue := range cfg.Items {
@@ -58,7 +62,8 @@ func (j *jsonParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jso
 		go func(k uint32, v *config.Field) {
 			defer wg.Done()
 
-			values[k] = j.resolveField(j.parserBody, v)
+			arrIndex := k
+			values[k] = j.resolveField(j.parserBody, v, &arrIndex)
 		}(key, value)
 
 	}
@@ -82,7 +87,7 @@ func (j *jsonParser) buildObjectField(parent gjson.Result, fields map[string]*co
 			defer wg.Done()
 
 			mutex.Lock()
-			kv[k] = j.resolveField(parent, v)
+			kv[k] = j.resolveField(parent, v, nil)
 			mutex.Unlock()
 		}(key, value)
 	}
@@ -92,9 +97,9 @@ func (j *jsonParser) buildObjectField(parent gjson.Result, fields map[string]*co
 	return builder.Object(kv)
 }
 
-func (j *jsonParser) buildFirstOfField(source gjson.Result, fields []*config.Field) builder.Jsonable {
+func (j *jsonParser) buildFirstOfField(source gjson.Result, fields []*config.Field, index *uint32) builder.Jsonable {
 	for _, value := range fields {
-		tempValue := j.resolveField(source, value)
+		tempValue := j.resolveField(source, value, index)
 		if !tempValue.IsEmpty() {
 			return tempValue
 		}
@@ -103,13 +108,13 @@ func (j *jsonParser) buildFirstOfField(source gjson.Result, fields []*config.Fie
 	return builder.Null()
 }
 
-func (j *jsonParser) resolveField(parent gjson.Result, field *config.Field) builder.Jsonable {
+func (j *jsonParser) resolveField(parent gjson.Result, field *config.Field, index *uint32) builder.Jsonable {
 	if len(field.FirstOf) != 0 {
-		return j.buildFirstOfField(parent, field.FirstOf)
+		return j.buildFirstOfField(parent, field.FirstOf, index)
 	}
 
 	if field.BaseField != nil {
-		return j.buildBaseField(parent, field.BaseField)
+		return j.buildBaseField(parent, field.BaseField, index)
 	}
 
 	if field.ObjectConfig != nil {
@@ -144,7 +149,8 @@ func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayCon
 			go func(index int, res gjson.Result) {
 				defer wg.Done()
 
-				values[index] = j.buildBaseField(res, array.ItemConfig.Field)
+				arrIndex := uint32(index)
+				values[index] = j.buildBaseField(res, array.ItemConfig.Field, &arrIndex)
 			}(i, r)
 
 		}
@@ -186,9 +192,9 @@ func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayCon
 	return builder.Array(values)
 }
 
-func (j *jsonParser) buildFirstOfBaseField(source gjson.Result, fields []*config.BaseField) builder.Jsonable {
+func (j *jsonParser) buildFirstOfBaseField(source gjson.Result, fields []*config.BaseField, index *uint32) builder.Jsonable {
 	for _, value := range fields {
-		tempValue := j.buildBaseField(source, value)
+		tempValue := j.buildBaseField(source, value, index)
 		if !tempValue.IsEmpty() {
 			return tempValue
 		}
@@ -197,9 +203,9 @@ func (j *jsonParser) buildFirstOfBaseField(source gjson.Result, fields []*config
 	return builder.Null()
 }
 
-func (j *jsonParser) buildBaseField(source gjson.Result, field *config.BaseField) builder.Jsonable {
+func (j *jsonParser) buildBaseField(source gjson.Result, field *config.BaseField, index *uint32) builder.Jsonable {
 	if len(field.FirstOf) != 0 {
-		return j.buildFirstOfBaseField(source, field.FirstOf)
+		return j.buildFirstOfBaseField(source, field.FirstOf, index)
 	}
 
 	if field.Path != "" {
@@ -212,7 +218,7 @@ func (j *jsonParser) buildBaseField(source gjson.Result, field *config.BaseField
 		if field.Type == config.String {
 			tempValue = builder.PureString(tempValue.ToJson())
 		}
-		generatedValue := buildGeneratedField(tempValue, field.Generated, j.logger)
+		generatedValue := buildGeneratedField(tempValue, field.Generated, j.logger, index)
 		if field.Generated.Model != nil {
 			if field.Generated.Model.Type == config.Array || field.Generated.Model.Type == config.Object {
 				if field.Generated.Model.Path != "" {

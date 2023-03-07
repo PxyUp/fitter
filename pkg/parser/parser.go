@@ -40,7 +40,7 @@ func (p *ParseResult) ToJson() string {
 	return p.Raw
 }
 
-func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFieldConfig, logger logger.Logger) builder.Jsonable {
+func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
 	if field.UUID != nil {
 		return builder.UUID(field.UUID)
 	}
@@ -50,7 +50,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 	}
 
 	if field.Formatted != nil {
-		return builder.String(format(field.Formatted.Template, parsedValue))
+		return builder.String(format(field.Formatted.Template, parsedValue, index))
 	}
 
 	if field.Model != nil {
@@ -60,15 +60,19 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 
 		var connector connectors.Connector
 
+		if field.Model.ConnectorConfig.ConnectorType == config.JSONStringConnector && field.Model.ConnectorConfig.JsonConfig != nil {
+			connector = connectors.NewJSON(field.Model.ConnectorConfig.JsonConfig).WithLogger(logger.With("connector", "json"))
+		}
+
 		if field.Model.ConnectorConfig.ConnectorType == config.Server && field.Model.ConnectorConfig.ServerConfig != nil {
-			connector = connectors.NewAPI(format(field.Model.ConnectorConfig.Url, parsedValue), &config.ServerConnectorConfig{
+			connector = connectors.NewAPI(format(field.Model.ConnectorConfig.Url, parsedValue, index), &config.ServerConnectorConfig{
 				Method:  field.Model.ConnectorConfig.ServerConfig.Method,
 				Headers: field.Model.ConnectorConfig.ServerConfig.Headers,
 			}, nil).WithLogger(logger.With("connector", "server"))
 		}
 
 		if field.Model.ConnectorConfig.ConnectorType == config.Browser && field.Model.ConnectorConfig.BrowserConfig != nil {
-			connector = connectors.NewBrowser(format(field.Model.ConnectorConfig.Url, parsedValue), &config.BrowserConnectorConfig{
+			connector = connectors.NewBrowser(format(field.Model.ConnectorConfig.Url, parsedValue, index), &config.BrowserConnectorConfig{
 				Chromium:   field.Model.ConnectorConfig.BrowserConfig.Chromium,
 				Docker:     field.Model.ConnectorConfig.BrowserConfig.Docker,
 				Playwright: field.Model.ConnectorConfig.BrowserConfig.Playwright,

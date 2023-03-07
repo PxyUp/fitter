@@ -9,8 +9,9 @@ type ParserType string
 type ModelType string
 
 const (
-	Browser Connector = "browser"
-	Server  Connector = "server"
+	Browser             Connector = "browser"
+	Server              Connector = "server"
+	JSONStringConnector Connector = "json"
 
 	HTML  ParserType = "HTML"
 	Json  ParserType = "json"
@@ -53,7 +54,8 @@ type ArrayConfig struct {
 }
 
 type StaticArrayConfig struct {
-	Items map[uint32]*Field `yaml:"items" json:"items"`
+	Items  map[uint32]*Field `yaml:"items" json:"items"`
+	Length uint32            `yaml:"length" json:"length"`
 }
 
 type Model struct {
@@ -65,8 +67,9 @@ type Model struct {
 type ConnectorConfig struct {
 	ResponseType  ParserType              `json:"response_type" yaml:"response_type"`
 	ConnectorType Connector               `json:"connector_type" yaml:"connector_type"`
-	ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
 	Url           string                  `json:"url" yaml:"url"`
+	JsonConfig    *JsonConnectorConfig    `json:"json_config" yaml:"json_config"`
+	ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
 	BrowserConfig *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
 	Attempts      uint32                  `json:"attempts" yaml:"attempts"`
 }
@@ -85,6 +88,10 @@ type PlaywrightConfig struct {
 	Timeout    uint32                     `yaml:"timeout" json:"timeout"`
 	Wait       uint32                     `yaml:"wait" json:"wait"`
 	TypeOfWait *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
+}
+
+type JsonConnectorConfig struct {
+	Json string `json:"json" yaml:"json"`
 }
 
 type BrowserConnectorConfig struct {

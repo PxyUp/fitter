@@ -69,7 +69,7 @@ func (h *htmlParser) buildObjectField(parent *goquery.Selection, fields map[stri
 			defer wg.Done()
 
 			mutex.Lock()
-			kv[k] = h.resolveField(parent, v)
+			kv[k] = h.resolveField(parent, v, nil)
 			mutex.Unlock()
 		}(key, value)
 	}
@@ -80,7 +80,12 @@ func (h *htmlParser) buildObjectField(parent *goquery.Selection, fields map[stri
 }
 
 func (h *htmlParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jsonable {
-	values := make([]builder.Jsonable, len(cfg.Items))
+	length := len(cfg.Items)
+	if cfg.Length > 0 {
+		length = int(cfg.Length)
+	}
+
+	values := make([]builder.Jsonable, length)
 
 	var wg sync.WaitGroup
 
@@ -91,7 +96,8 @@ func (h *htmlParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jso
 		go func(k uint32, v *config.Field) {
 			defer wg.Done()
 
-			values[int(k)] = h.resolveField(h.parserBody, v)
+			arrIndex := k
+			values[int(k)] = h.resolveField(h.parserBody, v, &arrIndex)
 		}(key, value)
 
 	}
@@ -101,9 +107,9 @@ func (h *htmlParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jso
 	return builder.Array(values)
 }
 
-func (h *htmlParser) buildFirstOfField(parent *goquery.Selection, fields []*config.Field) builder.Jsonable {
+func (h *htmlParser) buildFirstOfField(parent *goquery.Selection, fields []*config.Field, index *uint32) builder.Jsonable {
 	for _, value := range fields {
-		tempValue := h.resolveField(parent, value)
+		tempValue := h.resolveField(parent, value, index)
 		if !tempValue.IsEmpty() {
 			return tempValue
 		}
@@ -112,13 +118,13 @@ func (h *htmlParser) buildFirstOfField(parent *goquery.Selection, fields []*conf
 	return builder.Null()
 }
 
-func (h *htmlParser) resolveField(parent *goquery.Selection, field *config.Field) builder.Jsonable {
+func (h *htmlParser) resolveField(parent *goquery.Selection, field *config.Field, index *uint32) builder.Jsonable {
 	if len(field.FirstOf) != 0 {
-		return h.buildFirstOfField(parent, field.FirstOf)
+		return h.buildFirstOfField(parent, field.FirstOf, index)
 	}
 
 	if field.BaseField != nil {
-		return h.buildBaseField(parent, field.BaseField)
+		return h.buildBaseField(parent, field.BaseField, index)
 	}
 
 	if field.ObjectConfig != nil {
@@ -149,7 +155,8 @@ func (h *htmlParser) buildArrayField(parent *goquery.Selection, array *config.Ar
 			go func(index int, selection *goquery.Selection) {
 				defer wg.Done()
 
-				values[index] = h.buildBaseField(selection, array.ItemConfig.Field)
+				arrIndex := uint32(index)
+				values[index] = h.buildBaseField(selection, array.ItemConfig.Field, &arrIndex)
 			}(i, s)
 
 		})
@@ -220,9 +227,9 @@ func (h *htmlParser) fillUpBaseField(source *goquery.Selection, field *config.Ba
 	return builder.Null()
 }
 
-func (h *htmlParser) buildFirstOfBaseField(source *goquery.Selection, fields []*config.BaseField) builder.Jsonable {
+func (h *htmlParser) buildFirstOfBaseField(source *goquery.Selection, fields []*config.BaseField, index *uint32) builder.Jsonable {
 	for _, value := range fields {
-		tempValue := h.buildBaseField(source, value)
+		tempValue := h.buildBaseField(source, value, index)
 		if !tempValue.IsEmpty() {
 			return tempValue
 		}
@@ -231,9 +238,9 @@ func (h *htmlParser) buildFirstOfBaseField(source *goquery.Selection, fields []*
 	return builder.Null()
 }
 
-func (h *htmlParser) buildBaseField(source *goquery.Selection, field *config.BaseField) builder.Jsonable {
+func (h *htmlParser) buildBaseField(source *goquery.Selection, field *config.BaseField, index *uint32) builder.Jsonable {
 	if len(field.FirstOf) != 0 {
-		return h.buildFirstOfBaseField(source, field.FirstOf)
+		return h.buildFirstOfBaseField(source, field.FirstOf, index)
 	}
 
 	if field.Path != "" {
@@ -246,7 +253,7 @@ func (h *htmlParser) buildBaseField(source *goquery.Selection, field *config.Bas
 		if field.Type == config.String {
 			tempValue = builder.PureString(tempValue.ToJson())
 		}
-		generatedValue := buildGeneratedField(tempValue, field.Generated, h.logger)
+		generatedValue := buildGeneratedField(tempValue, field.Generated, h.logger, index)
 		if field.Generated.Model != nil {
 			if field.Generated.Model.Type == config.Array || field.Generated.Model.Type == config.Object {
 				if field.Generated.Model.Path != "" {

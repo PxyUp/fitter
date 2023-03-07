@@ -75,7 +75,11 @@ func (x *xpathParser) buildObject(object *config.ObjectConfig) builder.Jsonable 
 }
 
 func (x *xpathParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jsonable {
-	values := make([]builder.Jsonable, len(cfg.Items))
+	length := len(cfg.Items)
+	if cfg.Length > 0 {
+		length = int(cfg.Length)
+	}
+	values := make([]builder.Jsonable, length)
 
 	var wg sync.WaitGroup
 
@@ -86,7 +90,8 @@ func (x *xpathParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Js
 		go func(k uint32, v *config.Field) {
 			defer wg.Done()
 
-			values[k] = x.resolveField(x.parserBody, v)
+			arrIndex := k
+			values[k] = x.resolveField(x.parserBody, v, &arrIndex)
 
 		}(key, value)
 
@@ -97,9 +102,9 @@ func (x *xpathParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Js
 	return builder.Array(values)
 }
 
-func (x *xpathParser) buildFirstOfField(parent *html.Node, fields []*config.Field) builder.Jsonable {
+func (x *xpathParser) buildFirstOfField(parent *html.Node, fields []*config.Field, index *uint32) builder.Jsonable {
 	for _, value := range fields {
-		tempValue := x.resolveField(parent, value)
+		tempValue := x.resolveField(parent, value, index)
 		if !tempValue.IsEmpty() {
 			return tempValue
 		}
@@ -108,13 +113,13 @@ func (x *xpathParser) buildFirstOfField(parent *html.Node, fields []*config.Fiel
 	return builder.Null()
 }
 
-func (x *xpathParser) resolveField(parent *html.Node, field *config.Field) builder.Jsonable {
+func (x *xpathParser) resolveField(parent *html.Node, field *config.Field, index *uint32) builder.Jsonable {
 	if len(field.FirstOf) != 0 {
-		return x.buildFirstOfField(parent, field.FirstOf)
+		return x.buildFirstOfField(parent, field.FirstOf, index)
 	}
 
 	if field.BaseField != nil {
-		return x.buildBaseField(parent, field.BaseField)
+		return x.buildBaseField(parent, field.BaseField, index)
 	}
 
 	if field.ObjectConfig != nil {
@@ -141,7 +146,7 @@ func (x *xpathParser) buildObjectField(parent *html.Node, fields map[string]*con
 			defer wg.Done()
 
 			mutex.Lock()
-			kv[k] = x.resolveField(parent, v)
+			kv[k] = x.resolveField(parent, v, nil)
 			mutex.Unlock()
 
 		}(key, value)
@@ -169,7 +174,9 @@ func (x *xpathParser) buildArrayField(parent []*html.Node, array *config.ArrayCo
 			go func(index int, selection *html.Node) {
 				defer wg.Done()
 
-				values[index] = x.buildBaseField(selection, array.ItemConfig.Field)
+				arrIndex := uint32(index)
+
+				values[index] = x.buildBaseField(selection, array.ItemConfig.Field, &arrIndex)
 			}(i, s)
 
 		}
@@ -244,9 +251,9 @@ func (x *xpathParser) fillUpBaseField(source *html.Node, field *config.BaseField
 	return builder.Null()
 }
 
-func (x *xpathParser) buildFirstOfBaseField(source *html.Node, fields []*config.BaseField) builder.Jsonable {
+func (x *xpathParser) buildFirstOfBaseField(source *html.Node, fields []*config.BaseField, index *uint32) builder.Jsonable {
 	for _, value := range fields {
-		tempValue := x.buildBaseField(source, value)
+		tempValue := x.buildBaseField(source, value, index)
 		if !tempValue.IsEmpty() {
 			return tempValue
 		}
@@ -255,9 +262,9 @@ func (x *xpathParser) buildFirstOfBaseField(source *html.Node, fields []*config.
 	return builder.Null()
 }
 
-func (x *xpathParser) buildBaseField(source *html.Node, field *config.BaseField) builder.Jsonable {
+func (x *xpathParser) buildBaseField(source *html.Node, field *config.BaseField, index *uint32) builder.Jsonable {
 	if len(field.FirstOf) != 0 {
-		return x.buildFirstOfBaseField(source, field.FirstOf)
+		return x.buildFirstOfBaseField(source, field.FirstOf, index)
 	}
 
 	if field.Path != "" {
@@ -270,7 +277,7 @@ func (x *xpathParser) buildBaseField(source *html.Node, field *config.BaseField)
 		if field.Type == config.String {
 			tempValue = builder.PureString(tempValue.ToJson())
 		}
-		generatedValue := buildGeneratedField(tempValue, field.Generated, x.logger)
+		generatedValue := buildGeneratedField(tempValue, field.Generated, x.logger, index)
 		if field.Generated.Model != nil {
 			if field.Generated.Model.Type == config.Array || field.Generated.Model.Type == config.Object {
 				if field.Generated.Model.Path != "" {

@@ -28,7 +28,12 @@ func (s *arrayField) ToJson() string {
 	str := "["
 
 	for i, item := range s.values {
-		str += item.ToJson()
+		if item == nil {
+			str += Null().ToJson()
+		} else {
+			str += item.ToJson()
+		}
+
 		if i != len(s.values)-1 {
 			str += ","
 		}
