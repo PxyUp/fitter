@@ -13,7 +13,7 @@ Fitter Lib - library which provide functional of fitter CLI as a library
 
 1. **Server** - parsing response from some API's or http request(usage of http.Client)
 2. **Browser** - emulate real browser using chromium + docker + playwright/cypress and get DOM information
-3. **JSON** - parsing static provided JSON
+3. **Static** - parsing static string as data
 
 
 **Docker default image**: docker.io/zenika/alpine-chrome
@@ -150,11 +150,11 @@ It is the way how you fetch the data
 type ConnectorConfig struct {
     ResponseType  ParserType              `json:"response_type" yaml:"response_type"`
     ConnectorType Connector               `json:"connector_type" yaml:"connector_type"`
+    Url           string                  `json:"url" yaml:"url"`
+    StaticConfig  *StaticConnectorConfig  `json:"static_config" yaml:"static_config"`
     ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
-    JsonConfig    *JsonConnectorConfig    `json:"json_config" yaml:"json_config"`
     BrowserConfig *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
     Attempts      uint32                  `json:"attempts" yaml:"attempts"`
-    Url           string                  `json:"url" yaml:"url"`
 }
 ```
 
@@ -166,7 +166,7 @@ type ConnectorConfig struct {
 Config can be one of:
 - [ServerConfig](#serverconnectorconfig) - only if type of connector "server"
 - [BrowserConfig](#browserconnectorconfig) - only if type of connector "browser"
-- [JsonConfig](#jsonconnectorconfig) - only if type of connector "json"
+- [StaticConfig](#staticconnectorconfig) - only if type of connector "static"
 
 Example:
 ```json
@@ -186,23 +186,23 @@ Example:
 }
 ```
 
-### JsonConnectorConfig
-Connector type which fetch data from provided JSON string
+### StaticConnectorConfig
+Connector type which fetch data from provided string
 ```go
-type JsonConnectorConfig struct {
-	Json string `json:"json" yaml:"json"`
+type StaticConnectorConfig struct {
+	Value string `json:"value" yaml:"value"`
 }
 ```
 
-- Json - valid json string
+- Value - static string as data, can be html, json
 
 
 Example:
 
-https://github.com/PxyUp/fitter/blob/master/examples/cli/config_connector_json.json#L5
+https://github.com/PxyUp/fitter/blob/master/examples/cli/config_static_connector.json#L5
 ```json
 {
-  "json": "[1,2,3,4,5]"
+  "value": "[1,2,3,4,5]"
 }
 ```
 
@@ -222,8 +222,7 @@ type ServerConnectorConfig struct {
 Example:
 ```json
 {
-  "method": "GET",
-  "url": "https://hacker-news.firebaseio.com/v0/beststories.json?print=pretty&limitToFirst=10&orderBy=%22$key%22"
+  "method": "GET"
 }
 ```
 
@@ -251,7 +250,6 @@ Config can be one of:
 Example:
 ```json
 {
-    "url": "https://www.theguardian.com/world",
     "docker": {
       "wait": 10000,
       "image": "docker.io/zenika/alpine-chrome:with-node",
@@ -302,7 +300,7 @@ type DockerConfig struct {
 }
 ```
 
-- Image - image for the docker registry(please provide which register host)
+- Image - image for the docker registry(provide with registry host)
 - EntryPoint - cmd which will be run inside container
 - Timeout[sec] - timeout for run container(without pulling image)
 - Wait[msec] - timeout of page loading (works just for Chromium based containers)

@@ -9,9 +9,9 @@ type ParserType string
 type ModelType string
 
 const (
-	Browser             Connector = "browser"
-	Server              Connector = "server"
-	JSONStringConnector Connector = "json"
+	Browser Connector = "browser"
+	Server  Connector = "server"
+	Static  Connector = "static"
 
 	HTML  ParserType = "HTML"
 	Json  ParserType = "json"
@@ -68,7 +68,7 @@ type ConnectorConfig struct {
 	ResponseType  ParserType              `json:"response_type" yaml:"response_type"`
 	ConnectorType Connector               `json:"connector_type" yaml:"connector_type"`
 	Url           string                  `json:"url" yaml:"url"`
-	JsonConfig    *JsonConnectorConfig    `json:"json_config" yaml:"json_config"`
+	StaticConfig  *StaticConnectorConfig  `json:"static_config" yaml:"static_config"`
 	ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
 	BrowserConfig *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
 	Attempts      uint32                  `json:"attempts" yaml:"attempts"`
@@ -90,8 +90,8 @@ type PlaywrightConfig struct {
 	TypeOfWait *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
 }
 
-type JsonConnectorConfig struct {
-	Json string `json:"json" yaml:"json"`
+type StaticConnectorConfig struct {
+	Value string `json:"value" yaml:"value"`
 }
 
 type BrowserConnectorConfig struct {

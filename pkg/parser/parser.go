@@ -60,8 +60,8 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 
 		var connector connectors.Connector
 
-		if field.Model.ConnectorConfig.ConnectorType == config.JSONStringConnector && field.Model.ConnectorConfig.JsonConfig != nil {
-			connector = connectors.NewJSON(field.Model.ConnectorConfig.JsonConfig).WithLogger(logger.With("connector", "json"))
+		if field.Model.ConnectorConfig.ConnectorType == config.Static && field.Model.ConnectorConfig.StaticConfig != nil {
+			connector = connectors.NewStatic(field.Model.ConnectorConfig.StaticConfig).WithLogger(logger.With("connector", "static"))
 		}
 
 		if field.Model.ConnectorConfig.ConnectorType == config.Server && field.Model.ConnectorConfig.ServerConfig != nil {
