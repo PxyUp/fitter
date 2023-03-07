@@ -13,6 +13,8 @@ Fitter Lib - library which provide functional of fitter CLI as a library
 
 1. **Server** - parsing response from some API's or http request(usage of http.Client)
 2. **Browser** - emulate real browser using chromium + docker + playwright/cypress and get DOM information
+3. **JSON** - parsing static provided JSON
+
 
 **Docker default image**: docker.io/zenika/alpine-chrome
 
@@ -136,6 +138,8 @@ Examples:
 3. **Docker version** [Docker version: Guardian News + Quotes](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_docker.json) - using HTML parsing + browser from Docker image
 4. **Playwright version** [Playwright version: Guardian News + Quotes](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_playwright.json) - using HTML parsing + browser from Playwright framework
 5. **Playwright version** [Playwright version: England Cities + Weather](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_weather.json) - using HTML + XPath parsing + browser from Playwright framework
+6. **JSON version** [Generate pagination](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_connector_json.json) - using json connector for generate pagination array
+
 
 # Configuration
 
