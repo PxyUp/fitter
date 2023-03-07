@@ -1,7 +1,7 @@
 package builder
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -20,5 +20,5 @@ func (s *stringField) IsEmpty() bool {
 }
 
 func (s *stringField) ToJson() string {
-	return fmt.Sprintf(`"%s"`, strings.ReplaceAll(s.value, `"`, `\"`))
+	return strconv.Quote(s.value)
 }

@@ -164,6 +164,12 @@
                                                           "type": "string",
                                                           "path": "type"
                                                         }
+                                                      },
+                                                      "text": {
+                                                        "base_field": {
+                                                          "type": "string",
+                                                          "path": "text"
+                                                        }
                                                       }
                                                     }
                                                   }

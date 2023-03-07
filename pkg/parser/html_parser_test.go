@@ -231,7 +231,7 @@ func (s *HTMLParserArraySuite) Test_ReturnSimpleArray_Index() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"menu\": [\"{PL} 0\",\"{PL} 1\",\"HTML 2\",\"CSS 3\",\"JAVASCRIPT 4\",\"SQL 5\",\"PYTHON 6\",\"JAVA 7\",\"PHP 8\",\"BOOTSTRAP 9\",\"HOW TO 10\",\"W3.CSS 11\",\"C 12\",\"C++ 13\",\"C# 14\",\"REACT 15\",\"R 16\",\"JQUERY 17\",\"DJANGO 18\",\"TYPESCRIPT 19\",\"NODEJS 20\",\"MYSQL 21\",\"\uE802 22\",\"\uE801 23\",\"\uE80B 24\"]}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"menu\": [\"{PL} 0\",\"{PL} 1\",\"HTML 2\",\"CSS 3\",\"JAVASCRIPT 4\",\"SQL 5\",\"PYTHON 6\",\"JAVA 7\",\"PHP 8\",\"BOOTSTRAP 9\",\"HOW TO 10\",\"W3.CSS 11\",\"C 12\",\"C++ 13\",\"C# 14\",\"REACT 15\",\"R 16\",\"JQUERY 17\",\"DJANGO 18\",\"TYPESCRIPT 19\",\"NODEJS 20\",\"MYSQL 21\",\"\\\\ue802 22\",\"\\\\ue801 23\",\"\\\\ue80b 24\"]}\n", res.Raw)
 }
 
 func (s *HTMLParserArraySuite) Test_ReturnSimpleArrayOfArray() {
