@@ -137,8 +137,9 @@ Examples:
 3. **Docker version** [Docker version: Guardian News + Quotes](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_docker.json) - using HTML parsing + browser from Docker image
 4. **Playwright version** [Playwright version: Guardian News + Quotes](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_playwright.json) - using HTML parsing + browser from Playwright framework
 5. **Playwright version** [Playwright version: England Cities + Weather](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_weather.json) - using HTML + XPath parsing + browser from Playwright framework
-6. **JSON version** [Generate pagination](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_connector_json.json) - using json connector for generate pagination array
+6. **JSON version** [Generate pagination](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_static_connector.json) - using static connector for generate pagination array
 7. **Server version** [Get current time](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_current_time.json) - get time from url and format it
+
 
 
 # Configuration
