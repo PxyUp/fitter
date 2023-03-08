@@ -1,0 +1,22 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "HTML",
+      "url": "https://time.is",
+      "server_config": {
+        "method": "GET"
+      }
+    },
+    "model": {
+      "base_field": {
+        "type": "string",
+        "path": "time#clock",
+        "generated": {
+          "formatted": {
+            "template": "Current time is: {PL}"
+          }
+        }
+      }
+    }
+  }
+}

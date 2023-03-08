@@ -36,9 +36,30 @@ func (s *JsonParserObjectSuite) SetupTest() {
 	s.parser = parser.JsonFactory(s.body, logger.Null)
 }
 
+func (s *JsonParserObjectSuite) Test_Return_BaseField_String() {
+	res, err := s.parser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.String,
+			Path: "eyeColor",
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "\"green\"", res.Raw)
+}
+
+func (s *JsonParserObjectSuite) Test_Return_BaseField_Number() {
+	res, err := s.parser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.Int,
+			Path: "age",
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "27", res.Raw)
+}
+
 func (s *JsonParserObjectSuite) Test_FirstOf() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"title": {
@@ -93,7 +114,6 @@ func (s *JsonParserObjectSuite) Test_FirstOf() {
 func (s *JsonParserObjectSuite) Test_StaticArray() {
 
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			StaticConfig: &config.StaticArrayConfig{
 				Items: map[uint32]*config.Field{
@@ -125,7 +145,6 @@ func (s *JsonParserObjectSuite) Test_StaticArray() {
 
 func (s *JsonParserObjectSuite) Test_ParseSimpleObject() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"address": {
@@ -149,7 +168,6 @@ func (s *JsonParserObjectSuite) Test_ParseSimpleObject() {
 
 func (s *JsonParserObjectSuite) TestGeneratedField() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"uuid": {
@@ -182,7 +200,6 @@ func (s *JsonParserObjectSuite) TestGeneratedField() {
 
 func (s *JsonParserObjectSuite) Test_ReturnSimpleArray_Concat() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"prices": {
@@ -204,7 +221,6 @@ func (s *JsonParserObjectSuite) Test_ReturnSimpleArray_Concat() {
 
 func (s *JsonParserObjectSuite) Test_ReturnSimpleArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "tags",
 			ItemConfig: &config.ObjectConfig{
@@ -221,7 +237,6 @@ func (s *JsonParserObjectSuite) Test_ReturnSimpleArray() {
 
 func (s *JsonParserObjectSuite) Test_ReturnSimpleArrayOfArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "tags_nested",
 			ItemConfig: &config.ObjectConfig{
@@ -241,7 +256,6 @@ func (s *JsonParserObjectSuite) Test_ReturnSimpleArrayOfArray() {
 
 func (s *JsonParserObjectSuite) Test_ReturnNestedArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "friends",
 			ItemConfig: &config.ObjectConfig{
@@ -277,7 +291,6 @@ func (s *JsonParserObjectSuite) Test_ReturnNestedArray() {
 
 func (s *JsonParserObjectSuite) Test_ParseNestedObject() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"player": {

@@ -86,13 +86,13 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 	}
 
 	var connector connectors.Connector
-	if item.ConnectorConfig.ConnectorType == config.Static && item.ConnectorConfig.StaticConfig != nil {
+	if item.ConnectorConfig.StaticConfig != nil {
 		connector = connectors.NewStatic(item.ConnectorConfig.StaticConfig).WithLogger(logger.With("connector", "static"))
 	}
-	if item.ConnectorConfig.ConnectorType == config.Server && item.ConnectorConfig.ServerConfig != nil {
+	if item.ConnectorConfig.ServerConfig != nil {
 		connector = connectors.NewAPI(item.ConnectorConfig.Url, item.ConnectorConfig.ServerConfig, nil).WithLogger(logger.With("connector", "server"))
 	}
-	if item.ConnectorConfig.ConnectorType == config.Browser && item.ConnectorConfig.BrowserConfig != nil {
+	if item.ConnectorConfig.BrowserConfig != nil {
 		connector = connectors.NewBrowser(item.ConnectorConfig.Url, item.ConnectorConfig.BrowserConfig).WithLogger(logger.With("connector", "browser"))
 	}
 

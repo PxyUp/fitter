@@ -45,15 +45,13 @@ import (
 func main() {
 	res, err := lib.Parse(&config.Item{
 		ConnectorConfig: &config.ConnectorConfig{
-			ConnectorType: config.Server,
 			ResponseType:  config.Json,
-			Url:    "https://random-data-api.com/api/appliance/random_appliance",
+			Url:           "https://random-data-api.com/api/appliance/random_appliance",
 			ServerConfig: &config.ServerConnectorConfig{
 				Method: http.MethodGet,
 			},
 		},
 		Model: &config.Model{
-			Type: config.ObjectModel,
 			ObjectConfig: &config.ObjectConfig{
 				Fields: map[string]*config.Field{
 					"my_id": {
@@ -88,6 +86,7 @@ func main() {
 	}
 	fmt.Println(res.ToJson())
 }
+
 
 ```
 
@@ -139,6 +138,7 @@ Examples:
 4. **Playwright version** [Playwright version: Guardian News + Quotes](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_playwright.json) - using HTML parsing + browser from Playwright framework
 5. **Playwright version** [Playwright version: England Cities + Weather](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_weather.json) - using HTML + XPath parsing + browser from Playwright framework
 6. **JSON version** [Generate pagination](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_connector_json.json) - using json connector for generate pagination array
+7. **Server version** [Get current time](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_current_time.json) - get time from url and format it
 
 
 # Configuration
@@ -149,7 +149,6 @@ It is the way how you fetch the data
 ```go
 type ConnectorConfig struct {
     ResponseType  ParserType              `json:"response_type" yaml:"response_type"`
-    ConnectorType Connector               `json:"connector_type" yaml:"connector_type"`
     Url           string                  `json:"url" yaml:"url"`
     StaticConfig  *StaticConnectorConfig  `json:"static_config" yaml:"static_config"`
     ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
@@ -159,20 +158,18 @@ type ConnectorConfig struct {
 ```
 
 - ResponseType - enum["HTML", "json","xpath"] - in which format data comes from the connector
-- ConnectorType - enum["server", "browser", "json"] - way how to fetch data
 - Attempts - how many attempts to use for fetch data by connector
 - Url - define which address to request
 
 Config can be one of:
-- [ServerConfig](#serverconnectorconfig) - only if type of connector "server"
-- [BrowserConfig](#browserconnectorconfig) - only if type of connector "browser"
-- [StaticConfig](#staticconnectorconfig) - only if type of connector "static"
+- [ServerConfig](#serverconnectorconfig)
+- [BrowserConfig](#browserconnectorconfig)
+- [StaticConfig](#staticconnectorconfig)
 
 Example:
 ```json
 {
   "response_type": "xpath",
-  "connector_type": "browser",
   "attempts": 3,
   "url": "https://openweathermap.org/find?q={PL}",
   "browser_config": {
@@ -360,22 +357,20 @@ With model we define result of the scrapping
 
 ```go
 type Model struct {
-	Type         ModelType     `yaml:"type" json:"type"`
-	ObjectConfig *ObjectConfig `yaml:"object_config" json:"object_config"`
-	ArrayConfig  *ArrayConfig  `json:"array_config" yaml:"array_config"`
+    ObjectConfig *ObjectConfig `yaml:"object_config" json:"object_config"`
+    ArrayConfig  *ArrayConfig  `json:"array_config" yaml:"array_config"`
+    BaseField    *BaseField    `json:"base_field" yaml:"base_field"`
 }
 ```
 
-- Type - enum["object", "array"] - in which format we expect result
-
 Config can be one of:
-- [ObjectConfig](#objectconfig) - configuration of object format, only if type "object"
-- [ArrayConfig](#arrayconfig) - configuration of array format, only if type "array"
+- [ObjectConfig](#objectconfig) - configuration of object format
+- [ArrayConfig](#arrayconfig) - configuration of array format
+- [BaseField](#basefield) - configuration of single/generated field 
 
 Example:
 ```json
 {
-  "type": "object",
   "object_config": {}
 }
 ```
@@ -537,7 +532,6 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json#L58
     "model": {
       "type": "array",
       "model": {
-        "type": "array",
         "array_config": {
           "root_path": "#content dt.quote > a",
           "item_config": {
@@ -549,7 +543,6 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json#L58
       },
       "connector_config": {
         "response_type": "HTML",
-        "connector_type": "browser",
         "attempts": 3,
         "browser_config": {
           "url": "http://www.quotationspage.com/random.php",
@@ -631,7 +624,7 @@ type ModelField struct {
 
 - [ConnectorConfig](#connector) - which connector to use. Important: URL in the connector can be with [inject of the parent value as a string](#placeholder-list)
 - [Model](#model) - configuration of the underhood model
-- GeneratedFieldType - enum["null", "boolean", "string", "int","int64","float","float64", "array", "object"] - type of generated field
+- GeneratedFieldType - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object"] - type of generated field
 - Path - in case we cant extract some information from generated field we can use json selector for extract
 
 Examples:
@@ -641,7 +634,6 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json#L60
 {
   "type": "array",
   "model": {
-    "type": "array",
     "array_config": {
       "root_path": "#content dt.quote > a",
       "item_config": {
@@ -660,8 +652,7 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_weather.json#L37
     "type": "string",
     "path": "temp.temp",
     "model": {
-      "type": "object",
-      "object_config": {
+       "object_config": {
         "fields": {
           "temp": {
             "base_field": {
@@ -671,7 +662,6 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_weather.json#L37
                 "model": {
                   "type": "string",
                   "model": {
-                    "type": "object",
                     "object_config": {
                       "fields": {
                         "temp": {
@@ -685,7 +675,6 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_weather.json#L37
                   },
                   "connector_config": {
                     "response_type": "HTML",
-                    "connector_type": "browser",
                     "attempts": 4,
                     "url": "https://openweathermap.org{PL}",
                     "browser_config": {
@@ -707,7 +696,6 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_weather.json#L37
     },
     "connector_config": {
       "response_type": "xpath",
-      "connector_type": "browser",
       "attempts": 3,
       "url": "https://openweathermap.org/find?q={PL}",
       "browser_config": {

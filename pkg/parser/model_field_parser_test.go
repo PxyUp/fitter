@@ -104,7 +104,6 @@ func (s *ModelFieldParserSuite) TearDownTest() {
 
 func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 	res, err := s.jsonParserObject.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"codes": {
@@ -125,7 +124,6 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 												Type: config.GeneratedFieldType(config.String),
 												Path: "title",
 												Model: &config.Model{
-													Type: config.ObjectModel,
 													ObjectConfig: &config.ObjectConfig{
 														Fields: map[string]*config.Field{
 															"title": {
@@ -138,9 +136,8 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 													},
 												},
 												ConnectorConfig: &config.ConnectorConfig{
-													ConnectorType: config.Server,
-													ResponseType:  config.HTML,
-													Url:           fmt.Sprintf("%s/html", s.server.URL) + "/{PL}",
+													ResponseType: config.HTML,
+													Url:          fmt.Sprintf("%s/html", s.server.URL) + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},
@@ -157,15 +154,13 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 												Type: config.Array,
 												Path: "neighbour",
 												ConnectorConfig: &config.ConnectorConfig{
-													ConnectorType: config.Server,
-													ResponseType:  config.Json,
-													Url:           fmt.Sprintf("%s/neighbour", s.server.URL) + "/{PL}",
+													ResponseType: config.Json,
+													Url:          fmt.Sprintf("%s/neighbour", s.server.URL) + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},
 												},
 												Model: &config.Model{
-													Type: config.ObjectModel,
 													ObjectConfig: &config.ObjectConfig{
 														Fields: map[string]*config.Field{
 															"neighbour": {
@@ -186,7 +181,6 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 																							Type: config.GeneratedFieldType(config.Int),
 																							Path: "pop",
 																							Model: &config.Model{
-																								Type: config.ObjectModel,
 																								ObjectConfig: &config.ObjectConfig{
 																									Fields: map[string]*config.Field{
 																										"pop": {
@@ -199,9 +193,8 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 																								},
 																							},
 																							ConnectorConfig: &config.ConnectorConfig{
-																								ConnectorType: config.Server,
-																								ResponseType:  config.Json,
-																								Url:           s.server.URL + "/{PL}",
+																								ResponseType: config.Json,
+																								Url:          s.server.URL + "/{PL}",
 																								ServerConfig: &config.ServerConnectorConfig{
 																									Method: "GET",
 																								},
@@ -229,7 +222,6 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 												Type: config.GeneratedFieldType(config.Int),
 												Path: "pop",
 												Model: &config.Model{
-													Type: config.ObjectModel,
 													ObjectConfig: &config.ObjectConfig{
 														Fields: map[string]*config.Field{
 															"pop": {
@@ -242,9 +234,8 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 													},
 												},
 												ConnectorConfig: &config.ConnectorConfig{
-													ConnectorType: config.Server,
-													ResponseType:  config.Json,
-													Url:           s.server.URL + "/{PL}",
+													ResponseType: config.Json,
+													Url:          s.server.URL + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},
@@ -266,7 +257,6 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 
 func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 	res, err := s.jsonParserArray.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"codes": {
@@ -287,7 +277,6 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 												Type: config.GeneratedFieldType(config.String),
 												Path: "title",
 												Model: &config.Model{
-													Type: config.ObjectModel,
 													ObjectConfig: &config.ObjectConfig{
 														Fields: map[string]*config.Field{
 															"title": {
@@ -300,9 +289,8 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 													},
 												},
 												ConnectorConfig: &config.ConnectorConfig{
-													ConnectorType: config.Server,
-													ResponseType:  config.HTML,
-													Url:           fmt.Sprintf("%s/html", s.server.URL) + "/{PL}",
+													ResponseType: config.HTML,
+													Url:          fmt.Sprintf("%s/html", s.server.URL) + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},
@@ -319,15 +307,13 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 												Type: config.Array,
 												Path: "neighbour",
 												ConnectorConfig: &config.ConnectorConfig{
-													ConnectorType: config.Server,
-													ResponseType:  config.Json,
-													Url:           fmt.Sprintf("%s/neighbour", s.server.URL) + "/{PL}",
+													ResponseType: config.Json,
+													Url:          fmt.Sprintf("%s/neighbour", s.server.URL) + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},
 												},
 												Model: &config.Model{
-													Type: config.ObjectModel,
 													ObjectConfig: &config.ObjectConfig{
 														Fields: map[string]*config.Field{
 															"neighbour": {
@@ -348,7 +334,6 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 																							Type: config.GeneratedFieldType(config.Int),
 																							Path: "pop",
 																							Model: &config.Model{
-																								Type: config.ObjectModel,
 																								ObjectConfig: &config.ObjectConfig{
 																									Fields: map[string]*config.Field{
 																										"pop": {
@@ -361,9 +346,8 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 																								},
 																							},
 																							ConnectorConfig: &config.ConnectorConfig{
-																								ConnectorType: config.Server,
-																								ResponseType:  config.Json,
-																								Url:           s.server.URL + "/{PL}",
+																								ResponseType: config.Json,
+																								Url:          s.server.URL + "/{PL}",
 																								ServerConfig: &config.ServerConnectorConfig{
 																									Method: "GET",
 																								},
@@ -391,7 +375,6 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 												Type: config.GeneratedFieldType(config.Int),
 												Path: "pop",
 												Model: &config.Model{
-													Type: config.ObjectModel,
 													ObjectConfig: &config.ObjectConfig{
 														Fields: map[string]*config.Field{
 															"pop": {
@@ -404,9 +387,8 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 													},
 												},
 												ConnectorConfig: &config.ConnectorConfig{
-													ConnectorType: config.Server,
-													ResponseType:  config.Json,
-													Url:           s.server.URL + "/{PL}",
+													ResponseType: config.Json,
+													Url:          s.server.URL + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},
@@ -428,7 +410,6 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 
 func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 	res, err := s.htmlParser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"codes": {
@@ -449,7 +430,6 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 												Type: config.GeneratedFieldType(config.String),
 												Path: "title",
 												Model: &config.Model{
-													Type: config.ObjectModel,
 													ObjectConfig: &config.ObjectConfig{
 														Fields: map[string]*config.Field{
 															"title": {
@@ -462,9 +442,8 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 													},
 												},
 												ConnectorConfig: &config.ConnectorConfig{
-													ConnectorType: config.Server,
-													ResponseType:  config.HTML,
-													Url:           fmt.Sprintf("%s/html", s.server.URL) + "/{PL}",
+													ResponseType: config.HTML,
+													Url:          fmt.Sprintf("%s/html", s.server.URL) + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},
@@ -481,15 +460,13 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 												Type: config.Array,
 												Path: "neighbour",
 												ConnectorConfig: &config.ConnectorConfig{
-													ConnectorType: config.Server,
-													ResponseType:  config.Json,
-													Url:           fmt.Sprintf("%s/neighbour", s.server.URL) + "/{PL}",
+													ResponseType: config.Json,
+													Url:          fmt.Sprintf("%s/neighbour", s.server.URL) + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},
 												},
 												Model: &config.Model{
-													Type: config.ObjectModel,
 													ObjectConfig: &config.ObjectConfig{
 														Fields: map[string]*config.Field{
 															"neighbour": {
@@ -510,7 +487,6 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 																							Type: config.GeneratedFieldType(config.Int),
 																							Path: "pop",
 																							Model: &config.Model{
-																								Type: config.ObjectModel,
 																								ObjectConfig: &config.ObjectConfig{
 																									Fields: map[string]*config.Field{
 																										"pop": {
@@ -523,9 +499,8 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 																								},
 																							},
 																							ConnectorConfig: &config.ConnectorConfig{
-																								ConnectorType: config.Server,
-																								ResponseType:  config.Json,
-																								Url:           s.server.URL + "/{PL}",
+																								ResponseType: config.Json,
+																								Url:          s.server.URL + "/{PL}",
 																								ServerConfig: &config.ServerConnectorConfig{
 																									Method: "GET",
 																								},
@@ -553,7 +528,6 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 												Type: config.GeneratedFieldType(config.Int),
 												Path: "pop",
 												Model: &config.Model{
-													Type: config.ObjectModel,
 													ObjectConfig: &config.ObjectConfig{
 														Fields: map[string]*config.Field{
 															"pop": {
@@ -566,9 +540,8 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 													},
 												},
 												ConnectorConfig: &config.ConnectorConfig{
-													ConnectorType: config.Server,
-													ResponseType:  config.Json,
-													Url:           s.server.URL + "/{PL}",
+													ResponseType: config.Json,
+													Url:          s.server.URL + "/{PL}",
 													ServerConfig: &config.ServerConnectorConfig{
 														Method: "GET",
 													},

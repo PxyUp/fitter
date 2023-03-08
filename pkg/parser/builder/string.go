@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"golang.org/x/net/html"
 	"strconv"
 	"strings"
 )
@@ -20,5 +21,5 @@ func (s *stringField) IsEmpty() bool {
 }
 
 func (s *stringField) ToJson() string {
-	return strconv.Quote(s.value)
+	return strconv.Quote(html.EscapeString(s.value))
 }

@@ -5,14 +5,12 @@
   "item": {
     "connector_config": {
       "response_type": "HTML",
-      "connector_type": "server",
       "url": "http://www.citymayors.com/gratis/uk_topcities.html",
       "server_config": {
         "method": "GET"
       }
     },
     "model": {
-      "type": "array",
       "array_config": {
         "root_path": "table table tr:not(:first-child)",
         "item_config": {
@@ -35,47 +33,29 @@
                 "type": "string",
                 "generated": {
                   "model": {
-                    "type": "string",
-                    "path": "temp.temp",
                     "model": {
-                      "type": "object",
-                      "object_config": {
-                        "fields": {
-                          "temp": {
-                            "base_field": {
-                              "type": "string",
-                              "path": "//div[@id='forecast_list_ul']//td/b/a/@href",
-                              "generated": {
-                                "model": {
-                                  "type": "string",
-                                  "model": {
-                                    "type": "object",
-                                    "object_config": {
-                                      "fields": {
-                                        "temp": {
-                                          "base_field": {
-                                            "type": "string",
-                                            "path": "div.current-temp span.heading"
-                                          }
-                                        }
-                                      }
-                                    }
-                                  },
-                                  "connector_config": {
-                                    "response_type": "HTML",
-                                    "connector_type": "browser",
-                                    "attempts": 4,
-                                    "url": "https://openweathermap.org{PL}",
-                                    "browser_config": {
-                                      "playwright": {
-                                        "timeout": 30,
-                                        "wait": 30,
-                                        "install": false,
-                                        "browser": "FireFox",
-                                        "type_of_wait": "networkidle"
-                                      }
-                                    }
-                                  }
+                      "base_field": {
+                        "type": "string",
+                        "path": "//div[@id='forecast_list_ul']//td/b/a/@href",
+                        "generated": {
+                          "model": {
+                            "model": {
+                              "base_field": {
+                                "type": "string",
+                                "path": "div.current-temp span.heading"
+                              }
+                            },
+                            "connector_config": {
+                              "response_type": "HTML",
+                              "attempts": 4,
+                              "url": "https://openweathermap.org{PL}",
+                              "browser_config": {
+                                "playwright": {
+                                  "timeout": 30,
+                                  "wait": 30,
+                                  "install": false,
+                                  "browser": "FireFox",
+                                  "type_of_wait": "networkidle"
                                 }
                               }
                             }
@@ -85,7 +65,6 @@
                     },
                     "connector_config": {
                       "response_type": "xpath",
-                      "connector_type": "browser",
                       "attempts": 3,
                       "url": "https://openweathermap.org/find?q={PL}",
                       "browser_config": {

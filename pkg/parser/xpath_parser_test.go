@@ -36,9 +36,30 @@ func (s *XPathParserArraySuite) SetupTest() {
 	s.parser = parser.XPathFactory(s.body, logger.Null)
 }
 
+func (s *XPathParserArraySuite) Test_Return_BaseField_String() {
+	res, err := s.parser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.String,
+			Path: "/html//title",
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "\"HTML Headings\"", res.Raw)
+}
+
+func (s *XPathParserArraySuite) Test_Return_BaseField_Number() {
+	res, err := s.parser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.Int,
+			Path: "//div[@id=\"number\"]",
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "5555655", res.Raw)
+}
+
 func (s *XPathParserArraySuite) Test_FirstOf() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"title": {
@@ -92,7 +113,6 @@ func (s *XPathParserArraySuite) Test_FirstOf() {
 
 func (s *XPathParserArraySuite) Test_StaticArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			StaticConfig: &config.StaticArrayConfig{
 				Items: map[uint32]*config.Field{
@@ -124,7 +144,6 @@ func (s *XPathParserArraySuite) Test_StaticArray() {
 
 func (s *XPathParserArraySuite) Test_ParseSimpleObject() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"title": {
@@ -148,7 +167,6 @@ func (s *XPathParserArraySuite) Test_ParseSimpleObject() {
 
 func (s *XPathParserArraySuite) TestGeneratedField() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"uuid": {
@@ -181,7 +199,6 @@ func (s *XPathParserArraySuite) TestGeneratedField() {
 
 func (s *XPathParserArraySuite) Test_ReturnSimpleArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"menu": {
@@ -203,7 +220,6 @@ func (s *XPathParserArraySuite) Test_ReturnSimpleArray() {
 
 func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"menu": {
@@ -230,7 +246,6 @@ func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 
 func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray_Index() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"menu": {
@@ -262,7 +277,6 @@ func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray_Index() {
 
 func (s *XPathParserArraySuite) Test_ReturnNestedArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "//*[@id='nav_tutorials']//*[contains(@class, 'w3-col')]",
 			ItemConfig: &config.ObjectConfig{
@@ -298,7 +312,6 @@ func (s *XPathParserArraySuite) Test_ReturnNestedArray() {
 
 func (s *XPathParserArraySuite) Test_ParseNestedObject() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"player": {

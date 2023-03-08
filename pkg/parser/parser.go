@@ -60,18 +60,18 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 
 		var connector connectors.Connector
 
-		if field.Model.ConnectorConfig.ConnectorType == config.Static && field.Model.ConnectorConfig.StaticConfig != nil {
+		if field.Model.ConnectorConfig.StaticConfig != nil {
 			connector = connectors.NewStatic(field.Model.ConnectorConfig.StaticConfig).WithLogger(logger.With("connector", "static"))
 		}
 
-		if field.Model.ConnectorConfig.ConnectorType == config.Server && field.Model.ConnectorConfig.ServerConfig != nil {
+		if field.Model.ConnectorConfig.ServerConfig != nil {
 			connector = connectors.NewAPI(format(field.Model.ConnectorConfig.Url, parsedValue, index), &config.ServerConnectorConfig{
 				Method:  field.Model.ConnectorConfig.ServerConfig.Method,
 				Headers: field.Model.ConnectorConfig.ServerConfig.Headers,
 			}, nil).WithLogger(logger.With("connector", "server"))
 		}
 
-		if field.Model.ConnectorConfig.ConnectorType == config.Browser && field.Model.ConnectorConfig.BrowserConfig != nil {
+		if field.Model.ConnectorConfig.BrowserConfig != nil {
 			connector = connectors.NewBrowser(format(field.Model.ConnectorConfig.Url, parsedValue, index), &config.BrowserConnectorConfig{
 				Chromium:   field.Model.ConnectorConfig.BrowserConfig.Chromium,
 				Docker:     field.Model.ConnectorConfig.BrowserConfig.Docker,

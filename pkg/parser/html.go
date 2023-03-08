@@ -38,7 +38,13 @@ func (h *htmlParser) Parse(model *config.Model) (*ParseResult, error) {
 		}, nil
 	}
 
-	if model.Type == config.ArrayModel {
+	if model.BaseField != nil {
+		return &ParseResult{
+			Raw: h.buildBaseField(h.parserBody, model.BaseField, nil).ToJson(),
+		}, nil
+	}
+
+	if model.ArrayConfig != nil {
 		return &ParseResult{
 			Raw: h.buildArray(model.ArrayConfig).ToJson(),
 		}, nil
@@ -259,7 +265,7 @@ func (h *htmlParser) buildBaseField(source *goquery.Selection, field *config.Bas
 				if field.Generated.Model.Path != "" {
 					return builder.PureString(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path).Raw)
 				}
-				return builder.PureString(generatedValue.ToJson())
+				return generatedValue
 			}
 			if field.Generated.Model.Path != "" {
 				return fillUpBaseField(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path), &config.BaseField{

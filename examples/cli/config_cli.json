@@ -7,14 +7,12 @@
   "item": {
     "connector_config": {
       "response_type": "json",
-      "connector_type": "server",
       "url": "https://hacker-news.firebaseio.com/v0/beststories.json?print=pretty&limitToFirst=10&orderBy=%22$key%22",
       "server_config": {
         "method": "GET"
       }
     },
     "model": {
-      "type": "object",
       "object_config": {
         "fields": {
           "response_id": {
@@ -43,7 +41,6 @@
                   },
                   "connector_config": {
                     "response_type": "xpath",
-                    "connector_type": "server",
                     "url": "https://www.theguardian.com/world",
                     "server_config": {
                       "method": "GET"
@@ -71,7 +68,6 @@
                   },
                   "connector_config": {
                     "response_type": "HTML",
-                    "connector_type": "server",
                     "url": "http://www.quotationspage.com/random.php",
                     "server_config": {
                       "method": "GET"
@@ -107,7 +103,6 @@
                         "model": {
                           "type": "object",
                           "model": {
-                            "type": "object",
                             "object_config": {
                               "fields": {
                                 "title": {
@@ -156,7 +151,6 @@
                                               "model": {
                                                 "type": "object",
                                                 "model": {
-                                                  "type": "object",
                                                   "object_config": {
                                                     "fields": {
                                                       "title": {
@@ -176,7 +170,6 @@
                                                 },
                                                 "connector_config": {
                                                   "response_type": "json",
-                                                  "connector_type": "server",
                                                   "url": "https://hacker-news.firebaseio.com/v0/item/{PL}.json?print=pretty",
                                                   "server_config": {
                                                     "method": "GET"
@@ -195,7 +188,6 @@
                           },
                           "connector_config": {
                             "response_type": "json",
-                            "connector_type": "server",
                             "url": "https://hacker-news.firebaseio.com/v0/item/{PL}.json?print=pretty",
                             "server_config": {
                               "method": "GET"

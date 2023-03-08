@@ -38,7 +38,6 @@ func (s *HTMLParserArraySuite) SetupTest() {
 
 func (s *HTMLParserArraySuite) Test_FirstOf() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"title": {
@@ -92,7 +91,6 @@ func (s *HTMLParserArraySuite) Test_FirstOf() {
 
 func (s *HTMLParserArraySuite) Test_StaticArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			StaticConfig: &config.StaticArrayConfig{
 				Items: map[uint32]*config.Field{
@@ -130,7 +128,6 @@ func (s *HTMLParserArraySuite) Test_StaticArray() {
 
 func (s *HTMLParserArraySuite) Test_ParseSimpleObject() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"title": {
@@ -154,7 +151,6 @@ func (s *HTMLParserArraySuite) Test_ParseSimpleObject() {
 
 func (s *HTMLParserArraySuite) TestGeneratedField() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"uuid": {
@@ -187,7 +183,6 @@ func (s *HTMLParserArraySuite) TestGeneratedField() {
 
 func (s *HTMLParserArraySuite) Test_ReturnSimpleArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"menu": {
@@ -209,7 +204,6 @@ func (s *HTMLParserArraySuite) Test_ReturnSimpleArray() {
 
 func (s *HTMLParserArraySuite) Test_ReturnSimpleArray_Index() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"menu": {
@@ -234,9 +228,30 @@ func (s *HTMLParserArraySuite) Test_ReturnSimpleArray_Index() {
 	assert.JSONEq(s.T(), "{\"menu\": [\"{PL} 0\",\"{PL} 1\",\"HTML 2\",\"CSS 3\",\"JAVASCRIPT 4\",\"SQL 5\",\"PYTHON 6\",\"JAVA 7\",\"PHP 8\",\"BOOTSTRAP 9\",\"HOW TO 10\",\"W3.CSS 11\",\"C 12\",\"C++ 13\",\"C# 14\",\"REACT 15\",\"R 16\",\"JQUERY 17\",\"DJANGO 18\",\"TYPESCRIPT 19\",\"NODEJS 20\",\"MYSQL 21\",\"\\\\ue802 22\",\"\\\\ue801 23\",\"\\\\ue80b 24\"]}\n", res.Raw)
 }
 
+func (s *HTMLParserArraySuite) Test_Return_BaseField_String() {
+	res, err := s.parser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.String,
+			Path: "title",
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "\"HTML Headings\"", res.Raw)
+}
+
+func (s *HTMLParserArraySuite) Test_Return_BaseField_Number() {
+	res, err := s.parser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.Int,
+			Path: "#number",
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "5555655", res.Raw)
+}
+
 func (s *HTMLParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"menu": {
@@ -263,7 +278,6 @@ func (s *HTMLParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 
 func (s *HTMLParserArraySuite) Test_ReturnNestedArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "#nav_tutorials .w3-col",
 			ItemConfig: &config.ObjectConfig{
@@ -298,7 +312,6 @@ func (s *HTMLParserArraySuite) Test_ReturnNestedArray() {
 
 func (s *HTMLParserArraySuite) Test_ParseNestedObject() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"player": {

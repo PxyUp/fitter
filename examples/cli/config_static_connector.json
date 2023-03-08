@@ -2,13 +2,11 @@
   "item": {
     "connector_config": {
       "response_type": "json",
-      "connector_type": "static",
       "static_config": {
         "value": "[1,2,3,4,5]"
       }
     },
     "model": {
-      "type": "array",
       "array_config": {
         "item_config": {
           "field": {

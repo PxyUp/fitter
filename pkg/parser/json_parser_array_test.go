@@ -37,7 +37,6 @@ func (s *JsonParserArraySuite) SetupTest() {
 
 func (s *JsonParserArraySuite) Test_ParseSimpleObject() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"address_1": {
@@ -61,7 +60,6 @@ func (s *JsonParserArraySuite) Test_ParseSimpleObject() {
 
 func (s *JsonParserArraySuite) Test_ReturnNestedArray_Concat() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "#.friends|@flatten.#.meals|@flatten.#.price",
 			ItemConfig: &config.ObjectConfig{
@@ -79,7 +77,6 @@ func (s *JsonParserArraySuite) Test_ReturnNestedArray_Concat() {
 
 func (s *JsonParserArraySuite) Test_ReturnSimpleArray_Concat() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "#.tags|@flatten",
 			ItemConfig: &config.ObjectConfig{
@@ -96,7 +93,6 @@ func (s *JsonParserArraySuite) Test_ReturnSimpleArray_Concat() {
 
 func (s *JsonParserArraySuite) Test_ReturnSimpleArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "",
 			ItemConfig: &config.ObjectConfig{
@@ -113,7 +109,6 @@ func (s *JsonParserArraySuite) Test_ReturnSimpleArray() {
 
 func (s *JsonParserArraySuite) Test_ReturnSimpleArray_Index() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "",
 			ItemConfig: &config.ObjectConfig{
@@ -135,7 +130,6 @@ func (s *JsonParserArraySuite) Test_ReturnSimpleArray_Index() {
 
 func (s *JsonParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "",
 			ItemConfig: &config.ObjectConfig{
@@ -156,7 +150,6 @@ func (s *JsonParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 
 func (s *JsonParserArraySuite) Test_ReturnNestedArray() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ArrayModel,
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "",
 			ItemConfig: &config.ObjectConfig{
@@ -192,7 +185,6 @@ func (s *JsonParserArraySuite) Test_ReturnNestedArray() {
 
 func (s *JsonParserArraySuite) Test_ParseNestedObject() {
 	res, err := s.parser.Parse(&config.Model{
-		Type: config.ObjectModel,
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
 				"player": {

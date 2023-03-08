@@ -46,6 +46,7 @@ func main() {
 	copyFlag := flag.Bool("copy", false, "Copy to clip board")
 	prettyFlag := flag.Bool("pretty", true, "Make result pretty")
 	verboseFlag := flag.Bool("verbose", false, "Provide logger")
+	omitPrettyErrorFlag := flag.Bool("omit-error-pretty", false, "Provide pure value if pretty is invalid")
 	flag.Parse()
 
 	log := logger.Null
@@ -64,7 +65,12 @@ func main() {
 		var prettyJSON bytes.Buffer
 		err = json.Indent(&prettyJSON, []byte(result), "", "\t")
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
+			if *omitPrettyErrorFlag {
+				fmt.Fprintln(os.Stdout, result)
+				return
+			}
+			fmt.Fprintln(os.Stderr, "unable prettify: ", err.Error())
+			fmt.Fprintln(os.Stdout, "You can execute with --omit-error-pretty=true to get raw data")
 			return
 		}
 		result = prettyJSON.String()

@@ -56,7 +56,13 @@ func (x *xpathParser) Parse(model *config.Model) (*ParseResult, error) {
 		}, nil
 	}
 
-	if model.Type == config.ArrayModel {
+	if model.BaseField != nil {
+		return &ParseResult{
+			Raw: x.buildBaseField(x.parserBody, model.BaseField, nil).ToJson(),
+		}, nil
+	}
+
+	if model.ArrayConfig != nil {
 		return &ParseResult{
 			Raw: x.buildArray(model.ArrayConfig).ToJson(),
 		}, nil
@@ -283,7 +289,7 @@ func (x *xpathParser) buildBaseField(source *html.Node, field *config.BaseField,
 				if field.Generated.Model.Path != "" {
 					return builder.PureString(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path).Raw)
 				}
-				return builder.PureString(generatedValue.ToJson())
+				return generatedValue
 			}
 			if field.Generated.Model.Path != "" {
 				return fillUpBaseField(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path), &config.BaseField{

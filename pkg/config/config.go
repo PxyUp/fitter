@@ -9,17 +9,10 @@ type ParserType string
 type ModelType string
 
 const (
-	Browser Connector = "browser"
-	Server  Connector = "server"
-	Static  Connector = "static"
-
 	HTML  ParserType = "HTML"
 	Json  ParserType = "json"
 	XML   ParserType = "XML"
 	XPath ParserType = "xpath"
-
-	ObjectModel ModelType = "object"
-	ArrayModel  ModelType = "array"
 )
 
 type HostRequestLimiter map[string]int64
@@ -59,14 +52,13 @@ type StaticArrayConfig struct {
 }
 
 type Model struct {
-	Type         ModelType     `yaml:"type" json:"type"`
 	ObjectConfig *ObjectConfig `yaml:"object_config" json:"object_config"`
 	ArrayConfig  *ArrayConfig  `json:"array_config" yaml:"array_config"`
+	BaseField    *BaseField    `json:"base_field" yaml:"base_field"`
 }
 
 type ConnectorConfig struct {
 	ResponseType  ParserType              `json:"response_type" yaml:"response_type"`
-	ConnectorType Connector               `json:"connector_type" yaml:"connector_type"`
 	Url           string                  `json:"url" yaml:"url"`
 	StaticConfig  *StaticConnectorConfig  `json:"static_config" yaml:"static_config"`
 	ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`

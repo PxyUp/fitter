@@ -99,6 +99,7 @@ func (api *apiConnector) Get() ([]byte, error) {
 		defer hostLimit.Release(1)
 	}
 
+	api.logger.Infof("send request to url: %s", api.url)
 	resp, err := client.Do(req)
 	if err != nil {
 		api.logger.Errorw("unable to send http request", "method", api.method, "url", api.url, "error", err.Error())

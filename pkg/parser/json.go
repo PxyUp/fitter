@@ -28,11 +28,18 @@ func (j *jsonParser) WithLogger(logger logger.Logger) *jsonParser {
 }
 
 func (j *jsonParser) Parse(model *config.Model) (*ParseResult, error) {
-	if model.Type == config.ArrayModel {
+	if model.BaseField != nil {
+		return &ParseResult{
+			Raw: j.buildBaseField(j.parserBody, model.BaseField, nil).ToJson(),
+		}, nil
+	}
+
+	if model.ArrayConfig != nil {
 		return &ParseResult{
 			Raw: j.buildArray(model.ArrayConfig).ToJson(),
 		}, nil
 	}
+
 	return &ParseResult{
 		Raw: j.buildObject(model.ObjectConfig).ToJson(),
 	}, nil
@@ -224,7 +231,7 @@ func (j *jsonParser) buildBaseField(source gjson.Result, field *config.BaseField
 				if field.Generated.Model.Path != "" {
 					return builder.PureString(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path).Raw)
 				}
-				return builder.PureString(generatedValue.ToJson())
+				return generatedValue
 			}
 			if field.Generated.Model.Path != "" {
 				return fillUpBaseField(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path), &config.BaseField{

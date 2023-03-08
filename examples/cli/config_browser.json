@@ -5,7 +5,6 @@
   "item": {
     "connector_config": {
       "response_type": "xpath",
-      "connector_type": "browser",
       "attempts": 2,
       "url": "https://www.theguardian.com/world",
       "browser_config": {
@@ -16,7 +15,6 @@
       }
     },
     "model": {
-      "type": "object",
       "object_config": {
         "fields": {
           "response_id": {
@@ -55,7 +53,6 @@
                   },
                   "connector_config": {
                     "response_type": "HTML",
-                    "connector_type": "browser",
                     "attempts": 3,
                     "url": "http://www.quotationspage.com/random.php",
                     "browser_config": {

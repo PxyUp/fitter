@@ -11,15 +11,13 @@ import (
 func main() {
 	res, err := lib.Parse(&config.Item{
 		ConnectorConfig: &config.ConnectorConfig{
-			ConnectorType: config.Server,
-			ResponseType:  config.Json,
-			Url:           "https://random-data-api.com/api/appliance/random_appliance",
+			ResponseType: config.Json,
+			Url:          "https://random-data-api.com/api/appliance/random_appliance",
 			ServerConfig: &config.ServerConnectorConfig{
 				Method: http.MethodGet,
 			},
 		},
 		Model: &config.Model{
-			Type: config.ObjectModel,
 			ObjectConfig: &config.ObjectConfig{
 				Fields: map[string]*config.Field{
 					"my_id": {

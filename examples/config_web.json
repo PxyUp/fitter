@@ -4,7 +4,6 @@
       "name": "W3Schools",
       "connector_config": {
         "response_type": "HTML",
-        "connector_type": "server",
         "url": "https://www.w3schools.com/html/html_examples.asp",
         "server_config": {
           "method": "GET"
@@ -19,7 +18,6 @@
         "console": true
       },
       "model": {
-        "type": "object",
         "object_config": {
           "fields": {
             "response_id": {
