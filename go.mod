@@ -7,6 +7,7 @@ require (
 	github.com/antchfx/htmlquery v1.3.0
 	github.com/atotto/clipboard v0.1.4
 	github.com/docker/docker v23.0.1+incompatible
+	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/google/uuid v1.3.0
 	github.com/playwright-community/playwright-go v0.2000.1
 	github.com/stretchr/testify v1.8.1

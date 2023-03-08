@@ -129,7 +129,17 @@ type HTTPTrigger struct {
 }
 
 type NotifierConfig struct {
-	Console bool `yaml:"console" json:"console"`
+	Console     *ConsoleConfig     `yaml:"console" json:"console"`
+	TelegramBot *TelegramBotConfig `yaml:"telegram_bot" json:"telegram_bot"`
+}
+
+type ConsoleConfig struct {
+}
+
+type TelegramBotConfig struct {
+	Token   string  `json:"token" yaml:"token"`
+	UsersId []int64 `json:"users_id" yaml:"users_id"`
+	Pretty  bool    `json:"pretty" yaml:"pretty"`
 }
 
 type Item struct {

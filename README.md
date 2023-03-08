@@ -15,9 +15,6 @@ Fitter Lib - library which provide functional of fitter CLI as a library
 2. **Browser** - emulate real browser using chromium + docker + playwright/cypress and get DOM information
 3. **Static** - parsing static string as data
 
-
-**Docker default image**: docker.io/zenika/alpine-chrome
-
 # Format which can be parsed
 
 1. **JSON** - parsing JSON to get specific information
@@ -297,6 +294,9 @@ type DockerConfig struct {
 	PullTimeout uint32   `yaml:"pull_timeout" json:"pull_timeout"`
 }
 ```
+
+
+**Docker default image**: docker.io/zenika/alpine-chrome
 
 - Image - image for the docker registry(provide with registry host)
 - EntryPoint - cmd which will be run inside container

@@ -67,8 +67,13 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 	}
 
 	result, err := p.parserFactory(body, p.logger).Parse(p.model)
+	if p.notifier != nil {
+		errNot := p.notifier.Inform(result, err)
+		if errNot != nil {
+			p.logger.Errorw("cannot notify about result", "error", err.Error(), "body", string(body))
+		}
+	}
 
-	p.notifier.Inform(result, err)
 	if err != nil {
 		p.logger.Errorw("parser return error processing data", "error", err.Error(), "body", string(body))
 		return nil, err
@@ -107,6 +112,19 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 		parserFactory = parser.XPathFactory
 	}
 
+	var notifierInstance notifier.Notifier
+	if item.NotifierConfig.TelegramBot != nil {
+		tgBot, errBot := notifier.NewTelegramBot(item.Name, item.NotifierConfig.TelegramBot)
+		if errBot != nil {
+			logger.Infow("cant setup telegram bot notifier", "error", errBot.Error())
+		} else {
+			notifierInstance = tgBot.WithLogger(logger.With("notifier", "telegram_bot"))
+		}
+	}
+	if item.NotifierConfig.Console != nil {
+		notifierInstance = notifier.NewConsole(item.Name, item.NotifierConfig.Console).WithLogger(logger.With("notifier", "console"))
+	}
+
 	if connector == nil || parserFactory == nil {
 		return Null()
 	}
@@ -115,5 +133,5 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 
 	logger = logger.With("name", item.Name)
 
-	return New(connector, parserFactory, item.Model, notifier.New(item.Name, item.NotifierConfig).WithLogger(logger)).WithLogger(logger)
+	return New(connector, parserFactory, item.Model, notifierInstance).WithLogger(logger)
 }
