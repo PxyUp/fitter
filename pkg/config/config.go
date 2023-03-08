@@ -113,6 +113,7 @@ type ChromiumConfig struct {
 type ServerConnectorConfig struct {
 	Method  string            `json:"method" yaml:"method"`
 	Headers map[string]string `yaml:"headers" json:"headers"`
+	Timeout uint32            `yaml:"timeout" json:"timeout"`
 }
 
 type TriggerConfig struct {

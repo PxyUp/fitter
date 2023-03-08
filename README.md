@@ -208,11 +208,13 @@ Connector type which fetch data using golang http.Client(server side request lik
 type ServerConnectorConfig struct {
     Method  string            `json:"method" yaml:"method"`
     Headers map[string]string `yaml:"headers" json:"headers"`
+    Timeout uint32            `yaml:"timeout" json:"timeout"`
 }
 ```
 
 - Method - supported all http methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD
 - Headers - predefine headers for using during request
+- Timeout[sec] - default 10sec timeout or used provided
 
 Example:
 ```json

@@ -1,3 +1,5 @@
 .idea
 coverage.txt
 bin
+
+examples/test

@@ -19,12 +19,10 @@ const (
 )
 
 type apiConnector struct {
-	headers map[string]string
-	url     string
-
-	method string
+	url    string
 	logger logger.Logger
 	client *http.Client
+	cfg    *config.ServerConnectorConfig
 }
 
 var (
@@ -50,11 +48,10 @@ func init() {
 
 func NewAPI(url string, cfg *config.ServerConnectorConfig, client *http.Client) *apiConnector {
 	return &apiConnector{
-		headers: cfg.Headers,
-		client:  client,
-		url:     url,
-		method:  cfg.Method,
-		logger:  logger.Null,
+		client: client,
+		url:    url,
+		cfg:    cfg,
+		logger: logger.Null,
 	}
 }
 
@@ -67,19 +64,19 @@ func (api *apiConnector) Get() ([]byte, error) {
 	if api.url == "" {
 		return nil, errEmpty
 	}
-	req, err := http.NewRequest(api.method, api.url, nil)
+	req, err := http.NewRequest(api.cfg.Method, api.url, nil)
 	if err != nil {
 		api.logger.Errorw("unable to create http request", "error", err.Error())
 		return nil, err
 	}
 
-	for k, v := range api.headers {
+	for k, v := range api.cfg.Headers {
 		req.Header.Add(k, v)
 	}
 
 	err = sem.Acquire(ctx, 1)
 	if err != nil {
-		api.logger.Errorw("unable to acquire semaphore", "method", api.method, "url", api.url, "error", err.Error())
+		api.logger.Errorw("unable to acquire semaphore", "method", api.cfg.Method, "url", api.url, "error", err.Error())
 		return nil, err
 	}
 
@@ -89,11 +86,14 @@ func (api *apiConnector) Get() ([]byte, error) {
 	if api.client != nil {
 		client = api.client
 	}
+	if api.cfg.Timeout > 0 {
+		client.Timeout = time.Duration(api.cfg.Timeout) * time.Second
+	}
 
 	if hostLimit := limitter.HostLimiter(req.Host); hostLimit != nil {
 		errHostLimit := hostLimit.Acquire(ctx, 1)
 		if errHostLimit != nil {
-			api.logger.Errorw("unable to acquire host limit semaphore", "method", api.method, "url", api.url, "error", err.Error(), "host", req.Host)
+			api.logger.Errorw("unable to acquire host limit semaphore", "method", api.cfg.Method, "url", api.url, "error", err.Error(), "host", req.Host)
 			return nil, errHostLimit
 		}
 		defer hostLimit.Release(1)
@@ -102,7 +102,7 @@ func (api *apiConnector) Get() ([]byte, error) {
 	api.logger.Infof("send request to url: %s", api.url)
 	resp, err := client.Do(req)
 	if err != nil {
-		api.logger.Errorw("unable to send http request", "method", api.method, "url", api.url, "error", err.Error())
+		api.logger.Errorw("unable to send http request", "method", api.cfg.Method, "url", api.url, "error", err.Error())
 		return nil, err
 	}
 
