@@ -2,4 +2,5 @@
 coverage.txt
 bin
 
+examples/cli/test
 examples/test

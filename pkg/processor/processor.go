@@ -68,7 +68,11 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 
 	result, err := p.parserFactory(body, p.logger).Parse(p.model)
 	if p.notifier != nil {
-		errNot := p.notifier.Inform(result, err)
+		isArray := false
+		if p.model.ArrayConfig != nil {
+			isArray = true
+		}
+		errNot := p.notifier.Inform(result, err, isArray)
 		if errNot != nil {
 			p.logger.Errorw("cannot notify about result", "error", err.Error(), "body", string(body))
 		}
@@ -113,16 +117,20 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 	}
 
 	var notifierInstance notifier.Notifier
-	if item.NotifierConfig.TelegramBot != nil {
-		tgBot, errBot := notifier.NewTelegramBot(item.Name, item.NotifierConfig.TelegramBot)
-		if errBot != nil {
-			logger.Infow("cant setup telegram bot notifier", "error", errBot.Error())
-		} else {
-			notifierInstance = tgBot.WithLogger(logger.With("notifier", "telegram_bot"))
+
+	if item.NotifierConfig != nil {
+		if item.NotifierConfig.TelegramBot != nil {
+			tgBot, errBot := notifier.NewTelegramBot(item.Name, item.NotifierConfig.TelegramBot)
+			if errBot != nil {
+				logger.Infow("cant setup telegram bot notifier", "error", errBot.Error())
+			} else {
+				notifierInstance = tgBot.WithLogger(logger.With("notifier", "telegram_bot"))
+			}
 		}
-	}
-	if item.NotifierConfig.Console != nil {
-		notifierInstance = notifier.NewConsole(item.Name, item.NotifierConfig.Console).WithLogger(logger.With("notifier", "console"))
+		if item.NotifierConfig.Console != nil {
+			notifierInstance = notifier.NewConsole(item.Name, item.NotifierConfig.Console).WithLogger(logger.With("notifier", "console"))
+		}
+
 	}
 
 	if connector == nil || parserFactory == nil {

@@ -5,5 +5,5 @@ import (
 )
 
 type Notifier interface {
-	Inform(result *parser.ParseResult, err error) error
+	Inform(result *parser.ParseResult, err error, isArray bool) error
 }

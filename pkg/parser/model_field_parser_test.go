@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	jsonBodyObject = []byte(`{"postal_codes": [10101, 10102]}`)
-	jsonBodyArray  = []byte(`[10101, 10102]`)
-	htmlBody       = []byte(`<html><body><code>10101</code><code>10102</code></body></html>`)
+	jsonDatesObject = []byte(`[{"from":"2023-07-10","to":"2023-07-14"},{"from":"2023-07-11","to":"2023-07-15"},{"from":"2023-07-07","to":"2023-07-11"},{"from":"2023-07-06","to":"2023-07-12"}]`)
+	jsonBodyObject  = []byte(`{"postal_codes": [10101, 10102]}`)
+	jsonBodyArray   = []byte(`[10101, 10102]`)
+	htmlBody        = []byte(`<html><body><code>10101</code><code>10102</code></body></html>`)
 )
 
 type ModelFieldParserSuite struct {
@@ -24,6 +25,8 @@ type ModelFieldParserSuite struct {
 	jsonParserObject parser.Parser
 	jsonParserArray  parser.Parser
 	htmlParser       parser.Parser
+	xpathParser      parser.Parser
+	jsonDatesParser  parser.Parser
 
 	server *httptest.Server
 }
@@ -95,11 +98,32 @@ func (s *ModelFieldParserSuite) SetupTest() {
 	s.jsonParserObject = parser.JsonFactory(jsonBodyObject, logger.Null)
 	s.jsonParserArray = parser.JsonFactory(jsonBodyArray, logger.Null)
 	s.htmlParser = parser.HTMLFactory(htmlBody, logger.Null)
+	s.jsonDatesParser = parser.JsonFactory(jsonDatesObject, logger.Null)
+	s.xpathParser = parser.XPathFactory(htmlBody, logger.Null)
 	s.server = httptest.NewServer(&testHandler{})
 }
 
 func (s *ModelFieldParserSuite) TearDownTest() {
 	s.server.Close()
+}
+
+func (s *ModelFieldParserSuite) TestJSONObject_ModelField_Formating() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		ArrayConfig: &config.ArrayConfig{
+			ItemConfig: &config.ObjectConfig{
+				Field: &config.BaseField{
+					Type: config.Object,
+					Generated: &config.GeneratedFieldConfig{
+						Formatted: &config.FormattedFieldConfig{
+							Template: "From: {{{from}}} To: {{{to}}}",
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), `["From: 2023-07-10 To: 2023-07-14","From: 2023-07-11 To: 2023-07-15","From: 2023-07-07 To: 2023-07-11","From: 2023-07-06 To: 2023-07-12"]`, res.Raw)
 }
 
 func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
@@ -121,7 +145,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 										Type: config.Int,
 										Generated: &config.GeneratedFieldConfig{
 											Model: &config.ModelField{
-												Type: config.GeneratedFieldType(config.String),
+												Type: config.String,
 												Path: "title",
 												Model: &config.Model{
 													ObjectConfig: &config.ObjectConfig{
@@ -178,7 +202,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 																					Type: config.Int,
 																					Generated: &config.GeneratedFieldConfig{
 																						Model: &config.ModelField{
-																							Type: config.GeneratedFieldType(config.Int),
+																							Type: config.Int,
 																							Path: "pop",
 																							Model: &config.Model{
 																								ObjectConfig: &config.ObjectConfig{
@@ -219,7 +243,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 										Type: config.Int,
 										Generated: &config.GeneratedFieldConfig{
 											Model: &config.ModelField{
-												Type: config.GeneratedFieldType(config.Int),
+												Type: config.Int,
 												Path: "pop",
 												Model: &config.Model{
 													ObjectConfig: &config.ObjectConfig{
@@ -274,7 +298,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 										Type: config.Int,
 										Generated: &config.GeneratedFieldConfig{
 											Model: &config.ModelField{
-												Type: config.GeneratedFieldType(config.String),
+												Type: config.String,
 												Path: "title",
 												Model: &config.Model{
 													ObjectConfig: &config.ObjectConfig{
@@ -331,7 +355,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 																					Type: config.Int,
 																					Generated: &config.GeneratedFieldConfig{
 																						Model: &config.ModelField{
-																							Type: config.GeneratedFieldType(config.Int),
+																							Type: config.Int,
 																							Path: "pop",
 																							Model: &config.Model{
 																								ObjectConfig: &config.ObjectConfig{
@@ -372,7 +396,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 										Type: config.Int,
 										Generated: &config.GeneratedFieldConfig{
 											Model: &config.ModelField{
-												Type: config.GeneratedFieldType(config.Int),
+												Type: config.Int,
 												Path: "pop",
 												Model: &config.Model{
 													ObjectConfig: &config.ObjectConfig{
@@ -408,7 +432,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 	assert.JSONEq(s.T(), "{\"codes\": [{\"neighbour\": [{\"code\": 10102,\"population\": 1010210102},{\"population\": 1010010100,\"code\": 10100}],\"population\": 1010110101,\"code\": 10101,\"title\": \"Here 10101\"},{\"population\": 1010210102,\"code\": 10102,\"title\": \"Here 10102\",\"neighbour\": [{\"population\": 1010110101,\"code\": 10101},{\"code\": 10103,\"population\": 1010310103}]}]}\n", res.ToJson())
 }
 
-func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
+func (s *ModelFieldParserSuite) TestHTML_ModelFieldFetching() {
 	res, err := s.htmlParser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -427,7 +451,7 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 										Type: config.Int,
 										Generated: &config.GeneratedFieldConfig{
 											Model: &config.ModelField{
-												Type: config.GeneratedFieldType(config.String),
+												Type: config.String,
 												Path: "title",
 												Model: &config.Model{
 													ObjectConfig: &config.ObjectConfig{
@@ -484,7 +508,7 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 																					Type: config.Int,
 																					Generated: &config.GeneratedFieldConfig{
 																						Model: &config.ModelField{
-																							Type: config.GeneratedFieldType(config.Int),
+																							Type: config.Int,
 																							Path: "pop",
 																							Model: &config.Model{
 																								ObjectConfig: &config.ObjectConfig{
@@ -525,7 +549,160 @@ func (s *ModelFieldParserSuite) TestHTTP_ModelFieldFetching() {
 										Type: config.Int,
 										Generated: &config.GeneratedFieldConfig{
 											Model: &config.ModelField{
-												Type: config.GeneratedFieldType(config.Int),
+												Type: config.Int,
+												Path: "pop",
+												Model: &config.Model{
+													ObjectConfig: &config.ObjectConfig{
+														Fields: map[string]*config.Field{
+															"pop": {
+																BaseField: &config.BaseField{
+																	Type: config.Int,
+																	Path: "population",
+																},
+															},
+														},
+													},
+												},
+												ConnectorConfig: &config.ConnectorConfig{
+													ResponseType: config.Json,
+													Url:          s.server.URL + "/{PL}",
+													ServerConfig: &config.ServerConnectorConfig{
+														Method: "GET",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "{\"codes\": [{\"neighbour\": [{\"code\": 10102,\"population\": 1010210102},{\"population\": 1010010100,\"code\": 10100}],\"population\": 1010110101,\"code\": 10101,\"title\": \"Here 10101\"},{\"population\": 1010210102,\"code\": 10102,\"title\": \"Here 10102\",\"neighbour\": [{\"population\": 1010110101,\"code\": 10101},{\"code\": 10103,\"population\": 1010310103}]}]}\n", res.ToJson())
+}
+
+func (s *ModelFieldParserSuite) TestXPath_ModelFieldFetching() {
+	res, err := s.xpathParser.Parse(&config.Model{
+		ObjectConfig: &config.ObjectConfig{
+			Fields: map[string]*config.Field{
+				"codes": {
+					ArrayConfig: &config.ArrayConfig{
+						RootPath: "//code",
+						ItemConfig: &config.ObjectConfig{
+							Fields: map[string]*config.Field{
+								"code": {
+									BaseField: &config.BaseField{
+										Type: config.Int,
+									},
+								},
+								"title": {
+									BaseField: &config.BaseField{
+										Type: config.Int,
+										Generated: &config.GeneratedFieldConfig{
+											Model: &config.ModelField{
+												Type: config.String,
+												Path: "title",
+												Model: &config.Model{
+													ObjectConfig: &config.ObjectConfig{
+														Fields: map[string]*config.Field{
+															"title": {
+																BaseField: &config.BaseField{
+																	Type: config.String,
+																	Path: "//title",
+																},
+															},
+														},
+													},
+												},
+												ConnectorConfig: &config.ConnectorConfig{
+													ResponseType: config.XPath,
+													Url:          fmt.Sprintf("%s/html", s.server.URL) + "/{PL}",
+													ServerConfig: &config.ServerConnectorConfig{
+														Method: "GET",
+													},
+												},
+											},
+										},
+									},
+								},
+								"neighbour": {
+									BaseField: &config.BaseField{
+										Type: config.Int,
+										Generated: &config.GeneratedFieldConfig{
+											Model: &config.ModelField{
+												Type: config.Array,
+												Path: "neighbour",
+												ConnectorConfig: &config.ConnectorConfig{
+													ResponseType: config.Json,
+													Url:          fmt.Sprintf("%s/neighbour", s.server.URL) + "/{PL}",
+													ServerConfig: &config.ServerConnectorConfig{
+														Method: "GET",
+													},
+												},
+												Model: &config.Model{
+													ObjectConfig: &config.ObjectConfig{
+														Fields: map[string]*config.Field{
+															"neighbour": {
+																ArrayConfig: &config.ArrayConfig{
+																	RootPath: "neighbour",
+																	ItemConfig: &config.ObjectConfig{
+																		Fields: map[string]*config.Field{
+																			"code": {
+																				BaseField: &config.BaseField{
+																					Type: config.Int,
+																				},
+																			},
+																			"population": {
+																				BaseField: &config.BaseField{
+																					Type: config.Int,
+																					Generated: &config.GeneratedFieldConfig{
+																						Model: &config.ModelField{
+																							Type: config.Int,
+																							Path: "pop",
+																							Model: &config.Model{
+																								ObjectConfig: &config.ObjectConfig{
+																									Fields: map[string]*config.Field{
+																										"pop": {
+																											BaseField: &config.BaseField{
+																												Type: config.Int,
+																												Path: "population",
+																											},
+																										},
+																									},
+																								},
+																							},
+																							ConnectorConfig: &config.ConnectorConfig{
+																								ResponseType: config.Json,
+																								Url:          s.server.URL + "/{PL}",
+																								ServerConfig: &config.ServerConnectorConfig{
+																									Method: "GET",
+																								},
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+								"population": {
+									BaseField: &config.BaseField{
+										Type: config.Int,
+										Generated: &config.GeneratedFieldConfig{
+											Model: &config.ModelField{
+												Type: config.Int,
 												Path: "pop",
 												Model: &config.Model{
 													ObjectConfig: &config.ObjectConfig{

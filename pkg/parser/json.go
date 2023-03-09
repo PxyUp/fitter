@@ -144,11 +144,19 @@ func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayCon
 		parent = parent.Get(array.RootPath)
 	}
 
-	values := make([]builder.Jsonable, len(parent.Array()))
+	size := len(parent.Array())
+	if array.LengthLimit > 0 {
+		size = int(array.LengthLimit)
+	}
+
+	values := make([]builder.Jsonable, size)
 
 	if array.ItemConfig.Field != nil {
 		var wg sync.WaitGroup
 		for lIndex, lRes := range parent.Array() {
+			if lIndex >= size {
+				break
+			}
 			i := lIndex
 			r := lRes
 
@@ -168,6 +176,9 @@ func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayCon
 	if array.ItemConfig.ArrayConfig != nil {
 		var wg sync.WaitGroup
 		for lIndex, lRes := range parent.Array() {
+			if lIndex >= size {
+				break
+			}
 			i := lIndex
 			r := lRes
 
@@ -184,6 +195,10 @@ func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayCon
 
 	var wg sync.WaitGroup
 	for lIndex, lRes := range parent.Array() {
+		if lIndex >= size {
+			break
+		}
+
 		i := lIndex
 		r := lRes
 
@@ -235,7 +250,7 @@ func (j *jsonParser) buildBaseField(source gjson.Result, field *config.BaseField
 			}
 			if field.Generated.Model.Path != "" {
 				return fillUpBaseField(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path), &config.BaseField{
-					Type: config.FieldType(field.Generated.Model.Type),
+					Type: field.Generated.Model.Type,
 				})
 			}
 		}

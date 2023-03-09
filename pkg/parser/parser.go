@@ -68,6 +68,8 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 			connector = connectors.NewAPI(format(field.Model.ConnectorConfig.Url, parsedValue, index), &config.ServerConnectorConfig{
 				Method:  field.Model.ConnectorConfig.ServerConfig.Method,
 				Headers: field.Model.ConnectorConfig.ServerConfig.Headers,
+				Timeout: field.Model.ConnectorConfig.ServerConfig.Timeout,
+				Body:    format(field.Model.ConnectorConfig.ServerConfig.Body, parsedValue, index),
 			}, nil).WithLogger(logger.With("connector", "server"))
 		}
 
@@ -130,6 +132,10 @@ func fillUpBaseField(source gjson.Result, field *config.BaseField) builder.Jsona
 		return builder.Float(float32(source.Float()))
 	case config.Int:
 		return builder.Int(int(source.Int()))
+	case config.Array:
+		return builder.PureString(source.String())
+	case config.Object:
+		return builder.PureString(source.String())
 	}
 
 	return builder.EMPTY

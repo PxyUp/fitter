@@ -35,27 +35,13 @@ func (o *telegramBot) WithLogger(logger logger.Logger) *telegramBot {
 	return o
 }
 
-func (t *telegramBot) Inform(result *parser.ParseResult, err error) error {
-	var msg string
-	if err != nil {
-		msg = fmt.Sprintf("Result for: %s\n\nError: %s", t.name, err)
-	} else {
-		if t.cfg.Pretty {
-			var prettyJSON bytes.Buffer
-			errPretty := json.Indent(&prettyJSON, []byte(result.ToJson()), "", "\t")
-			if errPretty != nil {
-				t.logger.Errorw("enable to prettify result", "error", errPretty.Error())
-				return errPretty
-			}
-			msg = fmt.Sprintf("Result for: *%s*\n\n```json\n%s\n```", t.name, prettyJSON.String())
-		} else {
-			msg = fmt.Sprintf("Result for: *%s*\n\n```json\n%s\n```", t.name, result.ToJson())
-		}
-	}
+func (t *telegramBot) sendError(msg string) error {
+	return t.sendMessage(msg)
+}
 
+func (t *telegramBot) sendMessage(msg string) error {
 	for _, id := range t.cfg.UsersId {
 		msgForSend := tgbotapi.NewMessage(id, msg)
-		msgForSend.ParseMode = "markdown"
 		_, errSend := t.botApi.Send(msgForSend)
 		if errSend != nil {
 			t.logger.Errorw("unable to send result", "error", errSend.Error(), "userId", fmt.Sprintf("%d", id))
@@ -63,4 +49,48 @@ func (t *telegramBot) Inform(result *parser.ParseResult, err error) error {
 	}
 
 	return nil
+}
+
+func (t *telegramBot) prettyMsg(msg string) string {
+	if !t.cfg.Pretty {
+		return msg
+	}
+	var prettyJSON bytes.Buffer
+	errPretty := json.Indent(&prettyJSON, []byte(msg), "", " ")
+	if errPretty != nil {
+		t.logger.Errorw("unable to prettify result", "error", errPretty.Error())
+		return msg
+	}
+	return prettyJSON.String()
+}
+
+func (t *telegramBot) sendSuccess(result *parser.ParseResult, isArray bool) error {
+	if !t.cfg.SendArrayByItem || !isArray {
+		return t.sendMessage(fmt.Sprintf("Result for: %s\n\n\n%s", t.name, t.prettyMsg(result.ToJson())))
+	}
+
+	var arr []interface{}
+	err := json.Unmarshal([]byte(result.ToJson()), &arr)
+	if err != nil {
+		t.logger.Errorw("unable to unmarshal result like array", "error", err.Error())
+		return err
+	}
+
+	for _, value := range arr {
+		body, errMarshal := json.Marshal(value)
+		if errMarshal != nil {
+			t.logger.Errorw("unable to unmarshal like array", "error", err.Error())
+			continue
+		}
+		_ = t.sendMessage(fmt.Sprintf("Result for: %s\n\n%s", t.name, t.prettyMsg(string(body))))
+	}
+
+	return nil
+}
+
+func (t *telegramBot) Inform(result *parser.ParseResult, err error, isArray bool) error {
+	if err != nil {
+		return t.sendError(fmt.Sprintf("Result for: %s\n\nError: %s", t.name, err))
+	}
+	return t.sendSuccess(result, isArray)
 }

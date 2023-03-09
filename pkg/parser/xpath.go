@@ -169,11 +169,20 @@ func (x *xpathParser) buildArrayField(parent []*html.Node, array *config.ArrayCo
 		return x.buildStaticArray(array.StaticConfig)
 	}
 
-	values := make([]builder.Jsonable, len(parent))
+	size := len(parent)
+	if array.LengthLimit > 0 {
+		size = int(array.LengthLimit)
+	}
+
+	values := make([]builder.Jsonable, size)
 
 	if array.ItemConfig.Field != nil {
 		var wg sync.WaitGroup
 		for iL, sL := range parent {
+			if iL >= size {
+				break
+			}
+
 			i := iL
 			s := sL
 			wg.Add(1)
@@ -193,6 +202,10 @@ func (x *xpathParser) buildArrayField(parent []*html.Node, array *config.ArrayCo
 	if array.ItemConfig.ArrayConfig != nil {
 		var wg sync.WaitGroup
 		for iL, iS := range parent {
+			if iL >= size {
+				break
+			}
+
 			i := iL
 			s := iS
 			wg.Add(1)
@@ -208,6 +221,10 @@ func (x *xpathParser) buildArrayField(parent []*html.Node, array *config.ArrayCo
 
 	var wg sync.WaitGroup
 	for iL, iS := range parent {
+		if iL >= size {
+			break
+		}
+
 		i := iL
 		s := iS
 		wg.Add(1)

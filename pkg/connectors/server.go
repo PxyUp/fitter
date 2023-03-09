@@ -1,6 +1,7 @@
 package connectors
 
 import (
+	"bytes"
 	"context"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors/limitter"
@@ -14,7 +15,7 @@ import (
 )
 
 const (
-	timeout                 = 10 * time.Second
+	timeout                 = 60 * time.Second
 	defaultConcurrentWorker = 1000
 )
 
@@ -26,10 +27,6 @@ type apiConnector struct {
 }
 
 var (
-	DefaultClient = &http.Client{
-		Timeout: timeout,
-	}
-
 	sem *semaphore.Weighted
 
 	ctx = context.Background()
@@ -64,7 +61,17 @@ func (api *apiConnector) Get() ([]byte, error) {
 	if api.url == "" {
 		return nil, errEmpty
 	}
-	req, err := http.NewRequest(api.cfg.Method, api.url, nil)
+
+	err := sem.Acquire(ctx, 1)
+	if err != nil {
+		api.logger.Errorw("unable to acquire semaphore", "method", api.cfg.Method, "url", api.url, "error", err.Error())
+		return nil, err
+	}
+
+	defer sem.Release(1)
+
+	req, err := http.NewRequest(api.cfg.Method, api.url, bytes.NewBufferString(api.cfg.Body))
+
 	if err != nil {
 		api.logger.Errorw("unable to create http request", "error", err.Error())
 		return nil, err
@@ -74,20 +81,9 @@ func (api *apiConnector) Get() ([]byte, error) {
 		req.Header.Add(k, v)
 	}
 
-	err = sem.Acquire(ctx, 1)
-	if err != nil {
-		api.logger.Errorw("unable to acquire semaphore", "method", api.cfg.Method, "url", api.url, "error", err.Error())
-		return nil, err
-	}
-
-	defer sem.Release(1)
-
-	client := DefaultClient
+	client := http.DefaultClient
 	if api.client != nil {
 		client = api.client
-	}
-	if api.cfg.Timeout > 0 {
-		client.Timeout = time.Duration(api.cfg.Timeout) * time.Second
 	}
 
 	if hostLimit := limitter.HostLimiter(req.Host); hostLimit != nil {
@@ -99,8 +95,15 @@ func (api *apiConnector) Get() ([]byte, error) {
 		defer hostLimit.Release(1)
 	}
 
+	tt := timeout
+	if api.cfg.Timeout > 0 {
+		tt = time.Duration(api.cfg.Timeout) * time.Second
+	}
+	reqCtx, cancel := context.WithTimeout(ctx, tt)
+	defer cancel()
+
 	api.logger.Infof("send request to url: %s", api.url)
-	resp, err := client.Do(req)
+	resp, err := client.Do(req.WithContext(reqCtx))
 	if err != nil {
 		api.logger.Errorw("unable to send http request", "method", api.cfg.Method, "url", api.url, "error", err.Error())
 		return nil, err

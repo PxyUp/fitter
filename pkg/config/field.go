@@ -2,8 +2,6 @@ package config
 
 type FieldType string
 
-type GeneratedFieldType FieldType
-
 const (
 	Null    FieldType = "null"
 	Bool    FieldType = "boolean"
@@ -13,8 +11,8 @@ const (
 	Float   FieldType = "float"
 	Float64 FieldType = "float64"
 
-	Array  GeneratedFieldType = "array"
-	Object GeneratedFieldType = "object"
+	Array  FieldType = "array"
+	Object FieldType = "object"
 )
 
 type Field struct {
@@ -51,8 +49,8 @@ type ModelField struct {
 	// Model of the response
 	Model *Model `yaml:"model" json:"model"`
 
-	Type GeneratedFieldType `yaml:"type" json:"type"`
-	Path string             `yaml:"path" json:"path"`
+	Type FieldType `yaml:"type" json:"type"`
+	Path string    `yaml:"path" json:"path"`
 }
 
 type StaticGeneratedFieldConfig struct {

@@ -209,12 +209,14 @@ type ServerConnectorConfig struct {
     Method  string            `json:"method" yaml:"method"`
     Headers map[string]string `yaml:"headers" json:"headers"`
     Timeout uint32            `yaml:"timeout" json:"timeout"`
+    Body    string            `yaml:"body" json:"body"`
 }
 ```
 
 - Method - supported all http methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD
 - Headers - predefine headers for using during request
-- Timeout[sec] - default 10sec timeout or used provided
+- Timeout[sec] - default 60sec timeout or used provided
+- Body - body of the request, parsed value [can be injected](#placeholder-list)
 
 Example:
 ```json
@@ -413,16 +415,19 @@ Configuration of the array and fields
 
 ```go
 type ArrayConfig struct {
-	RootPath     string             `json:"root_path" yaml:"root_path"`
-	ItemConfig   *ObjectConfig      `json:"item_config" yaml:"item_config"`
-	StaticConfig *StaticArrayConfig `json:"static_array"  yaml:"static_array"`
+    RootPath    string        `json:"root_path" yaml:"root_path"`
+    ItemConfig  *ObjectConfig `json:"item_config" yaml:"item_config"`
+    LengthLimit uint32        `json:"length_limit" yaml:"length_limit"`
+    
+    StaticConfig *StaticArrayConfig `json:"static_array"  yaml:"static_array"`
 }
 ```
 
 - RootPath - selector for find root element of the array or repeated element in case of html parsing, size of array will be amount of children element under the root
+- LengthLimit - for define size of array only for generated(not working for static)
 
 Config can be one of:
-- [ItemConfig](#objectconfig) - configuration of each element of the array
+- [ItemConfig](#objectconfig) - configuration of each element of the array 
 - [StaticConfig](#static-array-config) - configuration of the static array
 
 Example:
@@ -481,7 +486,7 @@ type BaseField struct {
 }
 ```
 
-- FieldType - enum["null", "boolean", "string", "int","int64","float","float64"] - static field for parse
+- FieldType - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object"] - static field for parse
 - Path - selector(relative in case it is array child) for parsing
 
 Config can be one of or empty:
@@ -620,14 +625,14 @@ type ModelField struct {
 	// Model of the response
 	Model *Model `yaml:"model" json:"model"`
 
-	Type GeneratedFieldType `yaml:"type" json:"type"`
+	Type FieldType `yaml:"type" json:"type"`
 	Path string             `yaml:"path" json:"path"`
 }
 ```
 
 - [ConnectorConfig](#connector) - which connector to use. Important: URL in the connector can be with [inject of the parent value as a string](#placeholder-list)
 - [Model](#model) - configuration of the underhood model
-- GeneratedFieldType - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object"] - type of generated field
+- Type - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object"] - type of generated field
 - Path - in case we cant extract some information from generated field we can use json selector for extract
 
 Examples:
@@ -753,6 +758,7 @@ Examples:
 1. {PL} - for inject value
 2. {INDEX} - for inject index in parent array
 3. {HUMAN_INDEX} - for inject index in parent array in human way
+4. {{{json_path}}} - will get information from propagated "object"/"array" field
 
 ## Limits
 Provide limitation for prevent DDOS, big usage of memory

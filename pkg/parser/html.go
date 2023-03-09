@@ -152,11 +152,19 @@ func (h *htmlParser) buildArrayField(parent *goquery.Selection, array *config.Ar
 		parent = parent.Find(array.RootPath)
 	}
 
-	values := make([]builder.Jsonable, parent.Length())
+	size := parent.Length()
+	if array.LengthLimit > 0 {
+		size = int(array.LengthLimit)
+	}
+
+	values := make([]builder.Jsonable, size)
 
 	if array.ItemConfig.Field != nil {
 		var wg sync.WaitGroup
 		parent.Each(func(i int, s *goquery.Selection) {
+			if i >= size {
+				return
+			}
 			wg.Add(1)
 			go func(index int, selection *goquery.Selection) {
 				defer wg.Done()
@@ -173,6 +181,10 @@ func (h *htmlParser) buildArrayField(parent *goquery.Selection, array *config.Ar
 	if array.ItemConfig.ArrayConfig != nil {
 		var wg sync.WaitGroup
 		parent.Each(func(i int, s *goquery.Selection) {
+			if i >= size {
+				return
+			}
+
 			wg.Add(1)
 			go func(index int, selection *goquery.Selection) {
 				defer wg.Done()
@@ -186,6 +198,10 @@ func (h *htmlParser) buildArrayField(parent *goquery.Selection, array *config.Ar
 
 	var wg sync.WaitGroup
 	parent.Each(func(i int, s *goquery.Selection) {
+		if i >= size {
+			return
+		}
+
 		wg.Add(1)
 		go func(index int, selection *goquery.Selection) {
 			defer wg.Done()

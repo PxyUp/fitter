@@ -41,8 +41,10 @@ type ObjectConfig struct {
 }
 
 type ArrayConfig struct {
-	RootPath     string             `json:"root_path" yaml:"root_path"`
-	ItemConfig   *ObjectConfig      `json:"item_config" yaml:"item_config"`
+	RootPath    string        `json:"root_path" yaml:"root_path"`
+	ItemConfig  *ObjectConfig `json:"item_config" yaml:"item_config"`
+	LengthLimit uint32        `json:"length_limit" yaml:"length_limit"`
+
 	StaticConfig *StaticArrayConfig `json:"static_array"  yaml:"static_array"`
 }
 
@@ -114,6 +116,7 @@ type ServerConnectorConfig struct {
 	Method  string            `json:"method" yaml:"method"`
 	Headers map[string]string `yaml:"headers" json:"headers"`
 	Timeout uint32            `yaml:"timeout" json:"timeout"`
+	Body    string            `yaml:"body" json:"body"`
 }
 
 type TriggerConfig struct {
@@ -138,9 +141,10 @@ type ConsoleConfig struct {
 }
 
 type TelegramBotConfig struct {
-	Token   string  `json:"token" yaml:"token"`
-	UsersId []int64 `json:"users_id" yaml:"users_id"`
-	Pretty  bool    `json:"pretty" yaml:"pretty"`
+	Token           string  `json:"token" yaml:"token"`
+	UsersId         []int64 `json:"users_id" yaml:"users_id"`
+	Pretty          bool    `json:"pretty" yaml:"pretty"`
+	SendArrayByItem bool    `yaml:"send_array_by_item" json:"send_array_by_item"`
 }
 
 type Item struct {
