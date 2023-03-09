@@ -43,6 +43,7 @@ func getConfig(filePath string) *config.Config {
 
 func main() {
 	filePath := flag.String("path", "config.yaml", "Path for config file yaml|json")
+	verboseFlag := flag.Bool("verbose", false, "Provide logger")
 	flag.Parse()
 
 	cfg := getConfig(*filePath)
@@ -57,8 +58,11 @@ func main() {
 		<-c
 		cancel()
 	}()
-	logger := logger.NewLogger()
-	runtime.New(ctx, cfg, logger.With("component", "runtime")).Start()
-	logger.Info("shutdown...")
+	lg := logger.Null
+	if *verboseFlag {
+		lg = logger.NewLogger()
+	}
+	runtime.New(ctx, cfg, lg.With("component", "runtime")).Start()
+	lg.Info("shutdown...")
 	time.Sleep(time.Second * 5)
 }

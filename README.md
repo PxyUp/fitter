@@ -108,6 +108,8 @@ go run cmd/fitter/main.go --path=./examples/config_api.json
 
 ### Arguments
 1. **--path** - string[config.yaml] - path for the configuration of the Fitter
+2. **--verbose** - bool[false] - enable logging
+
 
 # How to use Fitter_CLI
 
@@ -123,6 +125,7 @@ go run cmd/cli/main.go --path=./examples/cli/config_cli.json
 2. **--copy** - bool[false] - copy information into clipboard
 3. **--pretty** - bool[true] - make readable result(also affect on copy)
 4. **--verbose** - bool[false] - enable logging
+5. **--omit-error-pretty** - bool[false] -  Provide pure value if pretty is invalid
 
 ```bash
 ./fitter_cli_${VERSION} --path=./examples/cli/config_cli.json --copy=true
