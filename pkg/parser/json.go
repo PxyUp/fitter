@@ -1,11 +1,12 @@
 package parser
 
 import (
+	"sync"
+
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/tidwall/gjson"
-	"sync"
 )
 
 type jsonParser struct {
@@ -50,7 +51,7 @@ func (j *jsonParser) buildArray(array *config.ArrayConfig) builder.Jsonable {
 }
 
 func (j *jsonParser) buildObject(object *config.ObjectConfig) builder.Jsonable {
-	return j.buildObjectField(j.parserBody, object.Fields)
+	return j.buildObjectField(j.parserBody, object)
 }
 
 func (j *jsonParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jsonable {
@@ -80,12 +81,12 @@ func (j *jsonParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jso
 	return builder.Array(values)
 }
 
-func (j *jsonParser) buildObjectField(parent gjson.Result, fields map[string]*config.Field) builder.Jsonable {
+func (j *jsonParser) buildObjectField(parent gjson.Result, object *config.ObjectConfig) builder.Jsonable {
 	kv := make(map[string]builder.Jsonable)
 	var mutex sync.Mutex
 
 	var wg sync.WaitGroup
-	for lKey, lValue := range fields {
+	for lKey, lValue := range object.Fields {
 		key := lKey
 		value := lValue
 
@@ -125,7 +126,7 @@ func (j *jsonParser) resolveField(parent gjson.Result, field *config.Field, inde
 	}
 
 	if field.ObjectConfig != nil {
-		return j.buildObjectField(parent, field.ObjectConfig.Fields)
+		return j.buildObjectField(parent, field.ObjectConfig)
 	}
 
 	if field.ArrayConfig != nil {
@@ -205,7 +206,7 @@ func (j *jsonParser) buildArrayField(parent gjson.Result, array *config.ArrayCon
 		wg.Add(1)
 		go func(index int, res gjson.Result) {
 			defer wg.Done()
-			values[index] = j.buildObjectField(res, array.ItemConfig.Fields)
+			values[index] = j.buildObjectField(res, array.ItemConfig)
 		}(i, r)
 	}
 

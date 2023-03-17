@@ -2,13 +2,14 @@ package parser
 
 import (
 	"bytes"
+	"strconv"
+	"sync"
+
 	"github.com/PuerkitoBio/goquery"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/tidwall/gjson"
-	"strconv"
-	"sync"
 )
 
 type htmlParser struct {
@@ -59,15 +60,15 @@ func (h *htmlParser) buildArray(array *config.ArrayConfig) builder.Jsonable {
 }
 
 func (h *htmlParser) buildObject(object *config.ObjectConfig) builder.Jsonable {
-	return h.buildObjectField(h.parserBody, object.Fields)
+	return h.buildObjectField(h.parserBody, object)
 }
 
-func (h *htmlParser) buildObjectField(parent *goquery.Selection, fields map[string]*config.Field) builder.Jsonable {
+func (h *htmlParser) buildObjectField(parent *goquery.Selection, object *config.ObjectConfig) builder.Jsonable {
 	kv := make(map[string]builder.Jsonable)
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
-	for lKey, lValue := range fields {
+	for lKey, lValue := range object.Fields {
 		key := lKey
 		value := lValue
 		wg.Add(1)
@@ -134,7 +135,7 @@ func (h *htmlParser) resolveField(parent *goquery.Selection, field *config.Field
 	}
 
 	if field.ObjectConfig != nil {
-		return h.buildObjectField(parent, field.ObjectConfig.Fields)
+		return h.buildObjectField(parent, field.ObjectConfig)
 	}
 
 	if field.ArrayConfig != nil {
@@ -206,7 +207,7 @@ func (h *htmlParser) buildArrayField(parent *goquery.Selection, array *config.Ar
 		go func(index int, selection *goquery.Selection) {
 			defer wg.Done()
 
-			values[index] = h.buildObjectField(selection, array.ItemConfig.Fields)
+			values[index] = h.buildObjectField(selection, array.ItemConfig)
 		}(i, s)
 	})
 	wg.Wait()

@@ -2,14 +2,15 @@ package parser
 
 import (
 	"bytes"
+	"strconv"
+	"sync"
+
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/antchfx/htmlquery"
 	"github.com/tidwall/gjson"
 	"golang.org/x/net/html"
-	"strconv"
-	"sync"
 )
 
 type xpathParser struct {
@@ -77,7 +78,7 @@ func (x *xpathParser) buildArray(array *config.ArrayConfig) builder.Jsonable {
 }
 
 func (x *xpathParser) buildObject(object *config.ObjectConfig) builder.Jsonable {
-	return x.buildObjectField(x.parserBody, object.Fields)
+	return x.buildObjectField(x.parserBody, object)
 }
 
 func (x *xpathParser) buildStaticArray(cfg *config.StaticArrayConfig) builder.Jsonable {
@@ -129,7 +130,7 @@ func (x *xpathParser) resolveField(parent *html.Node, field *config.Field, index
 	}
 
 	if field.ObjectConfig != nil {
-		return x.buildObjectField(parent, field.ObjectConfig.Fields)
+		return x.buildObjectField(parent, field.ObjectConfig)
 	}
 
 	if field.ArrayConfig != nil {
@@ -139,12 +140,12 @@ func (x *xpathParser) resolveField(parent *html.Node, field *config.Field, index
 	return builder.Null()
 }
 
-func (x *xpathParser) buildObjectField(parent *html.Node, fields map[string]*config.Field) builder.Jsonable {
+func (x *xpathParser) buildObjectField(parent *html.Node, object *config.ObjectConfig) builder.Jsonable {
 	kv := make(map[string]builder.Jsonable)
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
-	for lKey, lValue := range fields {
+	for lKey, lValue := range object.Fields {
 		key := lKey
 		value := lValue
 		wg.Add(1)
@@ -231,7 +232,7 @@ func (x *xpathParser) buildArrayField(parent []*html.Node, array *config.ArrayCo
 		go func(index int, selection *html.Node) {
 			defer wg.Done()
 
-			values[index] = x.buildObjectField(selection, array.ItemConfig.Fields)
+			values[index] = x.buildObjectField(selection, array.ItemConfig)
 		}(i, s)
 	}
 	wg.Wait()
