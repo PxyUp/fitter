@@ -8,6 +8,7 @@ import (
 	"github.com/PxyUp/fitter/lib"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/atotto/clipboard"
 	"gopkg.in/yaml.v3"
 	"log"
@@ -47,11 +48,20 @@ func main() {
 	prettyFlag := flag.Bool("pretty", true, "Make result pretty")
 	verboseFlag := flag.Bool("verbose", false, "Provide logger")
 	omitPrettyErrorFlag := flag.Bool("omit-error-pretty", false, "Provide pure value if pretty is invalid")
+	pluginsFlag := flag.String("plugins", "", "Provide plugins folder")
 	flag.Parse()
 
 	log := logger.Null
 	if *verboseFlag {
 		log = logger.NewLogger()
+	}
+
+	if *pluginsFlag != "" {
+		err := store.PluginInitialize(*pluginsFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return
+		}
 	}
 
 	cfg := getConfig(*filePath)

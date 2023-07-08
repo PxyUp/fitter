@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/PxyUp/fitter/pkg/runtime"
 	"gopkg.in/yaml.v3"
 	"log"
@@ -44,20 +46,25 @@ func getConfig(filePath string) *config.Config {
 func main() {
 	filePath := flag.String("path", "config.yaml", "Path for config file yaml|json")
 	verboseFlag := flag.Bool("verbose", false, "Provide logger")
+	pluginsFlag := flag.String("plugins", "", "Provide plugins folder")
 	flag.Parse()
+
+	if *pluginsFlag != "" {
+		err := store.PluginInitialize(*pluginsFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return
+		}
+	}
 
 	cfg := getConfig(*filePath)
 	if cfg == nil {
 		log.Fatalf("empty config file %s", *filePath)
 		return
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		cancel()
-	}()
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 	lg := logger.Null
 	if *verboseFlag {
 		lg = logger.NewLogger()

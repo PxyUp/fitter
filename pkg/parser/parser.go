@@ -5,6 +5,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/connectors"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser/builder"
+	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/tidwall/gjson"
 )
 
@@ -51,6 +52,10 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 
 	if field.Formatted != nil {
 		return builder.String(format(field.Formatted.Template, parsedValue, index))
+	}
+
+	if field.Plugin != nil {
+		return store.Store.Get(field.Plugin.Name, logger).Format(parsedValue, field, logger.With("plugin", field.Plugin.Name), index)
 	}
 
 	if field.Model != nil {

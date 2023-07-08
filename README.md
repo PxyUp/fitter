@@ -109,6 +109,7 @@ go run cmd/fitter/main.go --path=./examples/config_api.json
 ### Arguments
 1. **--path** - string[config.yaml] - path for the configuration of the Fitter
 2. **--verbose** - bool[false] - enable logging
+3. **--plugins** - string[""] - [path for plugins for Fitter](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md)
 
 
 # How to use Fitter_CLI
@@ -126,6 +127,7 @@ go run cmd/cli/main.go --path=./examples/cli/config_cli.json
 3. **--pretty** - bool[true] - make readable result(also affect on copy)
 4. **--verbose** - bool[false] - enable logging
 5. **--omit-error-pretty** - bool[false] -  Provide pure value if pretty is invalid
+6. **--plugins** - string[""] - [path for plugins for Fitter](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md)
 
 ```bash
 ./fitter_cli_${VERSION} --path=./examples/cli/config_cli.json --copy=true
@@ -520,6 +522,7 @@ type GeneratedFieldConfig struct {
 	UUID      *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
 	Static    *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
 	Formatted *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
+	Plugin    *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
 	Model     *ModelField                 `yaml:"model" json:"model"`
 }
 ```
@@ -529,6 +532,7 @@ Config can be one of:
 - [Static](#static) - generate static field
 - [Formatted](#formatted-field-config) - format field
 - [Model](#model-field) - model generated from the other connector and model
+- [Plugin](#plugin-field) - plugin field
 
 Examples:
 ```json
@@ -617,6 +621,20 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json#L98
   "template": "https://news.ycombinator.com/item?id={PL}"
 }
 ```
+
+#### Plugin field
+
+Field can be some external plugin for fitter
+
+[More](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md)
+
+```go
+type PluginFieldConfig struct {
+	Name string `json:"name" yaml:"name"`
+}
+```
+
+- Name - name of the plugin(without extension just name)
 
 #### Model Field
 Field type which can be generated on the flight by news [model](#model) and [connector](#connector)

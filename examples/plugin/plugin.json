@@ -1,0 +1,37 @@
+{
+  "items": [
+    {
+      "name": "Current time",
+      "connector_config": {
+        "response_type": "HTML",
+        "url": "https://time.is",
+        "server_config": {
+          "method": "GET"
+        }
+      },
+      "model": {
+        "base_field": {
+          "type": "string",
+          "path": "time#clock",
+          "generated": {
+            "plugin": {
+              "name": "hardcoder"
+            }
+          }
+        }
+      },
+      "trigger_config": {
+        "scheduler_trigger": {
+          "interval": 10
+        }
+      },
+      "notifier_config": {
+        "telegram_bot": {
+          "token": "",
+          "users_id": [],
+          "pretty": true
+        }
+      }
+    }
+  ]
+}
