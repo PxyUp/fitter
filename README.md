@@ -631,10 +631,12 @@ Field can be some external plugin for fitter
 ```go
 type PluginFieldConfig struct {
 	Name string `json:"name" yaml:"name"`
+	Config json.RawMessage `json:"config" yaml:"config"`
 }
 ```
 
 - Name - name of the plugin(without extension just name)
+- Config - json config of the plugin
 
 #### Model Field
 Field type which can be generated on the flight by news [model](#model) and [connector](#connector)

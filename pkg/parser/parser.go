@@ -55,7 +55,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 	}
 
 	if field.Plugin != nil {
-		return store.Store.Get(field.Plugin.Name, logger).Format(parsedValue, field, logger.With("plugin", field.Plugin.Name), index)
+		return store.Store.Get(field.Plugin.Name, logger).Format(parsedValue, field.Plugin, logger.With("plugin", field.Plugin.Name), index)
 	}
 
 	if field.Model != nil {

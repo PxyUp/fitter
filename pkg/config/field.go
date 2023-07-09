@@ -1,5 +1,7 @@
 package config
 
+import "encoding/json"
+
 type FieldType string
 
 const (
@@ -45,7 +47,8 @@ type GeneratedFieldConfig struct {
 }
 
 type PluginFieldConfig struct {
-	Name string `json:"name" yaml:"name"`
+	Name   string          `json:"name" yaml:"name"`
+	Config json.RawMessage `json:"config" yaml:"config"`
 }
 
 type ModelField struct {

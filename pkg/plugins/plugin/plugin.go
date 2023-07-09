@@ -7,5 +7,5 @@ import (
 )
 
 type Plugin interface {
-	Format(parsedValue builder.Jsonable, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable
+	Format(parsedValue builder.Jsonable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable
 }

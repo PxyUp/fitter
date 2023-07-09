@@ -3,17 +3,34 @@
     "connector_config": {
       "response_type": "json",
       "static_config": {
-        "value": "[1]"
+        "value": "[\"Elon\"]"
       }
     },
     "model": {
       "array_config": {
         "item_config": {
-          "field": {
-            "type": "int",
-            "generated": {
-              "plugin": {
-                "name": "hardcoder"
+          "fields": {
+            "original" : {
+              "base_field": {
+                "type": "string",
+                "generated": {
+                  "plugin": {
+                    "name": "hardcoder"
+                  }
+                }
+              }
+            },
+            "changed" : {
+              "base_field": {
+                "type": "string",
+                "generated": {
+                  "plugin": {
+                    "name": "hardcoder",
+                    "config": {
+                      "name": "Mark"
+                    }
+                  }
+                }
               }
             }
           }

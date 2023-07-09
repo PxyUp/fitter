@@ -16,7 +16,7 @@ import (
 type nullPlugin struct {
 }
 
-func (n *nullPlugin) Format(parsedValue builder.Jsonable, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
+func (n *nullPlugin) Format(parsedValue builder.Jsonable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
 	return builder.Null()
 }
 
