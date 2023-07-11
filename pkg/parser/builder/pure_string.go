@@ -10,6 +10,10 @@ type pureStringField struct {
 	value string
 }
 
+var (
+	_ Jsonable = &pureStringField{}
+)
+
 func (s *pureStringField) IsEmpty() bool {
 	return len(s.value) == 0
 }
@@ -25,5 +29,9 @@ func PureString(value string) *pureStringField {
 }
 
 func (s *pureStringField) ToJson() string {
+	return s.value
+}
+
+func (s *pureStringField) Raw() interface{} {
 	return s.value
 }

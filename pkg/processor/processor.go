@@ -72,9 +72,10 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 		if p.model.ArrayConfig != nil {
 			isArray = true
 		}
+
 		errNot := p.notifier.Inform(result, err, isArray)
 		if errNot != nil {
-			p.logger.Errorw("cannot notify about result", "error", err.Error(), "body", string(body))
+			p.logger.Errorw("cannot notify about result", "error", errNot.Error(), "body", string(body))
 		}
 	}
 
@@ -129,6 +130,10 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 		}
 		if item.NotifierConfig.Console != nil {
 			notifierInstance = notifier.NewConsole(item.Name, item.NotifierConfig.Console).WithLogger(logger.With("notifier", "console"))
+		}
+
+		if notifierInstance != nil {
+			notifierInstance.SetConfig(item.NotifierConfig)
 		}
 
 	}

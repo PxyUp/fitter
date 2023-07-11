@@ -6,6 +6,15 @@ type floatField struct {
 	value float32
 }
 
+type float64Field struct {
+	value float64
+}
+
+var (
+	_ Jsonable = &floatField{}
+	_ Jsonable = &float64Field{}
+)
+
 func Float(value float32) *floatField {
 	return &floatField{
 		value: value,
@@ -18,4 +27,26 @@ func (s *floatField) IsEmpty() bool {
 
 func (s *floatField) ToJson() string {
 	return fmt.Sprintf(`%f`, s.value)
+}
+
+func (s *floatField) Raw() interface{} {
+	return s.value
+}
+
+func Float64(value float64) *float64Field {
+	return &float64Field{
+		value: value,
+	}
+}
+
+func (s *float64Field) IsEmpty() bool {
+	return false
+}
+
+func (s *float64Field) ToJson() string {
+	return fmt.Sprintf(`%f`, s.value)
+}
+
+func (s *float64Field) Raw() interface{} {
+	return s.value
 }

@@ -44,7 +44,7 @@ func (s *JsonParserObjectSuite) Test_Return_BaseField_String() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "\"green\"", res.Raw)
+	assert.JSONEq(s.T(), "\"green\"", res.ToJson())
 }
 
 func (s *JsonParserObjectSuite) Test_Return_BaseField_Number() {
@@ -55,7 +55,7 @@ func (s *JsonParserObjectSuite) Test_Return_BaseField_Number() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "27", res.Raw)
+	assert.JSONEq(s.T(), "27", res.ToJson())
 }
 
 func (s *JsonParserObjectSuite) Test_FirstOf() {
@@ -108,7 +108,7 @@ func (s *JsonParserObjectSuite) Test_FirstOf() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"object\": {\"title\": \"Henderson Gonzales\"},\"title\": \"Henderson Gonzales\"}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"object\": {\"title\": \"Henderson Gonzales\"},\"title\": \"Henderson Gonzales\"}\n", res.ToJson())
 }
 
 func (s *JsonParserObjectSuite) Test_StaticArray() {
@@ -140,7 +140,7 @@ func (s *JsonParserObjectSuite) Test_StaticArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[\"male\",{\"test\": \"Cooley Spence\"}]", res.Raw)
+	assert.JSONEq(s.T(), "[\"male\",{\"test\": \"Cooley Spence\"}]", res.ToJson())
 }
 
 func (s *JsonParserObjectSuite) Test_ParseSimpleObject() {
@@ -163,7 +163,7 @@ func (s *JsonParserObjectSuite) Test_ParseSimpleObject() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"address\": \"472 Cheever Place, Spelter, New Jersey, 5250\",\"name\": \"Cooley Spence\"}", res.Raw)
+	assert.JSONEq(s.T(), "{\"address\": \"472 Cheever Place, Spelter, New Jersey, 5250\",\"name\": \"Cooley Spence\"}", res.ToJson())
 }
 
 func (s *JsonParserObjectSuite) TestGeneratedField() {
@@ -192,7 +192,7 @@ func (s *JsonParserObjectSuite) TestGeneratedField() {
 	})
 	assert.NoError(s.T(), err)
 	jsonMap := make(map[string]interface{})
-	err = json.Unmarshal([]byte(res.Raw), &jsonMap)
+	err = json.Unmarshal([]byte(res.ToJson()), &jsonMap)
 	assert.NoError(s.T(), err)
 	assert.True(s.T(), len(jsonMap["uuid"].(string)) > 0)
 	assert.Equal(s.T(), float64(5), jsonMap["name"])
@@ -216,7 +216,7 @@ func (s *JsonParserObjectSuite) Test_ReturnSimpleArray_Concat() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"prices\": [292,357,695,315,279,336,594,821,791]}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"prices\": [292,357,695,315,279,336,594,821,791]}\n", res.ToJson())
 }
 
 func (s *JsonParserObjectSuite) Test_ReturnSimpleArray() {
@@ -232,7 +232,7 @@ func (s *JsonParserObjectSuite) Test_ReturnSimpleArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]", res.Raw)
+	assert.JSONEq(s.T(), "[\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]", res.ToJson())
 }
 
 func (s *JsonParserObjectSuite) Test_ReturnSimpleArrayOfArray() {
@@ -251,7 +251,7 @@ func (s *JsonParserObjectSuite) Test_ReturnSimpleArrayOfArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[[\"tempor\"],[\"test\"]]\n", res.Raw)
+	assert.JSONEq(s.T(), "[[\"tempor\"],[\"test\"]]\n", res.ToJson())
 }
 
 func (s *JsonParserObjectSuite) Test_ReturnNestedArray() {
@@ -286,7 +286,7 @@ func (s *JsonParserObjectSuite) Test_ReturnNestedArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[{\"name\": \"Cooley Spence\",\"meals\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}]},{\"name\": \"Dixie Padilla\",\"meals\": [{\"my_price\": 315},{\"my_price\": 279},{\"my_price\": 336}]},{\"name\": \"Tanisha Kline\",\"meals\": [{\"my_price\": 594},{\"my_price\": 821},{\"my_price\": 791}]}]\n", res.Raw)
+	assert.JSONEq(s.T(), "[{\"name\": \"Cooley Spence\",\"meals\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}]},{\"name\": \"Dixie Padilla\",\"meals\": [{\"my_price\": 315},{\"my_price\": 279},{\"my_price\": 336}]},{\"name\": \"Tanisha Kline\",\"meals\": [{\"my_price\": 594},{\"my_price\": 821},{\"my_price\": 791}]}]\n", res.ToJson())
 }
 
 func (s *JsonParserObjectSuite) Test_ParseNestedObject() {
@@ -366,5 +366,5 @@ func (s *JsonParserObjectSuite) Test_ParseNestedObject() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"player_meal\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}],\"player\": {\"latitude\": 44.823498,\"player_meal\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}],\"name\": \"Henderson Gonzales\",\"isActive\": true,\"null\": null},\"tags\": [\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"player_meal\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}],\"player\": {\"latitude\": 44.823498,\"player_meal\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}],\"name\": \"Henderson Gonzales\",\"isActive\": true,\"null\": null},\"tags\": [\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]}\n", res.ToJson())
 }

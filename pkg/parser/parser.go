@@ -29,16 +29,25 @@ type Parser interface {
 	Parse(model *config.Model) (*ParseResult, error)
 }
 
+var (
+	_ builder.Jsonable = &ParseResult{}
+)
+
 type ParseResult struct {
-	Raw string `json:"raw"`
+	Json      string `json:"raw"`
+	RawResult interface{}
+}
+
+func (p *ParseResult) Raw() interface{} {
+	return p.RawResult
 }
 
 func (p *ParseResult) IsEmpty() bool {
-	return len(p.Raw) == 0
+	return len(p.Json) == 0
 }
 
 func (p *ParseResult) ToJson() string {
-	return p.Raw
+	return p.Json
 }
 
 func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
@@ -136,8 +145,12 @@ func fillUpBaseField(source gjson.Result, field *config.BaseField) builder.Jsona
 		return builder.Bool(source.Bool())
 	case config.Float:
 		return builder.Float(float32(source.Float()))
+	case config.Float64:
+		return builder.Float64(source.Float())
 	case config.Int:
 		return builder.Int(int(source.Int()))
+	case config.Int64:
+		return builder.Int64(source.Int())
 	case config.Array:
 		return builder.PureString(source.String())
 	case config.Object:

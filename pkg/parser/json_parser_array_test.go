@@ -55,7 +55,7 @@ func (s *JsonParserArraySuite) Test_ParseSimpleObject() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"address_1\": \"433 Bennet Court, Manchester, Rhode Island, 6346\",\"address_2\": \"472 Cheever Place, Spelter, New Jersey, 5250\"}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"address_1\": \"433 Bennet Court, Manchester, Rhode Island, 6346\",\"address_2\": \"472 Cheever Place, Spelter, New Jersey, 5250\"}\n", res.ToJson())
 }
 
 func (s *JsonParserArraySuite) Test_ReturnNestedArray_Concat() {
@@ -72,7 +72,7 @@ func (s *JsonParserArraySuite) Test_ReturnNestedArray_Concat() {
 	})
 
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[215,692,257,623,172,567,960,924,857,292,357,695,315,279,336,594,821,791]\n", res.Raw)
+	assert.JSONEq(s.T(), "[215,692,257,623,172,567,960,924,857,292,357,695,315,279,336,594,821,791]\n", res.ToJson())
 }
 
 func (s *JsonParserArraySuite) Test_ReturnSimpleArray_Concat() {
@@ -88,7 +88,7 @@ func (s *JsonParserArraySuite) Test_ReturnSimpleArray_Concat() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[\"veniam\",\"nostrud\",\"elit\",\"consequat\",\"mollit\",\"pariatur\",\"proident\",\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]\n", res.Raw)
+	assert.JSONEq(s.T(), "[\"veniam\",\"nostrud\",\"elit\",\"consequat\",\"mollit\",\"pariatur\",\"proident\",\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]\n", res.ToJson())
 }
 
 func (s *JsonParserArraySuite) Test_ReturnSimpleArray() {
@@ -104,7 +104,7 @@ func (s *JsonParserArraySuite) Test_ReturnSimpleArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[\"nolanlester@qimonk.com\",\"hendersongonzales@megall.com\"]", res.Raw)
+	assert.JSONEq(s.T(), "[\"nolanlester@qimonk.com\",\"hendersongonzales@megall.com\"]", res.ToJson())
 }
 
 func (s *JsonParserArraySuite) Test_ReturnSimpleArray_Index() {
@@ -125,7 +125,7 @@ func (s *JsonParserArraySuite) Test_ReturnSimpleArray_Index() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[\"EMAIL: nolanlester@qimonk.com INDEX: 0\",\"EMAIL: hendersongonzales@megall.com INDEX: 1\"]\n", res.Raw)
+	assert.JSONEq(s.T(), "[\"EMAIL: nolanlester@qimonk.com INDEX: 0\",\"EMAIL: hendersongonzales@megall.com INDEX: 1\"]\n", res.ToJson())
 }
 
 func (s *JsonParserArraySuite) Test_ReturnSimpleArrayOfArray() {
@@ -145,7 +145,7 @@ func (s *JsonParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[[\"veniam\",\"nostrud\",\"elit\",\"consequat\",\"mollit\",\"pariatur\",\"proident\"],[\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]]\n", res.Raw)
+	assert.JSONEq(s.T(), "[[\"veniam\",\"nostrud\",\"elit\",\"consequat\",\"mollit\",\"pariatur\",\"proident\"],[\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]]\n", res.ToJson())
 }
 
 func (s *JsonParserArraySuite) Test_ReturnNestedArray() {
@@ -180,7 +180,7 @@ func (s *JsonParserArraySuite) Test_ReturnNestedArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[{\"name\": \"Nolan Lester\",\"meals\": [{\"my_price\": 215},{\"my_price\": 692},{\"my_price\": 257}]},{\"name\": \"Henderson Gonzales\",\"meals\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}]}]\n", res.Raw)
+	assert.JSONEq(s.T(), "[{\"name\": \"Nolan Lester\",\"meals\": [{\"my_price\": 215},{\"my_price\": 692},{\"my_price\": 257}]},{\"name\": \"Henderson Gonzales\",\"meals\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}]}]\n", res.ToJson())
 }
 
 func (s *JsonParserArraySuite) Test_ParseNestedObject() {
@@ -261,5 +261,5 @@ func (s *JsonParserArraySuite) Test_ParseNestedObject() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"player\": {\"null\": null,\"latitude\": 44.823498,\"player_meal\": [{\"my_price\": 315},{\"my_price\": 279},{\"my_price\": 336}],\"name\": \"Nolan Lester\",\"isActive\": false},\"tags\": [\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"],\"player_meal\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}]}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"player\": {\"null\": null,\"latitude\": 44.823498,\"player_meal\": [{\"my_price\": 315},{\"my_price\": 279},{\"my_price\": 336}],\"name\": \"Nolan Lester\",\"isActive\": false},\"tags\": [\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"],\"player_meal\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}]}\n", res.ToJson())
 }

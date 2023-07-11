@@ -52,24 +52,33 @@ func (x *xpathParser) WithLogger(logger logger.Logger) *xpathParser {
 
 func (x *xpathParser) Parse(model *config.Model) (*ParseResult, error) {
 	if x.parserBody == nil {
+		res := builder.Null()
 		return &ParseResult{
-			Raw: builder.Null().ToJson(),
+			RawResult: res.Raw(),
+			Json:      res.ToJson(),
 		}, nil
 	}
 
 	if model.BaseField != nil {
+		res := x.buildBaseField(x.parserBody, model.BaseField, nil)
 		return &ParseResult{
-			Raw: x.buildBaseField(x.parserBody, model.BaseField, nil).ToJson(),
+			RawResult: res.Raw(),
+			Json:      res.ToJson(),
 		}, nil
 	}
 
 	if model.ArrayConfig != nil {
+		res := x.buildArray(model.ArrayConfig)
 		return &ParseResult{
-			Raw: x.buildArray(model.ArrayConfig).ToJson(),
+			RawResult: res.Raw(),
+			Json:      res.ToJson(),
 		}, nil
 	}
+
+	res := x.buildObject(model.ObjectConfig)
 	return &ParseResult{
-		Raw: x.buildObject(model.ObjectConfig).ToJson(),
+		RawResult: res.Raw(),
+		Json:      res.ToJson(),
 	}, nil
 }
 
@@ -264,12 +273,24 @@ func (x *xpathParser) fillUpBaseField(source *html.Node, field *config.BaseField
 			return builder.Null()
 		}
 		return builder.Float(float32(float32Value))
+	case config.Float64:
+		float64Value, err := strconv.ParseFloat(text, 64)
+		if err != nil {
+			return builder.Null()
+		}
+		return builder.Float64(float64Value)
 	case config.Int:
 		intValue, err := strconv.ParseInt(text, 10, 32)
 		if err != nil {
 			return builder.Null()
 		}
 		return builder.Int(int(intValue))
+	case config.Int64:
+		int64Value, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return builder.Null()
+		}
+		return builder.Int64(int64Value)
 	}
 
 	return builder.Null()

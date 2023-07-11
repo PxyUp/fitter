@@ -30,19 +30,25 @@ func (j *jsonParser) WithLogger(logger logger.Logger) *jsonParser {
 
 func (j *jsonParser) Parse(model *config.Model) (*ParseResult, error) {
 	if model.BaseField != nil {
+		res := j.buildBaseField(j.parserBody, model.BaseField, nil)
 		return &ParseResult{
-			Raw: j.buildBaseField(j.parserBody, model.BaseField, nil).ToJson(),
+			RawResult: res.Raw(),
+			Json:      res.ToJson(),
 		}, nil
 	}
 
 	if model.ArrayConfig != nil {
+		res := j.buildArray(model.ArrayConfig)
 		return &ParseResult{
-			Raw: j.buildArray(model.ArrayConfig).ToJson(),
+			RawResult: res.Raw(),
+			Json:      res.ToJson(),
 		}, nil
 	}
 
+	res := j.buildObject(model.ObjectConfig)
 	return &ParseResult{
-		Raw: j.buildObject(model.ObjectConfig).ToJson(),
+		RawResult: res.Raw(),
+		Json:      res.ToJson(),
 	}, nil
 }
 

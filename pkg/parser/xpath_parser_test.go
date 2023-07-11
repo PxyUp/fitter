@@ -44,7 +44,7 @@ func (s *XPathParserArraySuite) Test_Return_BaseField_String() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "\"HTML Headings\"", res.Raw)
+	assert.JSONEq(s.T(), "\"HTML Headings\"", res.ToJson())
 }
 
 func (s *XPathParserArraySuite) Test_Return_BaseField_Number() {
@@ -55,7 +55,7 @@ func (s *XPathParserArraySuite) Test_Return_BaseField_Number() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "5555655", res.Raw)
+	assert.JSONEq(s.T(), "5555655", res.ToJson())
 }
 
 func (s *XPathParserArraySuite) Test_FirstOf() {
@@ -108,7 +108,7 @@ func (s *XPathParserArraySuite) Test_FirstOf() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"object\": {\"title\": \"HTML Headings\"},\"title\": \"HTML Headings\"}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"object\": {\"title\": \"HTML Headings\"},\"title\": \"HTML Headings\"}\n", res.ToJson())
 }
 
 func (s *XPathParserArraySuite) Test_StaticArray() {
@@ -139,7 +139,7 @@ func (s *XPathParserArraySuite) Test_StaticArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[\"Tutorials\",{\"intro\": \"HTML headings are titles or subtitles that you want to display on a webpage.\"}]", res.Raw)
+	assert.JSONEq(s.T(), "[\"Tutorials\",{\"intro\": \"HTML headings are titles or subtitles that you want to display on a webpage.\"}]", res.ToJson())
 }
 
 func (s *XPathParserArraySuite) Test_ParseSimpleObject() {
@@ -162,7 +162,7 @@ func (s *XPathParserArraySuite) Test_ParseSimpleObject() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"title\": \"Tutorials\",\"intro\": \"HTML headings are titles or subtitles that you want to display on a webpage.\"}", res.Raw)
+	assert.JSONEq(s.T(), "{\"title\": \"Tutorials\",\"intro\": \"HTML headings are titles or subtitles that you want to display on a webpage.\"}", res.ToJson())
 }
 
 func (s *XPathParserArraySuite) TestGeneratedField() {
@@ -191,7 +191,7 @@ func (s *XPathParserArraySuite) TestGeneratedField() {
 	})
 	assert.NoError(s.T(), err)
 	jsonMap := make(map[string]interface{})
-	err = json.Unmarshal([]byte(res.Raw), &jsonMap)
+	err = json.Unmarshal([]byte(res.ToJson()), &jsonMap)
 	assert.NoError(s.T(), err)
 	assert.True(s.T(), len(jsonMap["uuid"].(string)) > 0)
 	assert.Equal(s.T(), float64(5), jsonMap["name"])
@@ -215,7 +215,7 @@ func (s *XPathParserArraySuite) Test_ReturnSimpleArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"menu\": [\"\",\"\",\"HTML\",\"CSS\",\"JAVASCRIPT\",\"SQL\",\"PYTHON\",\"JAVA\",\"PHP\",\"BOOTSTRAP\",\"HOW TO\",\"W3.CSS\",\"C\",\"C++\",\"C#\",\"REACT\",\"R\",\"JQUERY\",\"DJANGO\",\"TYPESCRIPT\",\"NODEJS\",\"MYSQL\",\"\uE802\",\"\uE801\",\"\uE80B\"]}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"menu\": [\"\",\"\",\"HTML\",\"CSS\",\"JAVASCRIPT\",\"SQL\",\"PYTHON\",\"JAVA\",\"PHP\",\"BOOTSTRAP\",\"HOW TO\",\"W3.CSS\",\"C\",\"C++\",\"C#\",\"REACT\",\"R\",\"JQUERY\",\"DJANGO\",\"TYPESCRIPT\",\"NODEJS\",\"MYSQL\",\"\uE802\",\"\uE801\",\"\uE80B\"]}\n", res.ToJson())
 }
 
 func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray() {
@@ -241,7 +241,7 @@ func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"menu\": [[\"TEST_1\",\"TEST_2\"],[\"TEST_3\",\"TEST_4\"]]}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"menu\": [[\"TEST_1\",\"TEST_2\"],[\"TEST_3\",\"TEST_4\"]]}\n", res.ToJson())
 }
 
 func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray_Index() {
@@ -272,7 +272,7 @@ func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray_Index() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"menu\": [[\"TEST_1 0\",\"TEST_2 1\"],[\"TEST_3 0\",\"TEST_4 1\"]]}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"menu\": [[\"TEST_1 0\",\"TEST_2 1\"],[\"TEST_3 0\",\"TEST_4 1\"]]}\n", res.ToJson())
 }
 
 func (s *XPathParserArraySuite) Test_ReturnNestedArray() {
@@ -307,7 +307,7 @@ func (s *XPathParserArraySuite) Test_ReturnNestedArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[{\"name\": \"HTML and CSS\",\"tutorials\": [{\"name\": \"Learn HTML\"},{\"name\": \"Learn CSS\"},{\"name\": \"Learn RWD\"},{\"name\": \"Learn Bootstrap\"},{\"name\": \"Learn W3.CSS\"},{\"name\": \"Learn Colors\"},{\"name\": \"Learn Icons\"},{\"name\": \"Learn Graphics\"},{\"name\": \"Learn SVG\"},{\"name\": \"Learn Canvas\"},{\"name\": \"Learn How To\"},{\"name\": \"Learn Sass\"},{\"name\": \"Learn AI\"},{\"name\": \"Learn Machine Learning\"},{\"name\": \"Learn Data Science\"},{\"name\": \"Learn NumPy\"},{\"name\": \"Learn Pandas\"},{\"name\": \"Learn SciPy\"},{\"name\": \"Learn Matplotlib\"},{\"name\": \"Learn Statistics\"},{\"name\": \"Learn Excel\"},{\"name\": \"Learn XML\"},{\"name\": \"Learn XML AJAX\"},{\"name\": \"Learn XML DOM\"},{\"name\": \"Learn XML DTD\"},{\"name\": \"Learn XML Schema\"},{\"name\": \"Learn XSLT\"},{\"name\": \"Learn XPath\"},{\"name\": \"Learn XQuery\"}]},{\"name\": \"JavaScript\",\"tutorials\": [{\"name\": \"Learn JavaScript\"},{\"name\": \"Learn jQuery\"},{\"name\": \"Learn React\"},{\"name\": \"Learn AngularJS\"},{\"name\": \"Learn JSON\"},{\"name\": \"Learn AJAX\"},{\"name\": \"Learn AppML\"},{\"name\": \"Learn W3.JS\"},{\"name\": \"Learn Python\"},{\"name\": \"Learn Java\"},{\"name\": \"Learn C\"},{\"name\": \"Learn C++\"},{\"name\": \"Learn C#\"},{\"name\": \"Learn R\"},{\"name\": \"Learn Kotlin\"},{\"name\": \"Learn Go\"},{\"name\": \"Learn Django\"},{\"name\": \"Learn TypeScript\"}]},{\"name\": \"Server Side\",\"tutorials\": [{\"name\": \"Learn SQL\"},{\"name\": \"Learn MySQL\"},{\"name\": \"Learn PHP\"},{\"name\": \"Learn ASP\"},{\"name\": \"Learn Node.js\"},{\"name\": \"Learn Raspberry Pi\"},{\"name\": \"Learn Git\"},{\"name\": \"Learn MongoDB\"},{\"name\": \"Learn AWS Cloud\"},{\"name\": \"Create a Website NEW\"},{\"name\": \"Where To Start\"},{\"name\": \"Web Templates\"},{\"name\": \"Web Statistics\"},{\"name\": \"Web Certificates\"},{\"name\": \"Web Development\"},{\"name\": \"Code Editor\"},{\"name\": \"Test Your Typing Speed\"},{\"name\": \"Play a Code Game\"},{\"name\": \"Cyber Security\"},{\"name\": \"Accessibility\"},{\"name\": \"Join our Newsletter\"}]},{\"name\": \"Data Analytics\",\"tutorials\": [{\"name\": \"Learn AI\"},{\"name\": \"Learn Machine Learning\"},{\"name\": \"Learn Data Science\"},{\"name\": \"Learn NumPy\"},{\"name\": \"Learn Pandas\"},{\"name\": \"Learn SciPy\"},{\"name\": \"Learn Matplotlib\"},{\"name\": \"Learn Statistics\"},{\"name\": \"Learn Excel\"},{\"name\": \"Learn Google Sheets\"},{\"name\": \"Learn XML\"},{\"name\": \"Learn XML AJAX\"},{\"name\": \"Learn XML DOM\"},{\"name\": \"Learn XML DTD\"},{\"name\": \"Learn XML Schema\"},{\"name\": \"Learn XSLT\"},{\"name\": \"Learn XPath\"},{\"name\": \"Learn XQuery\"}]}]\n", res.Raw)
+	assert.JSONEq(s.T(), "[{\"name\": \"HTML and CSS\",\"tutorials\": [{\"name\": \"Learn HTML\"},{\"name\": \"Learn CSS\"},{\"name\": \"Learn RWD\"},{\"name\": \"Learn Bootstrap\"},{\"name\": \"Learn W3.CSS\"},{\"name\": \"Learn Colors\"},{\"name\": \"Learn Icons\"},{\"name\": \"Learn Graphics\"},{\"name\": \"Learn SVG\"},{\"name\": \"Learn Canvas\"},{\"name\": \"Learn How To\"},{\"name\": \"Learn Sass\"},{\"name\": \"Learn AI\"},{\"name\": \"Learn Machine Learning\"},{\"name\": \"Learn Data Science\"},{\"name\": \"Learn NumPy\"},{\"name\": \"Learn Pandas\"},{\"name\": \"Learn SciPy\"},{\"name\": \"Learn Matplotlib\"},{\"name\": \"Learn Statistics\"},{\"name\": \"Learn Excel\"},{\"name\": \"Learn XML\"},{\"name\": \"Learn XML AJAX\"},{\"name\": \"Learn XML DOM\"},{\"name\": \"Learn XML DTD\"},{\"name\": \"Learn XML Schema\"},{\"name\": \"Learn XSLT\"},{\"name\": \"Learn XPath\"},{\"name\": \"Learn XQuery\"}]},{\"name\": \"JavaScript\",\"tutorials\": [{\"name\": \"Learn JavaScript\"},{\"name\": \"Learn jQuery\"},{\"name\": \"Learn React\"},{\"name\": \"Learn AngularJS\"},{\"name\": \"Learn JSON\"},{\"name\": \"Learn AJAX\"},{\"name\": \"Learn AppML\"},{\"name\": \"Learn W3.JS\"},{\"name\": \"Learn Python\"},{\"name\": \"Learn Java\"},{\"name\": \"Learn C\"},{\"name\": \"Learn C++\"},{\"name\": \"Learn C#\"},{\"name\": \"Learn R\"},{\"name\": \"Learn Kotlin\"},{\"name\": \"Learn Go\"},{\"name\": \"Learn Django\"},{\"name\": \"Learn TypeScript\"}]},{\"name\": \"Server Side\",\"tutorials\": [{\"name\": \"Learn SQL\"},{\"name\": \"Learn MySQL\"},{\"name\": \"Learn PHP\"},{\"name\": \"Learn ASP\"},{\"name\": \"Learn Node.js\"},{\"name\": \"Learn Raspberry Pi\"},{\"name\": \"Learn Git\"},{\"name\": \"Learn MongoDB\"},{\"name\": \"Learn AWS Cloud\"},{\"name\": \"Create a Website NEW\"},{\"name\": \"Where To Start\"},{\"name\": \"Web Templates\"},{\"name\": \"Web Statistics\"},{\"name\": \"Web Certificates\"},{\"name\": \"Web Development\"},{\"name\": \"Code Editor\"},{\"name\": \"Test Your Typing Speed\"},{\"name\": \"Play a Code Game\"},{\"name\": \"Cyber Security\"},{\"name\": \"Accessibility\"},{\"name\": \"Join our Newsletter\"}]},{\"name\": \"Data Analytics\",\"tutorials\": [{\"name\": \"Learn AI\"},{\"name\": \"Learn Machine Learning\"},{\"name\": \"Learn Data Science\"},{\"name\": \"Learn NumPy\"},{\"name\": \"Learn Pandas\"},{\"name\": \"Learn SciPy\"},{\"name\": \"Learn Matplotlib\"},{\"name\": \"Learn Statistics\"},{\"name\": \"Learn Excel\"},{\"name\": \"Learn Google Sheets\"},{\"name\": \"Learn XML\"},{\"name\": \"Learn XML AJAX\"},{\"name\": \"Learn XML DOM\"},{\"name\": \"Learn XML DTD\"},{\"name\": \"Learn XML Schema\"},{\"name\": \"Learn XSLT\"},{\"name\": \"Learn XPath\"},{\"name\": \"Learn XQuery\"}]}]\n", res.ToJson())
 }
 
 func (s *XPathParserArraySuite) Test_ParseNestedObject() {
@@ -362,5 +362,5 @@ func (s *XPathParserArraySuite) Test_ParseNestedObject() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"player\": {\"latitude\": 3.120000,\"player_meal\": [{\"my_price\": \"first\"},{\"my_price\": \"second\"},{\"my_price\": null},{\"my_price\": null},{\"my_price\": null},{\"my_price\": null},{\"my_price\": null},{\"my_price\": null},{\"my_price\": null}],\"name\": \"HTML Headings\",\"isActive\": true,\"null\": null}}\n", res.Raw)
+	assert.JSONEq(s.T(), "{\"player\": {\"latitude\": 3.120000,\"player_meal\": [{\"my_price\": \"first\"},{\"my_price\": \"second\"},{\"my_price\": null},{\"my_price\": null},{\"my_price\": null},{\"my_price\": null},{\"my_price\": null},{\"my_price\": null},{\"my_price\": null}],\"name\": \"HTML Headings\",\"isActive\": true,\"null\": null}}\n", res.ToJson())
 }

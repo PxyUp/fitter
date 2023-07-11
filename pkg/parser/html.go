@@ -34,24 +34,33 @@ func (h *htmlParser) WithLogger(logger logger.Logger) *htmlParser {
 
 func (h *htmlParser) Parse(model *config.Model) (*ParseResult, error) {
 	if h.parserBody == nil {
+		res := builder.Null()
 		return &ParseResult{
-			Raw: builder.Null().ToJson(),
+			RawResult: res.Raw(),
+			Json:      res.ToJson(),
 		}, nil
 	}
 
 	if model.BaseField != nil {
+		res := h.buildBaseField(h.parserBody, model.BaseField, nil)
 		return &ParseResult{
-			Raw: h.buildBaseField(h.parserBody, model.BaseField, nil).ToJson(),
+			RawResult: res.Raw(),
+			Json:      res.ToJson(),
 		}, nil
 	}
 
 	if model.ArrayConfig != nil {
+		res := h.buildArray(model.ArrayConfig)
 		return &ParseResult{
-			Raw: h.buildArray(model.ArrayConfig).ToJson(),
+			RawResult: res.Raw(),
+			Json:      res.ToJson(),
 		}, nil
 	}
+
+	res := h.buildObject(model.ObjectConfig)
 	return &ParseResult{
-		Raw: h.buildObject(model.ObjectConfig).ToJson(),
+		RawResult: res.Raw(),
+		Json:      res.ToJson(),
 	}, nil
 }
 
@@ -239,12 +248,24 @@ func (h *htmlParser) fillUpBaseField(source *goquery.Selection, field *config.Ba
 			return builder.Null()
 		}
 		return builder.Float(float32(float32Value))
+	case config.Float64:
+		float64Value, err := strconv.ParseFloat(text, 64)
+		if err != nil {
+			return builder.Null()
+		}
+		return builder.Float64(float64Value)
 	case config.Int:
 		intValue, err := strconv.ParseInt(text, 10, 32)
 		if err != nil {
 			return builder.Null()
 		}
 		return builder.Int(int(intValue))
+	case config.Int64:
+		int64Value, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
+			return builder.Null()
+		}
+		return builder.Int64(int64Value)
 	}
 
 	return builder.Null()

@@ -6,6 +6,10 @@ type objectField struct {
 	kv map[string]Jsonable
 }
 
+var (
+	_ Jsonable = &objectField{}
+)
+
 func Object(values map[string]Jsonable) *objectField {
 	return &objectField{
 		kv: values,
@@ -37,4 +41,12 @@ func (o *objectField) ToJson() string {
 	}
 
 	return str + "}"
+}
+
+func (o *objectField) Raw() interface{} {
+	kv := make(map[string]interface{})
+	for k, v := range o.kv {
+		kv[k] = v.Raw()
+	}
+	return kv
 }

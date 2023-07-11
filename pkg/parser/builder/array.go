@@ -4,6 +4,10 @@ type arrayField struct {
 	values []Jsonable
 }
 
+var (
+	_ Jsonable = &arrayField{}
+)
+
 func Array(items []Jsonable) *arrayField {
 	return &arrayField{
 		values: items,
@@ -40,4 +44,18 @@ func (s *arrayField) ToJson() string {
 	}
 
 	return str + "]"
+}
+
+func (s *arrayField) Raw() interface{} {
+	res := make([]interface{}, len(s.values))
+
+	for i, item := range s.values {
+		if item == nil {
+			res[i] = Null().Raw()
+		} else {
+			res[i] = item.Raw()
+		}
+	}
+
+	return res
 }

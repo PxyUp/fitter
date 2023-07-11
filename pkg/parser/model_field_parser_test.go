@@ -123,7 +123,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelField_Formating() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), `["From: 2023-07-10 To: 2023-07-14","From: 2023-07-11 To: 2023-07-15","From: 2023-07-07 To: 2023-07-11","From: 2023-07-06 To: 2023-07-12"]`, res.Raw)
+	assert.JSONEq(s.T(), `["From: 2023-07-10 To: 2023-07-14","From: 2023-07-11 To: 2023-07-15","From: 2023-07-07 To: 2023-07-11","From: 2023-07-06 To: 2023-07-12"]`, res.ToJson())
 }
 
 func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {

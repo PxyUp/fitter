@@ -69,7 +69,13 @@ func main() {
 	if *verboseFlag {
 		lg = logger.NewLogger()
 	}
+	done := make(chan struct{})
+	go func() {
+		<-ctx.Done()
+		lg.Infof("Shutdown....")
+		time.Sleep(time.Second * 4)
+		close(done)
+	}()
 	runtime.New(ctx, cfg, lg.With("component", "runtime")).Start()
-	lg.Info("shutdown...")
-	time.Sleep(time.Second * 5)
+	<-done
 }

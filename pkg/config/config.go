@@ -133,6 +133,9 @@ type HTTPTrigger struct {
 }
 
 type NotifierConfig struct {
+	Expression string `yaml:"expression" json:"expression"`
+	Force      bool   `json:"force" yaml:"force"`
+
 	Console     *ConsoleConfig     `yaml:"console" json:"console"`
 	TelegramBot *TelegramBotConfig `yaml:"telegram_bot" json:"telegram_bot"`
 }
