@@ -12,25 +12,11 @@ var (
 	playwrightInstance *semaphore.Weighted
 )
 
-func setChromiumInstance(count uint32) {
+func setSemaphoreLimit(sem *semaphore.Weighted, count uint32) {
 	if count <= 0 {
 		return
 	}
-	chromiumInstance = semaphore.NewWeighted(int64(count))
-}
-
-func setPlaywrightInstance(count uint32) {
-	if count <= 0 {
-		return
-	}
-	playwrightInstance = semaphore.NewWeighted(int64(count))
-}
-
-func setDockerContainers(count uint32) {
-	if count <= 0 {
-		return
-	}
-	dockerContainers = semaphore.NewWeighted(int64(count))
+	sem = semaphore.NewWeighted(int64(count))
 }
 
 func setRequestPerHost(limits config.HostRequestLimiter) {
@@ -45,10 +31,10 @@ func SetLimits(limits *config.Limits) {
 	if limits == nil {
 		return
 	}
+	setSemaphoreLimit(chromiumInstance, limits.ChromiumInstance)
+	setSemaphoreLimit(dockerContainers, limits.DockerContainers)
+	setSemaphoreLimit(playwrightInstance, limits.PlaywrightInstance)
 	setRequestPerHost(limits.HostRequestLimiter)
-	setChromiumInstance(limits.ChromiumInstance)
-	setDockerContainers(limits.DockerContainers)
-	setPlaywrightInstance(limits.PlaywrightInstance)
 }
 
 func HostLimiter(host string) *semaphore.Weighted {
