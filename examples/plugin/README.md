@@ -20,7 +20,7 @@ Fitter and Fitter CLI can have external plugins which should implement interface
 
 Build plugin
 ```bash
-go build -buildmode=plugin -o examples/plugin/hardcoder.so examples/plugin/hardcoder/hardcoder.go
+go build -buildmode=plugin -gcflags="all=-N -l" -o examples/plugin/hardcoder.so examples/plugin/hardcoder/hardcoder.go
 ```
 
 Make sure you export **Plugin** variable which implements **pl.Plugin** interface
