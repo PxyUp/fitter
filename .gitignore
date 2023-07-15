@@ -1,6 +1,7 @@
 .idea
 coverage.txt
 bin
+main
 
 examples/cli/test
 examples/test
