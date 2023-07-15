@@ -23,6 +23,8 @@ Build plugin
 go build -buildmode=plugin -o examples/plugin/hardcoder.so examples/plugin/hardcoder/hardcoder.go
 ```
 
+Make sure you export **Plugin** variable which implements **pl.Plugin** interface
+
 ```go
 package main
 
