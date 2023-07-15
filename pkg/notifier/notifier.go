@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/parser"
-	"github.com/antonmedv/expr"
+	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"strconv"
 )
 
@@ -13,39 +13,12 @@ type Notifier interface {
 	SetConfig(cfg *config.NotifierConfig)
 }
 
-const (
-	fitterResultRef = "fRes"
-)
-
-var (
-	defEnv = map[string]interface{}{}
-)
-
-func extendEnv(env map[string]interface{}, result *parser.ParseResult) map[string]interface{} {
-	kv := make(map[string]interface{})
-
-	for k, v := range env {
-		kv[k] = v
-	}
-
-	kv[fitterResultRef] = result.Raw()
-
-	return kv
-}
-
-func shouldInform(expression string, result *parser.ParseResult, force bool) (bool, error) {
+func shouldInform(expression string, result builder.Jsonable, force bool) (bool, error) {
 	if force || expression == "" {
 		return true, nil
 	}
 
-	env := extendEnv(defEnv, result)
-
-	program, err := expr.Compile(expression, expr.Env(env))
-	if err != nil {
-		return false, err
-	}
-
-	out, err := expr.Run(program, env)
+	out, err := parser.ProcessExpression(expression, result)
 	if err != nil {
 		return false, err
 	}

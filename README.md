@@ -519,11 +519,12 @@ Provide functionality of generating field on the flight
 
 ```go
 type GeneratedFieldConfig struct {
-	UUID      *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
-	Static    *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
-	Formatted *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
-	Plugin    *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
-	Model     *ModelField                 `yaml:"model" json:"model"`
+	UUID       *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
+	Static     *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
+	Formatted  *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
+	Plugin     *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
+	Calculated *CalculatedConfig           `yaml:"calculated" json:"calculated"`
+	Model      *ModelField                 `yaml:"model" json:"model"`
 }
 ```
 
@@ -533,6 +534,7 @@ Config can be one of:
 - [Formatted](#formatted-field-config) - format field
 - [Model](#model-field) - model generated from the other connector and model
 - [Plugin](#plugin-field) - plugin field
+- [Calculated](#calculated-field) - calculated field
 
 Examples:
 ```json
@@ -619,6 +621,29 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json#L98
 ```json
 {
   "template": "https://news.ycombinator.com/item?id={PL}"
+}
+```
+
+#### Calculated field
+
+Field can generate different types depends from expression
+
+```go
+type CalculatedConfig struct {
+	Type       FieldType `yaml:"type" json:"type"`
+	Expression string    `yaml:"expression" json:"expression"`
+}
+```
+
+- Type - resulting type of expression\
+- Expression - expression for calculation (we use [this lib](https://github.com/antonmedv/expr) for calculated expression)
+
+**fRef** - it is raw(with proper type) result from the parsing [base field](#basefield)
+
+```json
+{
+  "type": "bool",
+  "expression": "fRef > 500"
 }
 ```
 

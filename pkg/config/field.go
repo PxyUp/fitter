@@ -39,11 +39,17 @@ type FormattedFieldConfig struct {
 }
 
 type GeneratedFieldConfig struct {
-	UUID      *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
-	Static    *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
-	Formatted *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
-	Plugin    *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
-	Model     *ModelField                 `yaml:"model" json:"model"`
+	UUID       *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
+	Static     *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
+	Formatted  *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
+	Plugin     *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
+	Calculated *CalculatedConfig           `yaml:"calculated" json:"calculated"`
+	Model      *ModelField                 `yaml:"model" json:"model"`
+}
+
+type CalculatedConfig struct {
+	Type       FieldType `yaml:"type" json:"type"`
+	Expression string    `yaml:"expression" json:"expression"`
 }
 
 type PluginFieldConfig struct {

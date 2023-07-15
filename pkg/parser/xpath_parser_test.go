@@ -47,6 +47,23 @@ func (s *XPathParserArraySuite) Test_Return_BaseField_String() {
 	assert.JSONEq(s.T(), "\"HTML Headings\"", res.ToJson())
 }
 
+func (s *XPathParserArraySuite) Test_Return_BaseField_Calculated() {
+	res, err := s.parser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.String,
+			Path: "/html//title",
+			Generated: &config.GeneratedFieldConfig{
+				Calculated: &config.CalculatedConfig{
+					Type:       config.Int,
+					Expression: "len(fRes) + 2",
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "15", res.ToJson())
+}
+
 func (s *XPathParserArraySuite) Test_Return_BaseField_Number() {
 	res, err := s.parser.Parse(&config.Model{
 		BaseField: &config.BaseField{

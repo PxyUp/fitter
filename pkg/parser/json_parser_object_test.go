@@ -58,6 +58,23 @@ func (s *JsonParserObjectSuite) Test_Return_BaseField_Number() {
 	assert.JSONEq(s.T(), "27", res.ToJson())
 }
 
+func (s *JsonParserObjectSuite) Test_Return_BaseField_Calculated() {
+	res, err := s.parser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.Int,
+			Path: "age",
+			Generated: &config.GeneratedFieldConfig{
+				Calculated: &config.CalculatedConfig{
+					Type:       config.Bool,
+					Expression: "fRes >= 27",
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "true", res.ToJson())
+}
+
 func (s *JsonParserObjectSuite) Test_FirstOf() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{

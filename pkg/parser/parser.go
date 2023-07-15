@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -53,6 +54,19 @@ func (p *ParseResult) ToJson() string {
 func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
 	if field.UUID != nil {
 		return builder.UUID(field.UUID)
+	}
+
+	if field.Calculated != nil && field.Calculated.Expression != "" {
+		res, err := ProcessExpression(field.Calculated.Expression, parsedValue)
+		if err != nil {
+			logger.Errorw("error during process calculated field", "error", err.Error())
+			return builder.Null()
+		}
+
+		return builder.Static(&config.StaticGeneratedFieldConfig{
+			Type:  field.Calculated.Type,
+			Value: fmt.Sprintf("%v", res),
+		})
 	}
 
 	if field.Static != nil {
