@@ -3,6 +3,8 @@ package connectors
 import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/parser/builder"
+	"github.com/PxyUp/fitter/pkg/utils"
 )
 
 type staticConnector struct {
@@ -10,8 +12,8 @@ type staticConnector struct {
 	logger logger.Logger
 }
 
-func (j *staticConnector) Get() ([]byte, error) {
-	return []byte(j.cfg.Value), nil
+func (j *staticConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
+	return []byte(utils.Format(j.cfg.Value, parsedValue, index)), nil
 }
 
 func NewStatic(cfg *config.StaticConnectorConfig) *staticConnector {

@@ -1,6 +1,9 @@
 package config
 
-import "github.com/playwright-community/playwright-go"
+import (
+	"encoding/json"
+	"github.com/playwright-community/playwright-go"
+)
 
 type Connector string
 
@@ -60,12 +63,14 @@ type Model struct {
 }
 
 type ConnectorConfig struct {
-	ResponseType  ParserType              `json:"response_type" yaml:"response_type"`
-	Url           string                  `json:"url" yaml:"url"`
-	StaticConfig  *StaticConnectorConfig  `json:"static_config" yaml:"static_config"`
-	ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
-	BrowserConfig *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
-	Attempts      uint32                  `json:"attempts" yaml:"attempts"`
+	ResponseType ParserType `json:"response_type" yaml:"response_type"`
+	Url          string     `json:"url" yaml:"url"`
+	Attempts     uint32     `json:"attempts" yaml:"attempts"`
+
+	StaticConfig          *StaticConnectorConfig  `json:"static_config" yaml:"static_config"`
+	ServerConfig          *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
+	BrowserConfig         *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
+	PluginConnectorConfig *PluginConnectorConfig  `json:"plugin_connector_config" yaml:"plugin_connector_config"`
 }
 
 type PlaywrightBrowser string
@@ -92,6 +97,11 @@ type BrowserConnectorConfig struct {
 	Chromium   *ChromiumConfig   `json:"chromium" yaml:"chromium"`
 	Docker     *DockerConfig     `json:"docker" yaml:"docker"`
 	Playwright *PlaywrightConfig `json:"playwright" yaml:"playwright"`
+}
+
+type PluginConnectorConfig struct {
+	Name   string          `json:"name" yaml:"name"`
+	Config json.RawMessage `json:"config" yaml:"config"`
 }
 
 type DockerConfig struct {

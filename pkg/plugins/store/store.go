@@ -13,45 +13,82 @@ import (
 	"sync"
 )
 
-type nullPlugin struct {
+type nullFieldPlugin struct {
 }
 
-func (n *nullPlugin) Format(parsedValue builder.Jsonable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
+func (n *nullFieldPlugin) Format(parsedValue builder.Jsonable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
 	return builder.Null()
 }
 
+type nullConnectorPlugin struct {
+}
+
+func (n *nullConnectorPlugin) SetConfig(cfg *config.PluginConnectorConfig, _ logger.Logger) {
+	return
+}
+
+func (n *nullConnectorPlugin) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
+	return []byte{}, nil
+}
+
 var (
-	null = &nullPlugin{}
+	nullField     plugin.FieldPlugin     = &nullFieldPlugin{}
+	nullConnector plugin.ConnectorPlugin = &nullConnectorPlugin{}
 
 	Store = &store{
-		kv: make(map[string]plugin.Plugin),
+		fieldPlugins:     make(map[string]plugin.FieldPlugin),
+		connectorPlugins: make(map[string]plugin.ConnectorPlugin),
 	}
 )
 
 type store struct {
-	kv map[string]plugin.Plugin
+	fieldPlugins map[string]plugin.FieldPlugin
 
-	mutex sync.Mutex
+	connectorPlugins map[string]plugin.ConnectorPlugin
+
+	mField     sync.Mutex
+	mConnector sync.Mutex
 }
 
-func (s *store) Add(name string, plugin plugin.Plugin) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+func (s *store) AddFieldPlugin(name string, plugin plugin.FieldPlugin) {
+	s.mField.Lock()
+	defer s.mField.Unlock()
 
-	s.kv[name] = plugin
+	s.fieldPlugins[name] = plugin
 }
 
-func (s *store) Get(name string, log logger.Logger) plugin.Plugin {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+func (s *store) GetFieldPlugin(name string, log logger.Logger) plugin.FieldPlugin {
+	s.mField.Lock()
+	defer s.mField.Unlock()
 
-	if pl, exists := s.kv[name]; exists {
+	if pl, exists := s.fieldPlugins[name]; exists {
 		return pl
 	}
 
 	log.Infof("Cant find plugin with name: %s", name)
 
-	return null
+	return nullField
+}
+
+func (s *store) AddConnectorPlugin(name string, plugin plugin.ConnectorPlugin) {
+	s.mConnector.Lock()
+	defer s.mConnector.Unlock()
+
+	s.connectorPlugins[name] = plugin
+}
+
+func (s *store) GetConnectorPlugin(name string, cfg *config.PluginConnectorConfig, log logger.Logger) plugin.ConnectorPlugin {
+	s.mConnector.Lock()
+	defer s.mConnector.Unlock()
+
+	if pl, exists := s.connectorPlugins[name]; exists {
+		pl.SetConfig(cfg, log)
+		return pl
+	}
+
+	log.Infof("Cant find connector plugin with name: %s", name)
+
+	return nullConnector
 }
 
 func PluginInitialize(dirPath string) error {
@@ -84,12 +121,17 @@ func processPlugin(fileName string) error {
 		return fmt.Errorf("%s not implement plugin interface", fileName)
 	}
 
-	localPlugin, ok := symPlugin.(plugin.Plugin)
-	if !ok {
-		return fmt.Errorf("%s not implement plugin interface plugin.Plugin", fileName)
+	localFieldPlugin, okField := symPlugin.(plugin.FieldPlugin)
+	if okField {
+		Store.AddFieldPlugin(strings.TrimSuffix(path.Base(fileName), path.Ext(fileName)), localFieldPlugin)
+		return nil
 	}
 
-	Store.Add(strings.TrimSuffix(path.Base(fileName), path.Ext(fileName)), localPlugin)
+	localConnectorPlugin, okConnector := symPlugin.(plugin.ConnectorPlugin)
+	if okConnector {
+		Store.AddConnectorPlugin(strings.TrimSuffix(path.Base(fileName), path.Ext(fileName)), localConnectorPlugin)
+		return nil
+	}
 
-	return nil
+	return fmt.Errorf("%s not implement plugin interface plugin.ConnectorPlugin or plugin.FieldPlugin", fileName)
 }

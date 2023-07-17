@@ -1,6 +1,9 @@
 package connectors
 
-import "errors"
+import (
+	"errors"
+	"github.com/PxyUp/fitter/pkg/parser/builder"
+)
 
 var (
 	errMaxAttempt = errors.New("reach max attempt")
@@ -8,7 +11,7 @@ var (
 )
 
 type Connector interface {
-	Get() ([]byte, error)
+	Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error)
 }
 
 type attemptsConnector struct {
@@ -16,13 +19,13 @@ type attemptsConnector struct {
 	attempts uint32
 }
 
-func (r *attemptsConnector) Get() ([]byte, error) {
+func (r *attemptsConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
 	if r.attempts <= 0 {
-		return r.original.Get()
+		return r.original.Get(parsedValue, index)
 	}
 
 	for i := 0; i < int(r.attempts); i++ {
-		resp, err := r.original.Get()
+		resp, err := r.original.Get(parsedValue, index)
 		if err != nil || len(resp) == 0 {
 			continue
 		}

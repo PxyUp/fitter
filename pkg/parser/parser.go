@@ -7,6 +7,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/PxyUp/fitter/pkg/plugins/store"
+	"github.com/PxyUp/fitter/pkg/utils"
 	"github.com/tidwall/gjson"
 )
 
@@ -74,11 +75,11 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 	}
 
 	if field.Formatted != nil {
-		return builder.String(format(field.Formatted.Template, parsedValue, index))
+		return builder.String(utils.Format(field.Formatted.Template, parsedValue, index))
 	}
 
 	if field.Plugin != nil {
-		return store.Store.Get(field.Plugin.Name, logger).Format(parsedValue, field.Plugin, logger.With("plugin", field.Plugin.Name), index)
+		return store.Store.GetFieldPlugin(field.Plugin.Name, logger).Format(parsedValue, field.Plugin, logger.With("plugin", field.Plugin.Name), index)
 	}
 
 	if field.Model != nil {
@@ -89,25 +90,19 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 		var connector connectors.Connector
 
 		if field.Model.ConnectorConfig.StaticConfig != nil {
-			staticValue := format(field.Model.ConnectorConfig.StaticConfig.Value, parsedValue, index)
-			connector = connectors.NewStatic(&config.StaticConnectorConfig{Value: staticValue}).WithLogger(logger.With("connector", "static"))
+			connector = connectors.NewStatic(field.Model.ConnectorConfig.StaticConfig).WithLogger(logger.With("connector", "static"))
 		}
 
 		if field.Model.ConnectorConfig.ServerConfig != nil {
-			connector = connectors.NewAPI(format(field.Model.ConnectorConfig.Url, parsedValue, index), &config.ServerConnectorConfig{
-				Method:  field.Model.ConnectorConfig.ServerConfig.Method,
-				Headers: field.Model.ConnectorConfig.ServerConfig.Headers,
-				Timeout: field.Model.ConnectorConfig.ServerConfig.Timeout,
-				Body:    format(field.Model.ConnectorConfig.ServerConfig.Body, parsedValue, index),
-			}, nil).WithLogger(logger.With("connector", "server"))
+			connector = connectors.NewAPI(field.Model.ConnectorConfig.Url, field.Model.ConnectorConfig.ServerConfig, nil).WithLogger(logger.With("connector", "server"))
 		}
 
 		if field.Model.ConnectorConfig.BrowserConfig != nil {
-			connector = connectors.NewBrowser(format(field.Model.ConnectorConfig.Url, parsedValue, index), &config.BrowserConnectorConfig{
-				Chromium:   field.Model.ConnectorConfig.BrowserConfig.Chromium,
-				Docker:     field.Model.ConnectorConfig.BrowserConfig.Docker,
-				Playwright: field.Model.ConnectorConfig.BrowserConfig.Playwright,
-			}).WithLogger(logger.With("connector", "browser"))
+			connector = connectors.NewBrowser(field.Model.ConnectorConfig.Url, field.Model.ConnectorConfig.BrowserConfig).WithLogger(logger.With("connector", "browser"))
+		}
+
+		if field.Model.ConnectorConfig.PluginConnectorConfig != nil {
+			connector = store.Store.GetConnectorPlugin(field.Model.ConnectorConfig.PluginConnectorConfig.Name, field.Model.ConnectorConfig.PluginConnectorConfig, logger.With("connector", field.Model.ConnectorConfig.PluginConnectorConfig.Name))
 		}
 
 		var parserFactory Factory
@@ -127,7 +122,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 
 		connector = connectors.WithAttempts(connector, field.Model.ConnectorConfig.Attempts)
 
-		body, err := connector.Get()
+		body, err := connector.Get(parsedValue, index)
 		if err != nil {
 			return builder.Null()
 		}

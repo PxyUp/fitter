@@ -7,6 +7,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/notifier"
 	"github.com/PxyUp/fitter/pkg/parser"
+	"github.com/PxyUp/fitter/pkg/plugins/store"
 )
 
 var (
@@ -60,7 +61,7 @@ func (p *processor) WithLogger(logger logger.Logger) *processor {
 }
 
 func (p *processor) Process() (*parser.ParseResult, error) {
-	body, err := p.connector.Get()
+	body, err := p.connector.Get(nil, nil)
 	if err != nil {
 		p.logger.Errorw("connector return error during fetch data", "error", err.Error())
 		return nil, err
@@ -104,6 +105,9 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 	}
 	if item.ConnectorConfig.BrowserConfig != nil {
 		connector = connectors.NewBrowser(item.ConnectorConfig.Url, item.ConnectorConfig.BrowserConfig).WithLogger(logger.With("connector", "browser"))
+	}
+	if item.ConnectorConfig.PluginConnectorConfig != nil {
+		connector = store.Store.GetConnectorPlugin(item.ConnectorConfig.PluginConnectorConfig.Name, item.ConnectorConfig.PluginConnectorConfig, logger.With("connector", item.ConnectorConfig.PluginConnectorConfig.Name))
 	}
 
 	var parserFactory parser.Factory

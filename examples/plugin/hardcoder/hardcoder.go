@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	_ pl.Plugin = &plugin{}
+	_ pl.FieldPlugin = &plugin{}
 
 	Plugin plugin
 )

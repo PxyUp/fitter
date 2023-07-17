@@ -3,6 +3,8 @@ package connectors
 import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/parser/builder"
+	"github.com/PxyUp/fitter/pkg/utils"
 )
 
 type browserConnector struct {
@@ -24,7 +26,9 @@ func (c *browserConnector) WithLogger(logger logger.Logger) *browserConnector {
 	return c
 }
 
-func (c *browserConnector) Get() ([]byte, error) {
+func (c *browserConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
+	c.url = utils.Format(c.url, parsedValue, index)
+
 	if c.url == "" {
 		return nil, errEmpty
 	}

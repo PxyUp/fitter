@@ -1,0 +1,24 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "json",
+      "plugin_connector_config": {
+        "name": "connector",
+        "config": {
+          "name": "Elon"
+        }
+      }
+    },
+    "model": {
+      "base_field": {
+        "type": "string",
+        "path": "name",
+        "generated": {
+          "formatted": {
+            "template": "Current name is: {PL}"
+          }
+        }
+      }
+    }
+  }
+}

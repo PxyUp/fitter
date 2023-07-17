@@ -151,12 +151,14 @@ It is the way how you fetch the data
 
 ```go
 type ConnectorConfig struct {
-    ResponseType  ParserType              `json:"response_type" yaml:"response_type"`
-    Url           string                  `json:"url" yaml:"url"`
-    StaticConfig  *StaticConnectorConfig  `json:"static_config" yaml:"static_config"`
-    ServerConfig  *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
-    BrowserConfig *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
-    Attempts      uint32                  `json:"attempts" yaml:"attempts"`
+    ResponseType ParserType `json:"response_type" yaml:"response_type"`
+    Url          string     `json:"url" yaml:"url"`
+    Attempts     uint32     `json:"attempts" yaml:"attempts"`
+    
+    StaticConfig          *StaticConnectorConfig  `json:"static_config" yaml:"static_config"`
+    ServerConfig          *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
+    BrowserConfig         *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
+    PluginConnectorConfig *PluginConnectorConfig  `json:"plugin_connector_config" yaml:"plugin_connector_config"`
 }
 ```
 
@@ -168,6 +170,7 @@ Config can be one of:
 - [ServerConfig](#serverconnectorconfig)
 - [BrowserConfig](#browserconnectorconfig)
 - [StaticConfig](#staticconnectorconfig)
+- [PluginConnectorConfig](#pluginconnectorconfig)
 
 Example:
 ```json
@@ -183,6 +186,90 @@ Example:
       "browser": "Chromium"
     }
   }
+}
+```
+
+### PluginConnectorConfig
+Connector can be defined via plugin system. For use that you need apply next flags to Fitter/Cli(location of the plugins):
+```bash
+... --plugins=./examples/plugin
+```
+
+--plugins - looking for all files with ".so" extension in provided folder(subdirs excluded)
+
+
+
+```go
+type PluginConnectorConfig struct {
+	Name   string          `json:"name" yaml:"name"`
+	Config json.RawMessage `json:"config" yaml:"config"`
+}
+```
+
+```json
+{
+    "name": "connector",
+    "config": {
+      "name": "Elon"
+    }
+}
+```
+
+- Name - name of the plugin
+- Config - json config of the plugin
+
+
+#### How to build plugin
+
+Build plugin
+```bash
+go build -buildmode=plugin -gcflags="all=-N -l" -o examples/plugin/connector.so examples/plugin/hardcoder/connector.go
+```
+
+Make sure you export **Plugin** variable which implements **pl.ConnectorPlugin** interface
+
+Example for CLI:
+
+https://github.com/PxyUp/fitter/blob/master/examples/cli/config_plugin.json#L5
+
+Plugin example:
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/parser/builder"
+	pl "github.com/PxyUp/fitter/pkg/plugins/plugin"
+)
+
+var (
+	_ pl.ConnectorPlugin = &plugin{}
+
+	Plugin plugin
+)
+
+type plugin struct {
+	log  logger.Logger
+	Name string `json:"name" yaml:"name"`
+}
+
+func (pl *plugin) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
+	return []byte(fmt.Sprintf(`{"name": "%s"}`, pl.Name)), nil
+}
+
+func (pl *plugin) SetConfig(cfg *config.PluginConnectorConfig, logger logger.Logger) {
+	pl.log = logger
+
+	if cfg.Config != nil {
+		err := json.Unmarshal(cfg.Config, pl)
+		if err != nil {
+			pl.log.Errorw("cant unmarshal plugin configuration", "error", err.Error())
+			return
+		}
+	}
 }
 ```
 

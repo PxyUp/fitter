@@ -3,16 +3,29 @@
     "connector_config": {
       "response_type": "json",
       "static_config": {
-        "value": "[\"Elon\"]"
+        "value": "[{\"name\": \"Elon\"}]"
       }
     },
     "model": {
       "array_config": {
         "item_config": {
           "fields": {
+            "correct" : {
+              "base_field": {
+                  "type": "string",
+                "path": "name",
+                  "generated": {
+                  "calculated": {
+                    "type": "boolean",
+                    "expression": "fRes == \"Elon\""
+                  }
+                }
+              }
+            },
             "original" : {
               "base_field": {
                 "type": "string",
+                "path": "name",
                 "generated": {
                   "plugin": {
                     "name": "hardcoder"

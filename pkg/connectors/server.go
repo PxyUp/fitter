@@ -6,6 +6,8 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/parser/builder"
+	"github.com/PxyUp/fitter/pkg/utils"
 	"golang.org/x/sync/semaphore"
 	"io/ioutil"
 	"net/http"
@@ -57,7 +59,10 @@ func (api *apiConnector) WithLogger(logger logger.Logger) *apiConnector {
 	return api
 }
 
-func (api *apiConnector) Get() ([]byte, error) {
+func (api *apiConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
+	api.cfg.Body = utils.Format(api.cfg.Body, parsedValue, index)
+	api.url = utils.Format(api.url, parsedValue, index)
+
 	if api.url == "" {
 		return nil, errEmpty
 	}

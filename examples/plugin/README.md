@@ -23,7 +23,7 @@ Build plugin
 go build -buildmode=plugin -gcflags="all=-N -l" -o examples/plugin/hardcoder.so examples/plugin/hardcoder/hardcoder.go
 ```
 
-Make sure you export **Plugin** variable which implements **pl.Plugin** interface
+Make sure you export **Plugin** variable which implements **pl.FieldPlugin** interface
 
 ```go
 package main
@@ -38,7 +38,7 @@ import (
 )
 
 var (
-	_ pl.Plugin = &plugin{}
+	_ pl.FieldPlugin = &plugin{}
 
 	Plugin plugin
 )
@@ -59,5 +59,4 @@ func (pl *plugin) Format(parsedValue builder.Jsonable, field *config.PluginField
 
 	return builder.String(fmt.Sprintf("Hello %s", parsedValue.ToJson()))
 }
-
 ```
