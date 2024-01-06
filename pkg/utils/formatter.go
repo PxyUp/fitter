@@ -16,6 +16,10 @@ const (
 )
 
 func Format(str string, value builder.Jsonable, index *uint32) string {
+	if len(str) == 0 {
+		return str
+	}
+
 	if strings.Contains(str, placeHolder) && value != nil && value.ToJson() != builder.EmptyString {
 		str = strings.ReplaceAll(str, placeHolder, value.ToJson())
 	}

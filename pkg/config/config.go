@@ -82,11 +82,12 @@ const (
 )
 
 type PlaywrightConfig struct {
-	Browser    PlaywrightBrowser          `json:"browser" yaml:"browser"`
-	Install    bool                       `yaml:"install" json:"install"`
-	Timeout    uint32                     `yaml:"timeout" json:"timeout"`
-	Wait       uint32                     `yaml:"wait" json:"wait"`
-	TypeOfWait *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
+	Browser      PlaywrightBrowser          `json:"browser" yaml:"browser"`
+	Install      bool                       `yaml:"install" json:"install"`
+	Timeout      uint32                     `yaml:"timeout" json:"timeout"`
+	Wait         uint32                     `yaml:"wait" json:"wait"`
+	TypeOfWait   *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
+	PreRunScript string                     `json:"pre_run_script" yaml:"pre_run_script"`
 }
 
 type StaticConnectorConfig struct {

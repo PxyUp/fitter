@@ -425,11 +425,12 @@ Run browsers via playwright framework
 
 ```go
 type PlaywrightConfig struct {
-	Browser    PlaywrightBrowser          `json:"browser" yaml:"browser"`
-	Install    bool                       `yaml:"install" json:"install"`
-	Timeout    uint32                     `yaml:"timeout" json:"timeout"`
-	Wait       uint32                     `yaml:"wait" json:"wait"`
-	TypeOfWait *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
+       Browser      PlaywrightBrowser          `json:"browser" yaml:"browser"`
+       Install      bool                       `yaml:"install" json:"install"`
+       Timeout      uint32                     `yaml:"timeout" json:"timeout"`
+       Wait         uint32                     `yaml:"wait" json:"wait"`
+       TypeOfWait   *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
+       PreRunScript string                     `json:"pre_run_script" yaml:"pre_run_script"`
 }
 ```
 
@@ -438,6 +439,7 @@ type PlaywrightConfig struct {
 - Timeout[sec] - timeout to run playwright
 - Wait[sec] - timeout of page loading
 - TypeOfWait - enum["load", "domcontentloaded", "networkidle", "commit"] which state of page we waiting, default is "load"
+- PreRunScript[""] - script which will be executed before reading content of the page. Also support placeholder [{PL}](#placeholder-list)
 
 Example
 ```json

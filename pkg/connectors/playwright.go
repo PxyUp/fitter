@@ -148,6 +148,14 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.L
 			return
 		}
 
+		if cfg.PreRunScript != "" {
+			_, err = page.Evaluate(cfg.PreRunScript)
+			if err != nil {
+				logger.Errorw("could execute script on page", "error", err.Error(), "script", cfg.PreRunScript)
+				return
+			}
+		}
+
 		content, err = page.Content()
 		if err != nil {
 			logger.Errorw("unable to get page content", "error", err.Error())

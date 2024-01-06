@@ -41,6 +41,7 @@ func (c *browserConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]b
 	}
 
 	if c.cfg.Playwright != nil {
+		c.cfg.Playwright.PreRunScript = utils.Format(c.cfg.Playwright.PreRunScript, parsedValue, index)
 		return getFromPlaywright(c.url, c.cfg.Playwright, c.logger.With("emulator", "playwright"))
 	}
 
