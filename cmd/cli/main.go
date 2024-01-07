@@ -49,11 +49,12 @@ func main() {
 	verboseFlag := flag.Bool("verbose", false, "Provide logger")
 	omitPrettyErrorFlag := flag.Bool("omit-error-pretty", false, "Provide pure value if pretty is invalid")
 	pluginsFlag := flag.String("plugins", "", "Provide plugins folder")
+	logLevel := flag.String("log-level", "info", "Level for logger")
 	flag.Parse()
 
 	log := logger.Null
 	if *verboseFlag {
-		log = logger.NewLogger()
+		log = logger.NewLogger(*logLevel)
 	}
 
 	if *pluginsFlag != "" {

@@ -127,6 +127,8 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 			return builder.Null()
 		}
 
+		logger.Debugw("connector answer", "content", string(body))
+
 		result, err := parserFactory(body, logger).Parse(field.Model.Model)
 		if err != nil {
 			return builder.Null()

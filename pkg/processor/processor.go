@@ -67,6 +67,8 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 		return nil, err
 	}
 
+	p.logger.Debugw("connector answer", "content", string(body))
+
 	result, err := p.parserFactory(body, p.logger).Parse(p.model)
 	if p.notifier != nil {
 		isArray := false

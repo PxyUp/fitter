@@ -110,7 +110,7 @@ go run cmd/fitter/main.go --path=./examples/config_api.json
 1. **--path** - string[config.yaml] - path for the configuration of the Fitter
 2. **--verbose** - bool[false] - enable logging
 3. **--plugins** - string[""] - [path for plugins for Fitter](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md)
-
+4. **--log-level** - enum["info", "error", "debug", "fatal"] - set log level(only if verbose set to true)
 
 # How to use Fitter_CLI
 
@@ -128,6 +128,7 @@ go run cmd/cli/main.go --path=./examples/cli/config_cli.json
 4. **--verbose** - bool[false] - enable logging
 5. **--omit-error-pretty** - bool[false] -  Provide pure value if pretty is invalid
 6. **--plugins** - string[""] - [path for plugins for Fitter](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md)
+7. **--log-level** - enum["info", "error", "debug", "fatal"] - set log level(only if verbose set to true)
 
 ```bash
 ./fitter_cli_${VERSION} --path=./examples/cli/config_cli.json --copy=true
@@ -543,7 +544,7 @@ Common of the field
 ```go
 type Field struct {
 	BaseField    *BaseField    `json:"base_field" yaml:"base_field"`
-	ObjectConfig *ObjectConfig `yaml:"object_config" yaml:"object_config"`
+	ObjectConfig *ObjectConfig `json:"object_config" yaml:"object_config"`
 	ArrayConfig  *ArrayConfig  `json:"array_config" yaml:"array_config"`
 
 	FirstOf []*Field `json:"first_of" yaml:"first_of"`

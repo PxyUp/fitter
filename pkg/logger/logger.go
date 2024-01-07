@@ -11,6 +11,9 @@ type Logger interface {
 	Infof(msg string, fields ...any)
 	Info(msg string)
 	Infow(msg string, fields ...string)
+	Debug(msg string)
+	Debugw(msg string, fields ...string)
+	Debugf(msg string, fields ...any)
 	Error(msg string)
 	Errorf(msg string, fields ...any)
 	Errorw(msg string, fields ...string)
@@ -33,6 +36,15 @@ func (n null) Info(msg string) {
 func (n null) Infow(msg string, fields ...string) {
 }
 
+func (n null) Debugf(msg string, fields ...any) {
+}
+
+func (n null) Debug(msg string) {
+}
+
+func (n null) Debugw(msg string, fields ...string) {
+}
+
 func (n null) Error(msg string) {
 }
 
@@ -48,6 +60,18 @@ var (
 
 type zapLogger struct {
 	logger *zap.Logger
+}
+
+func (z *zapLogger) Debug(msg string) {
+	z.logger.Debug(msg)
+}
+
+func (z *zapLogger) Debugw(msg string, fields ...string) {
+	z.logger.With(makeFields(fields)...).Debug(msg)
+}
+
+func (z *zapLogger) Debugf(msg string, fields ...any) {
+	z.logger.Debug(fmt.Sprintf(msg, fields...))
 }
 
 func makeFields(fields []string) []zap.Field {
@@ -90,11 +114,14 @@ func (z *zapLogger) Errorw(msg string, fields ...string) {
 	z.logger.With(makeFields(fields)...).Error(msg)
 }
 
-func NewLogger() *zapLogger {
+func NewLogger(lvl string) *zapLogger {
 	config := zap.NewProductionEncoderConfig()
 	config.EncodeTime = zapcore.RFC3339TimeEncoder
 	consoleEncoder := zapcore.NewConsoleEncoder(config)
 	defaultLogLevel := zapcore.DebugLevel
+	if lvl != "" {
+		_ = defaultLogLevel.UnmarshalText([]byte(lvl))
+	}
 
 	return &zapLogger{
 		logger: zap.New(zapcore.NewTee(zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), defaultLogLevel)), zap.AddCaller()),

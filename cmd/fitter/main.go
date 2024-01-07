@@ -47,6 +47,7 @@ func main() {
 	filePath := flag.String("path", "config.yaml", "Path for config file yaml|json")
 	verboseFlag := flag.Bool("verbose", false, "Provide logger")
 	pluginsFlag := flag.String("plugins", "", "Provide plugins folder")
+	logLevel := flag.String("log-level", "info", "Level for logger")
 	flag.Parse()
 
 	if *pluginsFlag != "" {
@@ -67,7 +68,7 @@ func main() {
 	defer cancel()
 	lg := logger.Null
 	if *verboseFlag {
-		lg = logger.NewLogger()
+		lg = logger.NewLogger(*logLevel)
 	}
 	done := make(chan struct{})
 	go func() {
