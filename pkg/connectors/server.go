@@ -5,6 +5,7 @@ import (
 	"context"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors/limitter"
+	"github.com/PxyUp/fitter/pkg/http_client"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/PxyUp/fitter/pkg/utils"
@@ -86,7 +87,7 @@ func (api *apiConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byt
 		req.Header.Add(k, v)
 	}
 
-	client := http.DefaultClient
+	client := http_client.Client
 	if api.client != nil {
 		client = api.client
 	}
