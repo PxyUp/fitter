@@ -18,7 +18,7 @@ var (
 	errNoDriver          = errors.New("empty playwright driver")
 )
 
-func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.Logger) ([]byte, error) {
+func getFromPlaywright(url string, cfg *config.PlaywrightConfig, script string, logger logger.Logger) ([]byte, error) {
 	if instanceLimit := limitter.PlaywrightLimiter(); instanceLimit != nil {
 		errInstance := instanceLimit.Acquire(ctx, 1)
 		if errInstance != nil {
@@ -148,10 +148,10 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, logger logger.L
 			return
 		}
 
-		if cfg.PreRunScript != "" {
-			_, err = page.Evaluate(cfg.PreRunScript)
+		if script != "" {
+			_, err = page.Evaluate(script)
 			if err != nil {
-				logger.Errorw("could execute script on page", "error", err.Error(), "script", cfg.PreRunScript)
+				logger.Errorw("could execute script on page", "error", err.Error(), "script", script)
 				return
 			}
 		}

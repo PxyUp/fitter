@@ -1,0 +1,26 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "xpath",
+      "url": "https://picsum.photos",
+      "server_config": {
+        "method": "GET"
+      }
+    },
+    "model": {
+      "base_field": {
+        "type": "string",
+        "path": "//body//div[@class=\"content-section-light\"]//img/@src",
+        "generated": {
+          "file": {
+            "url": "https://picsum.photos{PL}",
+            "path": "/Users/pxyup/fitter/bin",
+            "config": {
+              "method": "GET"
+            }
+          }
+        }
+      }
+    }
+  }
+}

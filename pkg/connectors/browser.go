@@ -27,22 +27,22 @@ func (c *browserConnector) WithLogger(logger logger.Logger) *browserConnector {
 }
 
 func (c *browserConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
-	c.url = utils.Format(c.url, parsedValue, index)
+	formattedURL := utils.Format(c.url, parsedValue, index)
 
-	if c.url == "" {
+	if formattedURL == "" {
 		return nil, errEmpty
 	}
+
 	if c.cfg.Chromium != nil {
-		return getFromChromium(c.url, c.cfg.Chromium, c.logger.With("emulator", "chromium"))
+		return getFromChromium(formattedURL, c.cfg.Chromium, c.logger.With("emulator", "chromium"))
 	}
 
 	if c.cfg.Docker != nil {
-		return getFromDocker(c.url, c.cfg.Docker, c.logger.With("emulator", "docker"))
+		return getFromDocker(formattedURL, c.cfg.Docker, c.logger.With("emulator", "docker"))
 	}
 
 	if c.cfg.Playwright != nil {
-		c.cfg.Playwright.PreRunScript = utils.Format(c.cfg.Playwright.PreRunScript, parsedValue, index)
-		return getFromPlaywright(c.url, c.cfg.Playwright, c.logger.With("emulator", "playwright"))
+		return getFromPlaywright(formattedURL, c.cfg.Playwright, utils.Format(c.cfg.Playwright.PreRunScript, parsedValue, index), c.logger.With("emulator", "playwright"))
 	}
 
 	return nil, nil

@@ -60,27 +60,31 @@ func (api *apiConnector) WithLogger(logger logger.Logger) *apiConnector {
 	return api
 }
 
-func (api *apiConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
-	api.cfg.Body = utils.Format(api.cfg.Body, parsedValue, index)
-	api.url = utils.Format(api.url, parsedValue, index)
+func (api *apiConnector) GetWithHeaders(parsedValue builder.Jsonable, index *uint32) (http.Header, []byte, error) {
+	return api.get(parsedValue, index)
+}
 
-	if api.url == "" {
-		return nil, errEmpty
+func (api *apiConnector) get(parsedValue builder.Jsonable, index *uint32) (http.Header, []byte, error) {
+	formattedBody := utils.Format(api.cfg.Body, parsedValue, index)
+	formattedURL := utils.Format(api.url, parsedValue, index)
+
+	if formattedURL == "" {
+		return nil, nil, errEmpty
 	}
 
 	err := sem.Acquire(ctx, 1)
 	if err != nil {
-		api.logger.Errorw("unable to acquire semaphore", "method", api.cfg.Method, "url", api.url, "error", err.Error())
-		return nil, err
+		api.logger.Errorw("unable to acquire semaphore", "method", api.cfg.Method, "url", formattedURL, "error", err.Error())
+		return nil, nil, err
 	}
 
 	defer sem.Release(1)
 
-	req, err := http.NewRequest(api.cfg.Method, api.url, bytes.NewBufferString(api.cfg.Body))
+	req, err := http.NewRequest(api.cfg.Method, formattedURL, bytes.NewBufferString(formattedBody))
 
 	if err != nil {
 		api.logger.Errorw("unable to create http request", "error", err.Error())
-		return nil, err
+		return nil, nil, err
 	}
 
 	for k, v := range api.cfg.Headers {
@@ -95,8 +99,8 @@ func (api *apiConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byt
 	if hostLimit := limitter.HostLimiter(req.Host); hostLimit != nil {
 		errHostLimit := hostLimit.Acquire(ctx, 1)
 		if errHostLimit != nil {
-			api.logger.Errorw("unable to acquire host limit semaphore", "method", api.cfg.Method, "url", api.url, "error", err.Error(), "host", req.Host)
-			return nil, errHostLimit
+			api.logger.Errorw("unable to acquire host limit semaphore", "method", api.cfg.Method, "url", formattedURL, "error", err.Error(), "host", req.Host)
+			return nil, nil, errHostLimit
 		}
 		defer hostLimit.Release(1)
 	}
@@ -108,11 +112,11 @@ func (api *apiConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byt
 	reqCtx, cancel := context.WithTimeout(ctx, tt)
 	defer cancel()
 
-	api.logger.Infof("send request to url: %s", api.url)
+	api.logger.Infof("send request to url: %s", formattedURL)
 	resp, err := client.Do(req.WithContext(reqCtx))
 	if err != nil {
-		api.logger.Errorw("unable to send http request", "method", api.cfg.Method, "url", api.url, "error", err.Error())
-		return nil, err
+		api.logger.Errorw("unable to send http request", "method", api.cfg.Method, "url", formattedURL, "error", err.Error())
+		return nil, nil, err
 	}
 
 	if resp != nil && resp.Body != nil {
@@ -122,8 +126,13 @@ func (api *apiConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byt
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		api.logger.Errorw("unable to read http response", "error", err.Error())
-		return nil, err
+		return nil, nil, err
 	}
 
-	return bytes, nil
+	return resp.Header, bytes, nil
+}
+
+func (api *apiConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
+	_, body, err := api.get(parsedValue, index)
+	return body, err
 }

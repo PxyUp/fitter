@@ -57,6 +57,15 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 		return builder.UUID(field.UUID)
 	}
 
+	if field.File != nil {
+		filePath, err := ProcessFileField(parsedValue, index, field.File, logger)
+		if err != nil {
+			logger.Errorw("error during process file field", "error", err.Error())
+			return builder.Null()
+		}
+		return builder.String(filePath)
+	}
+
 	if field.Calculated != nil && field.Calculated.Expression != "" {
 		res, err := ProcessExpression(field.Calculated.Expression, parsedValue)
 		if err != nil {

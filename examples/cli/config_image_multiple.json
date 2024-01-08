@@ -1,0 +1,33 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "xpath",
+      "url": "https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Images_in_HTML",
+      "browser_config": {
+        "playwright": {
+          "browser": "WebKit"
+        }
+      }
+    },
+    "model": {
+      "array_config": {
+        "root_path": "//main//img",
+        "item_config": {
+          "field": {
+            "type": "string",
+            "path": "/@src",
+            "generated": {
+              "file": {
+                "url": "https://developer.mozilla.org{PL}",
+                "path": "/Users/pxyup/fitter/bin/{HUMAN_INDEX}",
+                "config": {
+                  "method": "GET"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -614,6 +614,7 @@ type GeneratedFieldConfig struct {
 	Formatted  *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
 	Plugin     *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
 	Calculated *CalculatedConfig           `yaml:"calculated" json:"calculated"`
+	File       *FileFieldConfig            `yaml:"file" json:"file"`
 	Model      *ModelField                 `yaml:"model" json:"model"`
 }
 ```
@@ -625,6 +626,7 @@ Config can be one of:
 - [Model](#model-field) - model generated from the other connector and model
 - [Plugin](#plugin-field) - plugin field
 - [Calculated](#calculated-field) - calculated field
+- [File](#file-field) - file field (for download file from server)
 
 Examples:
 ```json
@@ -713,6 +715,57 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json#L98
   "template": "https://news.ycombinator.com/item?id={PL}"
 }
 ```
+
+#### File Field
+
+Field can be used for download file from server locally
+
+```go
+type FileFieldConfig struct {
+	Config *ServerConnectorConfig `yaml:"config" json:"config"`
+
+	Url      string `yaml:"url" json:"url"`
+	FileName string `json:"file_name" yaml:"file_name"`
+	Path     string `json:"path" yaml:"path"`
+}
+```
+
+- Config - [ServerConfig](#serverconnectorconfig) use default fitter http.Client for send request
+- Url - url of the image. Important: URL in the connector can be with [inject of the parent value as a string](#placeholder-list)
+- FileName - local file name for storing file. By default, it is try get FileName from header, after that from url. Important: can be with [inject of the parent value as a string](#placeholder-list).
+- Path - local file parent directory for storing file. Default path it is process directory. Important: can be with [inject of the parent value as a string](#placeholder-list)
+
+Result of the field will be local file path as string
+
+
+```json
+{
+  "url": "https://images.shcdn.de/resized/w680/p/dekostoff-gobelinstoff-panel-oriental-cat-46-x-46_P19-KP_2.jpg",
+  "path": "/Users/pxyup/fitter/bin",
+  "config": {
+    "method": "GET"
+  }
+}
+```
+
+With propagated URL ([inject of the parent value as a string](#placeholder-list))
+
+```json
+{
+  "url": "https://picsum.photos{PL}",
+  "path": "/Users/pxyup/fitter/bin",
+  "config": {
+    "method": "GET"
+  }
+}
+```
+
+Config example: 
+
+https://github.com/PxyUp/fitter/blob/master/examples/cli/config_image.json
+
+https://github.com/PxyUp/fitter/blob/master/examples/cli/config_image_multiple.json
+
 
 #### Calculated field
 
@@ -892,7 +945,7 @@ Examples:
 }
 ```
 
-##### Placeholder list
+#### Placeholder list
 1. {PL} - for inject value
 2. {INDEX} - for inject index in parent array
 3. {HUMAN_INDEX} - for inject index in parent array in human way

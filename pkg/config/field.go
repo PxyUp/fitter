@@ -44,7 +44,16 @@ type GeneratedFieldConfig struct {
 	Formatted  *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
 	Plugin     *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
 	Calculated *CalculatedConfig           `yaml:"calculated" json:"calculated"`
+	File       *FileFieldConfig            `yaml:"file" json:"file"`
 	Model      *ModelField                 `yaml:"model" json:"model"`
+}
+
+type FileFieldConfig struct {
+	Config *ServerConnectorConfig `yaml:"config" json:"config"`
+
+	Url      string `yaml:"url" json:"url"`
+	FileName string `json:"file_name" yaml:"file_name"`
+	Path     string `json:"path" yaml:"path"`
 }
 
 type CalculatedConfig struct {
