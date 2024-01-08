@@ -575,6 +575,8 @@ type BaseField struct {
 	Type FieldType `yaml:"type" json:"type"`
 	Path string    `yaml:"path" json:"path"`
 
+	HTMLAttribute string `json:"html_attribute" yaml:"html_attribute"`
+
 	Generated *GeneratedFieldConfig `yaml:"generated" json:"generated"`
 
 	FirstOf []*BaseField `json:"first_of" yaml:"first_of"`
@@ -583,6 +585,7 @@ type BaseField struct {
 
 - FieldType - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object"] - static field for parse
 - Path - selector(relative in case it is array child) for parsing
+- HTMLAttribute - extra value which have effect only in HTML parsing via **goquery**. Here you can specify which attribute need to be parsed.
 
 Config can be one of or empty:
 - [Generated](#generatedfieldconfig) - field can be generated one which custom configuration

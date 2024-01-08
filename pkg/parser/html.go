@@ -229,7 +229,17 @@ func (h *htmlParser) fillUpBaseField(source *goquery.Selection, field *config.Ba
 		return builder.Null()
 	}
 
-	text := source.First().Text()
+	var text string
+
+	if field.HTMLAttribute != "" {
+		attrValue, attrExists := source.First().Attr(field.HTMLAttribute)
+		if !attrExists {
+			return builder.Null()
+		}
+		text = attrValue
+	} else {
+		text = source.First().Text()
+	}
 
 	switch field.Type {
 	case config.Null:

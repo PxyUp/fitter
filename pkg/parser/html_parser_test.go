@@ -239,6 +239,18 @@ func (s *HTMLParserArraySuite) Test_Return_BaseField_String() {
 	assert.JSONEq(s.T(), "\"HTML Headings\"", res.ToJson())
 }
 
+func (s *HTMLParserArraySuite) Test_Return_BaseField_Attribute_String() {
+	res, err := s.parser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type:          config.String,
+			Path:          "#loginactioncontainer",
+			HTMLAttribute: "class",
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "\"w3-right w3-padding-16\"", res.ToJson())
+}
+
 func (s *HTMLParserArraySuite) Test_Return_BaseField_Calculated() {
 	res, err := s.parser.Parse(&config.Model{
 		BaseField: &config.BaseField{

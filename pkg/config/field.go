@@ -29,6 +29,8 @@ type BaseField struct {
 	Type FieldType `yaml:"type" json:"type"`
 	Path string    `yaml:"path" json:"path"`
 
+	HTMLAttribute string `json:"html_attribute" yaml:"html_attribute"`
+
 	Generated *GeneratedFieldConfig `yaml:"generated" json:"generated"`
 
 	FirstOf []*BaseField `json:"first_of" yaml:"first_of"`
