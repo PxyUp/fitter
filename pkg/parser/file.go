@@ -60,7 +60,7 @@ func ProcessFileField(parsedValue builder.Jsonable, index *uint32, field *config
 	}
 
 	if destinationFileName == "" {
-		logger.Errorw("missing file name for file", "url", destinationURL, "error", "header_value", headers.Get("Content-Disposition"), errMissingFileName.Error())
+		logger.Errorw("missing file name for file", "url", destinationURL, "header_value", headers.Get("Content-Disposition"), "error", errMissingFileName.Error())
 		return "", errMissingFileName
 	}
 
