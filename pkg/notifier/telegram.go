@@ -94,7 +94,10 @@ func (t *telegramBot) sendSuccess(result *parser.ParseResult, isArray bool) erro
 	return nil
 }
 
-func (t *telegramBot) Inform(result *parser.ParseResult, err error, isArray bool) error {
+func (t *telegramBot) Inform(result *parser.ParseResult, errResult error, isArray bool) error {
+	if errResult != nil {
+		return t.sendError(fmt.Sprintf("Result for: %s\n\nError: %s", t.name, errResult))
+	}
 	should, err := shouldInform(t.notifierCfg.Expression, result, t.notifierCfg.Force)
 	if err != nil {
 		t.logger.Errorw("unable to calculate expression for informing", "error", err.Error())
@@ -104,9 +107,6 @@ func (t *telegramBot) Inform(result *parser.ParseResult, err error, isArray bool
 		return nil
 	}
 
-	if err != nil {
-		return t.sendError(fmt.Sprintf("Result for: %s\n\nError: %s", t.name, err))
-	}
 	return t.sendSuccess(result, isArray)
 }
 

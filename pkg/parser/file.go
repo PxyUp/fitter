@@ -36,7 +36,7 @@ func ProcessFileField(parsedValue builder.Jsonable, index *uint32, field *config
 	destinationPath := utils.Format(field.Path, parsedValue, index)
 	destinationURL := utils.Format(field.Url, parsedValue, index)
 
-	connector := connectors.NewAPI(destinationURL, field.Config, http_client.Client).WithLogger(logger.With("connector", "file"))
+	connector := connectors.NewAPI(destinationURL, field.Config, http_client.GetDefaultClient()).WithLogger(logger.With("connector", "file"))
 
 	headers, body, err := connector.GetWithHeaders(parsedValue, index)
 	if err != nil {

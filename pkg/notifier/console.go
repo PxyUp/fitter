@@ -31,7 +31,11 @@ func (o *console) WithLogger(logger logger.Logger) *console {
 	return o
 }
 
-func (o *console) Inform(result *parser.ParseResult, err error, isArray bool) error {
+func (o *console) Inform(result *parser.ParseResult, errResult error, isArray bool) error {
+	if errResult != nil {
+		o.logger.Errorf("result for %s is error: %s", o.name, errResult.Error())
+		return nil
+	}
 	should, err := shouldInform(o.notifierCfg.Expression, result, o.notifierCfg.Force)
 	if err != nil {
 		o.logger.Errorw("unable to calculate expression for informing", "error", err.Error())
@@ -40,11 +44,8 @@ func (o *console) Inform(result *parser.ParseResult, err error, isArray bool) er
 	if !(should) {
 		return nil
 	}
-	if err != nil {
-		o.logger.Errorf("result for %s is error: %s", o.name, err.Error())
-	} else {
-		o.logger.Infow("Processing done", "response", result.ToJson())
-	}
+
+	o.logger.Infow("Processing done", "response", result.ToJson())
 	return nil
 }
 

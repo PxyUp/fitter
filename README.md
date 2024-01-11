@@ -303,6 +303,8 @@ type ServerConnectorConfig struct {
     Headers map[string]string `yaml:"headers" json:"headers"`
     Timeout uint32            `yaml:"timeout" json:"timeout"`
     Body    string            `yaml:"body" json:"body"`
+    
+    Proxy *ProxyConfig `yaml:"proxy" json:"proxy"`
 }
 ```
 
@@ -310,15 +312,46 @@ type ServerConnectorConfig struct {
 - Headers - predefine headers for using during request
 - Timeout[sec] - default 60sec timeout or used provided
 - Body - body of the request, parsed value [can be injected](#placeholder-list)
+- Proxy - setup proxy for request [config](#proxy-config)
 
 Example:
 ```json
 {
-  "method": "GET"
+  "method": "GET",
+  "proxy": {
+    "server": "http://localhost:8080",
+    "username": "pyx"
+  }
 }
 ```
 
 Right now default timeout it is 10 sec.
+
+##### Proxy config
+
+```go
+type ProxyConfig struct {
+    // Proxy to be used for all requests. HTTP and SOCKS proxies are supported, for example
+    // `http://myproxy.com:3128` or `socks5://myproxy.com:3128`. Short form `myproxy.com:3128`
+    // is considered an HTTP proxy.
+    Server string `json:"server" yaml:"server"`
+    // Optional username to use if HTTP proxy requires authentication.
+    Username string `json:"username" yaml:"username"`
+    // Optional password to use if HTTP proxy requires authentication.
+    Password string `json:"password" yaml:"password"`
+}
+```
+
+- Server - address with schema of proxy server
+- Username - username for proxy(can be empty)
+- Password - password for proxy(can be empty)
+
+```json
+{
+  "server": "http://localhost:8080",
+  "username": "pyx"
+}
+```
 
 ##### Environment variables
 1. **FITTER_HTTP_WORKER** - int[1000] - default concurrent HTTP workers
@@ -426,12 +459,14 @@ Run browsers via playwright framework
 
 ```go
 type PlaywrightConfig struct {
-       Browser      PlaywrightBrowser          `json:"browser" yaml:"browser"`
-       Install      bool                       `yaml:"install" json:"install"`
-       Timeout      uint32                     `yaml:"timeout" json:"timeout"`
-       Wait         uint32                     `yaml:"wait" json:"wait"`
-       TypeOfWait   *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
-       PreRunScript string                     `json:"pre_run_script" yaml:"pre_run_script"`
+    Browser      PlaywrightBrowser          `json:"browser" yaml:"browser"`
+    Install      bool                       `yaml:"install" json:"install"`
+    Timeout      uint32                     `yaml:"timeout" json:"timeout"`
+    Wait         uint32                     `yaml:"wait" json:"wait"`
+    TypeOfWait   *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
+    PreRunScript string                     `json:"pre_run_script" yaml:"pre_run_script"`
+    
+    Proxy *ProxyConfig `yaml:"proxy" json:"proxy"`
 }
 ```
 
@@ -441,6 +476,7 @@ type PlaywrightConfig struct {
 - Wait[sec] - timeout of page loading
 - TypeOfWait - enum["load", "domcontentloaded", "networkidle", "commit"] which state of page we waiting, default is "load"
 - PreRunScript[""] - script which will be executed before reading content of the page. Also support placeholder [{PL}](#placeholder-list)
+- Proxy - setup proxy for request [config](#proxy-config)
 
 Example
 ```json

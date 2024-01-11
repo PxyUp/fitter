@@ -6,6 +6,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/utils"
 	"github.com/playwright-community/playwright-go"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/semaphore"
@@ -84,23 +85,42 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, script string, 
 			}
 		}()
 
+		var opts []playwright.BrowserTypeLaunchOptions
+
+		if cfg.Proxy != nil {
+			proxy := &playwright.BrowserTypeLaunchOptionsProxy{}
+			if cfg.Proxy.Server != "" {
+				proxy.Server = utils.String(cfg.Proxy.Server)
+			}
+			if cfg.Proxy.Username != "" {
+				proxy.Server = utils.String(cfg.Proxy.Username)
+			}
+			if cfg.Proxy.Password != "" {
+				proxy.Server = utils.String(cfg.Proxy.Password)
+			}
+			logger.Debugw("set proxy", "server", cfg.Proxy.Server, "username", cfg.Proxy.Username, "password", cfg.Proxy.Password)
+			opts = append(opts, playwright.BrowserTypeLaunchOptions{
+				Proxy: proxy,
+			})
+		}
+
 		var browserInstance playwright.Browser
 		if cfg.Browser == config.Chromium {
-			browserInstance, err = pw.Chromium.Launch()
+			browserInstance, err = pw.Chromium.Launch(opts...)
 			if err != nil {
 				logger.Errorw("could not launch Chromium", "error", err.Error())
 				return
 			}
 		}
 		if cfg.Browser == config.FireFox {
-			browserInstance, err = pw.Firefox.Launch()
+			browserInstance, err = pw.Firefox.Launch(opts...)
 			if err != nil {
 				logger.Errorw("could not launch Firefox", "error", err.Error())
 				return
 			}
 		}
 		if cfg.Browser == config.WebKit {
-			browserInstance, err = pw.WebKit.Launch()
+			browserInstance, err = pw.WebKit.Launch(opts...)
 			if err != nil {
 				logger.Errorw("could not launch WebKit", "error", err.Error())
 				return

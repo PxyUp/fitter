@@ -12,6 +12,7 @@ import (
 	"golang.org/x/sync/semaphore"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -91,9 +92,27 @@ func (api *apiConnector) get(parsedValue builder.Jsonable, index *uint32) (http.
 		req.Header.Add(k, v)
 	}
 
-	client := http_client.Client
+	client := http_client.GetDefaultClient()
 	if api.client != nil {
 		client = api.client
+	}
+
+	if api.cfg.Proxy != nil {
+		proxyUrl, errProxy := url.Parse(api.cfg.Proxy.Server)
+		if errProxy != nil {
+			api.logger.Errorw("unable to create proxy", "error", errProxy.Error())
+			return nil, nil, err
+		}
+
+		if api.cfg.Proxy.Username != "" {
+			if api.cfg.Proxy.Password != "" {
+				proxyUrl.User = url.UserPassword(api.cfg.Proxy.Username, api.cfg.Proxy.Password)
+			} else {
+				proxyUrl.User = url.User(api.cfg.Proxy.Username)
+			}
+		}
+		api.logger.Debugw("set proxy", "server", api.cfg.Proxy.Server, "username", api.cfg.Proxy.Username, "password", api.cfg.Proxy.Password)
+		client.Transport = &http.Transport{Proxy: http.ProxyURL(proxyUrl)}
 	}
 
 	if hostLimit := limitter.HostLimiter(req.Host); hostLimit != nil {

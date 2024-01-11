@@ -24,7 +24,6 @@ type nullConnectorPlugin struct {
 }
 
 func (n *nullConnectorPlugin) SetConfig(cfg *config.PluginConnectorConfig, _ logger.Logger) {
-	return
 }
 
 func (n *nullConnectorPlugin) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {

@@ -88,6 +88,8 @@ type PlaywrightConfig struct {
 	Wait         uint32                     `yaml:"wait" json:"wait"`
 	TypeOfWait   *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
 	PreRunScript string                     `json:"pre_run_script" yaml:"pre_run_script"`
+
+	Proxy *ProxyConfig `json:"proxy" yaml:"proxy"`
 }
 
 type StaticConnectorConfig struct {
@@ -128,6 +130,19 @@ type ServerConnectorConfig struct {
 	Headers map[string]string `yaml:"headers" json:"headers"`
 	Timeout uint32            `yaml:"timeout" json:"timeout"`
 	Body    string            `yaml:"body" json:"body"`
+
+	Proxy *ProxyConfig `yaml:"proxy" json:"proxy"`
+}
+
+type ProxyConfig struct {
+	// Proxy to be used for all requests. HTTP and SOCKS proxies are supported, for example
+	// `http://myproxy.com:3128` or `socks5://myproxy.com:3128`. Short form `myproxy.com:3128`
+	// is considered an HTTP proxy.
+	Server string `json:"server" yaml:"server"`
+	// Optional username to use if HTTP proxy requires authentication.
+	Username string `json:"username" yaml:"username"`
+	// Optional password to use if HTTP proxy requires authentication.
+	Password string `json:"password" yaml:"password"`
 }
 
 type TriggerConfig struct {

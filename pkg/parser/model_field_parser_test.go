@@ -108,7 +108,7 @@ func (t *testHandler) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 		writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
 		writer.Header().Set("Content-Type", request.Header.Get("Content-Type"))
 
-		writer.Write(fileBuffer)
+		_, _ = writer.Write(fileBuffer)
 	}
 }
 
