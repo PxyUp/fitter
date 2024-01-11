@@ -244,25 +244,7 @@ func (j *jsonParser) buildBaseField(source gjson.Result, field *config.BaseField
 	tempValue := fillUpBaseField(source, field)
 
 	if field.Generated != nil {
-		if field.Type == config.String {
-			tempValue = builder.PureString(tempValue.ToJson())
-		}
-		generatedValue := buildGeneratedField(tempValue, field.Generated, j.logger, index)
-		if field.Generated.Model != nil {
-			if field.Generated.Model.Type == config.Array || field.Generated.Model.Type == config.Object {
-				if field.Generated.Model.Path != "" {
-					return builder.PureString(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path).Raw)
-				}
-				return generatedValue
-			}
-			if field.Generated.Model.Path != "" {
-				return fillUpBaseField(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path), &config.BaseField{
-					Type: field.Generated.Model.Type,
-				})
-			}
-		}
-
-		return generatedValue
+		return buildGeneratedField(tempValue, field.Type, field.Generated, j.logger, index)
 	}
 
 	return tempValue

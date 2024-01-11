@@ -9,7 +9,6 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser/builder"
-	"github.com/tidwall/gjson"
 )
 
 type htmlParser struct {
@@ -304,25 +303,7 @@ func (h *htmlParser) buildBaseField(source *goquery.Selection, field *config.Bas
 	tempValue := h.fillUpBaseField(source, field)
 
 	if field.Generated != nil {
-		if field.Type == config.String {
-			tempValue = builder.PureString(tempValue.ToJson())
-		}
-		generatedValue := buildGeneratedField(tempValue, field.Generated, h.logger, index)
-		if field.Generated.Model != nil {
-			if field.Generated.Model.Type == config.Array || field.Generated.Model.Type == config.Object {
-				if field.Generated.Model.Path != "" {
-					return builder.PureString(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path).Raw)
-				}
-				return generatedValue
-			}
-			if field.Generated.Model.Path != "" {
-				return fillUpBaseField(gjson.Parse(generatedValue.ToJson()).Get(field.Generated.Model.Path), &config.BaseField{
-					Type: config.FieldType(field.Generated.Model.Type),
-				})
-			}
-		}
-
-		return generatedValue
+		return buildGeneratedField(tempValue, field.Type, field.Generated, h.logger, index)
 	}
 
 	return tempValue

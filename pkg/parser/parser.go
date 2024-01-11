@@ -52,7 +52,11 @@ func (p *ParseResult) ToJson() string {
 	return p.Json
 }
 
-func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
+func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldType, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
+	if fieldType == config.String {
+		parsedValue = builder.PureString(parsedValue.ToJson())
+	}
+
 	if field.UUID != nil {
 		return builder.UUID(field.UUID)
 	}
@@ -141,6 +145,18 @@ func buildGeneratedField(parsedValue builder.Jsonable, field *config.GeneratedFi
 		result, err := parserFactory(body, logger).Parse(field.Model.Model)
 		if err != nil {
 			return builder.Null()
+		}
+
+		if field.Model.Type == config.Array || field.Model.Type == config.Object {
+			if field.Model.Path != "" {
+				return builder.PureString(gjson.Parse(result.ToJson()).Get(field.Model.Path).Raw)
+			}
+			return result
+		}
+		if field.Model.Path != "" {
+			return fillUpBaseField(gjson.Parse(result.ToJson()).Get(field.Model.Path), &config.BaseField{
+				Type: field.Model.Type,
+			})
 		}
 
 		return result
