@@ -1,14 +1,19 @@
 package parser_test
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path"
 	"strings"
 	"testing"
 )
@@ -28,7 +33,8 @@ type ModelFieldParserSuite struct {
 	xpathParser      parser.Parser
 	jsonDatesParser  parser.Parser
 
-	server *httptest.Server
+	server      *httptest.Server
+	tmpFilePath string
 }
 
 func TestModelFieldParserSuite(t *testing.T) {
@@ -37,6 +43,11 @@ func TestModelFieldParserSuite(t *testing.T) {
 
 type testHandler struct {
 }
+
+var (
+	fileName   = "foo.pdf"
+	fileBuffer = []byte{1, 2, 3, 4}
+)
 
 func (t *testHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if strings.HasPrefix(request.URL.Path, "/html") {
@@ -92,6 +103,13 @@ func (t *testHandler) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 		fmt.Fprintf(writer, `{"neighbour": [10101, 10103]}`)
 		return
 	}
+
+	if strings.HasPrefix(request.URL.Path, "/file") {
+		writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+		writer.Header().Set("Content-Type", request.Header.Get("Content-Type"))
+
+		writer.Write(fileBuffer)
+	}
 }
 
 func (s *ModelFieldParserSuite) SetupTest() {
@@ -101,10 +119,38 @@ func (s *ModelFieldParserSuite) SetupTest() {
 	s.jsonDatesParser = parser.JsonFactory(jsonDatesObject, logger.Null)
 	s.xpathParser = parser.XPathFactory(htmlBody, logger.Null)
 	s.server = httptest.NewServer(&testHandler{})
+	s.tmpFilePath = os.TempDir()
 }
 
 func (s *ModelFieldParserSuite) TearDownTest() {
 	s.server.Close()
+	_ = os.Remove(path.Join(s.tmpFilePath, fileName))
+}
+
+func (s *ModelFieldParserSuite) TestFile() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.String,
+			Path: "",
+			Generated: &config.GeneratedFieldConfig{
+				File: &config.FileFieldConfig{
+					Path: s.tmpFilePath,
+					Url:  fmt.Sprintf("%s/file", s.server.URL),
+					Config: &config.ServerConnectorConfig{
+						Method: http.MethodGet,
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`"%s"`, path.Join(s.tmpFilePath, fileName)), res.ToJson())
+	assert.FileExists(s.T(), path.Join(s.tmpFilePath, fileName))
+	file, err := os.OpenFile(path.Join(s.tmpFilePath, fileName), os.O_RDONLY, 0755)
+	require.NoError(s.T(), err)
+	resp, err := io.ReadAll(file)
+	require.NoError(s.T(), err)
+	assert.True(s.T(), bytes.Equal(fileBuffer, resp))
 }
 
 func (s *ModelFieldParserSuite) TestJSONObject_ModelField_Formating() {
