@@ -6,6 +6,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -33,8 +34,9 @@ type ModelFieldParserSuite struct {
 	xpathParser      parser.Parser
 	jsonDatesParser  parser.Parser
 
-	server      *httptest.Server
-	tmpFilePath string
+	server             *httptest.Server
+	tmpFilePath        string
+	notExistingTempDir string
 }
 
 func TestModelFieldParserSuite(t *testing.T) {
@@ -112,6 +114,11 @@ func (t *testHandler) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 	}
 }
 
+func (s *ModelFieldParserSuite) SetupSuite() {
+	s.tmpFilePath = os.TempDir()
+	s.notExistingTempDir = path.Join(os.TempDir(), uuid.New().String())
+}
+
 func (s *ModelFieldParserSuite) SetupTest() {
 	s.jsonParserObject = parser.JsonFactory(jsonBodyObject, logger.Null)
 	s.jsonParserArray = parser.JsonFactory(jsonBodyArray, logger.Null)
@@ -119,12 +126,18 @@ func (s *ModelFieldParserSuite) SetupTest() {
 	s.jsonDatesParser = parser.JsonFactory(jsonDatesObject, logger.Null)
 	s.xpathParser = parser.XPathFactory(htmlBody, logger.Null)
 	s.server = httptest.NewServer(&testHandler{})
-	s.tmpFilePath = os.TempDir()
 }
 
 func (s *ModelFieldParserSuite) TearDownTest() {
 	s.server.Close()
-	_ = os.Remove(path.Join(s.tmpFilePath, fileName))
+}
+
+func (s *ModelFieldParserSuite) TearDownSuite() {
+	s.server.Close()
+	err := os.Remove(path.Join(s.tmpFilePath, fileName))
+	require.NoError(s.T(), err)
+	err = os.Remove(path.Join(s.notExistingTempDir, fileName))
+	require.NoError(s.T(), err)
 }
 
 func (s *ModelFieldParserSuite) TestFile() {
@@ -146,7 +159,33 @@ func (s *ModelFieldParserSuite) TestFile() {
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), fmt.Sprintf(`"%s"`, path.Join(s.tmpFilePath, fileName)), res.ToJson())
 	assert.FileExists(s.T(), path.Join(s.tmpFilePath, fileName))
-	file, err := os.OpenFile(path.Join(s.tmpFilePath, fileName), os.O_RDONLY, 0755)
+	file, err := os.OpenFile(path.Join(s.tmpFilePath, fileName), os.O_RDWR, 0755)
+	require.NoError(s.T(), err)
+	resp, err := io.ReadAll(file)
+	require.NoError(s.T(), err)
+	assert.True(s.T(), bytes.Equal(fileBuffer, resp))
+}
+
+func (s *ModelFieldParserSuite) TestFile_NotExistingDir() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.String,
+			Path: "",
+			Generated: &config.GeneratedFieldConfig{
+				File: &config.FileFieldConfig{
+					Path: s.notExistingTempDir,
+					Url:  fmt.Sprintf("%s/file", s.server.URL),
+					Config: &config.ServerConnectorConfig{
+						Method: http.MethodGet,
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`"%s"`, path.Join(s.notExistingTempDir, fileName)), res.ToJson())
+	assert.FileExists(s.T(), path.Join(s.notExistingTempDir, fileName))
+	file, err := os.OpenFile(path.Join(s.notExistingTempDir, fileName), os.O_RDWR, 0755)
 	require.NoError(s.T(), err)
 	resp, err := io.ReadAll(file)
 	require.NoError(s.T(), err)
