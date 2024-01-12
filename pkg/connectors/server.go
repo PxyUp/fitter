@@ -10,7 +10,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/PxyUp/fitter/pkg/utils"
 	"golang.org/x/sync/semaphore"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -130,7 +130,6 @@ func (api *apiConnector) get(parsedValue builder.Jsonable, index *uint32) (http.
 	}
 	reqCtx, cancel := context.WithTimeout(ctx, tt)
 	defer cancel()
-
 	api.logger.Infof("send request to url: %s", formattedURL)
 	resp, err := client.Do(req.WithContext(reqCtx))
 	if err != nil {
@@ -142,7 +141,7 @@ func (api *apiConnector) get(parsedValue builder.Jsonable, index *uint32) (http.
 		defer resp.Body.Close()
 	}
 
-	bytes, err := ioutil.ReadAll(resp.Body)
+	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		api.logger.Errorw("unable to read http response", "error", err.Error())
 		return nil, nil, err
