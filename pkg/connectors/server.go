@@ -118,7 +118,7 @@ func (api *apiConnector) get(parsedValue builder.Jsonable, index *uint32) (http.
 	if hostLimit := limitter.HostLimiter(req.Host); hostLimit != nil {
 		errHostLimit := hostLimit.Acquire(ctx, 1)
 		if errHostLimit != nil {
-			api.logger.Errorw("unable to acquire host limit semaphore", "method", api.cfg.Method, "url", formattedURL, "error", err.Error(), "host", req.Host)
+			api.logger.Errorw("unable to acquire host limit semaphore", "method", api.cfg.Method, "url", formattedURL, "error", errHostLimit.Error(), "host", req.Host)
 			return nil, nil, errHostLimit
 		}
 		defer hostLimit.Release(1)
