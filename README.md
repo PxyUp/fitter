@@ -820,12 +820,16 @@ type CalculatedConfig struct {
 - Type - resulting type of expression\
 - Expression - expression for calculation (we use [this lib](https://github.com/antonmedv/expr) for calculated expression)
 
-**fRef** - it is raw(with proper type) result from the parsing [base field](#basefield)
+**Predefined values:**
+
+**fRes** - it is raw(with proper type) result from the parsing [base field](#basefield)
+
+**fIndex** - it is index in parent array(only if parent was array field)
 
 ```json
 {
   "type": "bool",
-  "expression": "fRef > 500"
+  "expression": "fRes > 500"
 }
 ```
 

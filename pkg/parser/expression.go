@@ -7,13 +7,14 @@ import (
 
 const (
 	fitterResultRef = "fRes"
+	fitterIndexRef  = "fIndex"
 )
 
 var (
 	defEnv = map[string]interface{}{}
 )
 
-func extendEnv(env map[string]interface{}, result builder.Jsonable) map[string]interface{} {
+func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint32) map[string]interface{} {
 	kv := make(map[string]interface{})
 
 	for k, v := range env {
@@ -21,12 +22,15 @@ func extendEnv(env map[string]interface{}, result builder.Jsonable) map[string]i
 	}
 
 	kv[fitterResultRef] = result.Raw()
+	if index != nil {
+		kv[fitterIndexRef] = *index
+	}
 
 	return kv
 }
 
-func ProcessExpression(expression string, result builder.Jsonable) (interface{}, error) {
-	env := extendEnv(defEnv, result)
+func ProcessExpression(expression string, result builder.Jsonable, index *uint32) (interface{}, error) {
+	env := extendEnv(defEnv, result, index)
 
 	program, err := expr.Compile(expression, expr.Env(env))
 	if err != nil {

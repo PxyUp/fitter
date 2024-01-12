@@ -71,7 +71,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 	}
 
 	if field.Calculated != nil && field.Calculated.Expression != "" {
-		res, err := ProcessExpression(field.Calculated.Expression, parsedValue)
+		res, err := ProcessExpression(field.Calculated.Expression, parsedValue, index)
 		if err != nil {
 			logger.Errorw("error during process calculated field", "error", err.Error())
 			return builder.Null()

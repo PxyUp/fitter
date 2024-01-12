@@ -18,7 +18,7 @@ func shouldInform(expression string, result builder.Jsonable, force bool) (bool,
 		return true, nil
 	}
 
-	out, err := parser.ProcessExpression(expression, result)
+	out, err := parser.ProcessExpression(expression, result, nil)
 	if err != nil {
 		return false, err
 	}

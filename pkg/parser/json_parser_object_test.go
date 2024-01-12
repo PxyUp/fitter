@@ -129,7 +129,6 @@ func (s *JsonParserObjectSuite) Test_FirstOf() {
 }
 
 func (s *JsonParserObjectSuite) Test_StaticArray() {
-
 	res, err := s.parser.Parse(&config.Model{
 		ArrayConfig: &config.ArrayConfig{
 			StaticConfig: &config.StaticArrayConfig{
@@ -152,12 +151,24 @@ func (s *JsonParserObjectSuite) Test_StaticArray() {
 							},
 						},
 					},
+					2: {
+						BaseField: &config.BaseField{
+							Type: config.String,
+							Path: "gender",
+							Generated: &config.GeneratedFieldConfig{
+								Calculated: &config.CalculatedConfig{
+									Type:       config.Bool,
+									Expression: "fIndex == 2",
+								},
+							},
+						},
+					},
 				},
 			},
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "[\"male\",{\"test\": \"Cooley Spence\"}]", res.ToJson())
+	assert.JSONEq(s.T(), "[\"male\",{\"test\": \"Cooley Spence\"}, true]", res.ToJson())
 }
 
 func (s *JsonParserObjectSuite) Test_ParseSimpleObject() {
