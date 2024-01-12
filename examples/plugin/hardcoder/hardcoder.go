@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	builder "github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/parser/builder"
 	pl "github.com/PxyUp/fitter/pkg/plugins/plugin"
 )
 

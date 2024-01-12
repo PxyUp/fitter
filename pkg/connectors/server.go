@@ -3,11 +3,11 @@ package connectors
 import (
 	"bytes"
 	"context"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors/limitter"
 	"github.com/PxyUp/fitter/pkg/http_client"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/PxyUp/fitter/pkg/utils"
 	"golang.org/x/sync/semaphore"
 	"io"

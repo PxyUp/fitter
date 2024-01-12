@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/PxyUp/fitter/pkg/parser/builder"
+	builder "github.com/PxyUp/fitter/pkg/builder"
 	"github.com/tidwall/gjson"
 	"strings"
 )

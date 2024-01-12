@@ -2,12 +2,12 @@ package parser
 
 import (
 	"bytes"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"strconv"
 	"sync"
 
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/antchfx/htmlquery"
 	"golang.org/x/net/html"
 )

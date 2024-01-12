@@ -2,9 +2,9 @@ package notifier
 
 import (
 	"fmt"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/parser"
-	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"strconv"
 )
 

@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"github.com/PxyUp/fitter/pkg/parser/builder"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/antonmedv/expr"
 )
 

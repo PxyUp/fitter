@@ -1,11 +1,11 @@
 package parser
 
 import (
+	builder "github.com/PxyUp/fitter/pkg/builder"
 	"sync"
 
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/parser/builder"
 	"github.com/tidwall/gjson"
 )
 

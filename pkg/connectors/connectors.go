@@ -2,7 +2,7 @@ package connectors
 
 import (
 	"errors"
-	"github.com/PxyUp/fitter/pkg/parser/builder"
+	"github.com/PxyUp/fitter/pkg/builder"
 )
 
 var (

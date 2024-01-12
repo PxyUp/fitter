@@ -31,6 +31,11 @@ func getConfig(filePath string) *config.Config {
 			return nil
 		}
 
+		if len(cfg.Items) == 0 {
+			log.Fatal("empty config")
+			return nil
+		}
+
 		return cfg
 	}
 
