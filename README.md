@@ -988,6 +988,18 @@ Examples:
 }
 ```
 
+```json
+{
+  "length": 4,
+  "2": {
+    "base_field": {
+      "type": "string",
+      "path": "div.current-temp span.heading"
+    }
+  }
+}
+```
+
 #### Placeholder list
 1. {PL} - for inject value
 2. {INDEX} - for inject index in parent array
