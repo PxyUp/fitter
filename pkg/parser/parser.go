@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
-	"github.com/PxyUp/fitter/pkg/connectors"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/PxyUp/fitter/pkg/utils"
@@ -96,53 +95,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 	}
 
 	if field.Model != nil {
-		if field.Model.ConnectorConfig == nil || field.Model.Model == nil {
-			return builder.Null()
-		}
-
-		var connector connectors.Connector
-
-		if field.Model.ConnectorConfig.StaticConfig != nil {
-			connector = connectors.NewStatic(field.Model.ConnectorConfig.StaticConfig).WithLogger(logger.With("connector", "static"))
-		}
-
-		if field.Model.ConnectorConfig.ServerConfig != nil {
-			connector = connectors.NewAPI(field.Model.ConnectorConfig.Url, field.Model.ConnectorConfig.ServerConfig, nil).WithLogger(logger.With("connector", "server"))
-		}
-
-		if field.Model.ConnectorConfig.BrowserConfig != nil {
-			connector = connectors.NewBrowser(field.Model.ConnectorConfig.Url, field.Model.ConnectorConfig.BrowserConfig).WithLogger(logger.With("connector", "browser"))
-		}
-
-		if field.Model.ConnectorConfig.PluginConnectorConfig != nil {
-			connector = store.Store.GetConnectorPlugin(field.Model.ConnectorConfig.PluginConnectorConfig.Name, field.Model.ConnectorConfig.PluginConnectorConfig, logger.With("connector", field.Model.ConnectorConfig.PluginConnectorConfig.Name))
-		}
-
-		var parserFactory Factory
-		if field.Model.ConnectorConfig.ResponseType == config.Json {
-			parserFactory = JsonFactory
-		}
-		if field.Model.ConnectorConfig.ResponseType == config.HTML {
-			parserFactory = HTMLFactory
-		}
-		if field.Model.ConnectorConfig.ResponseType == config.XPath {
-			parserFactory = XPathFactory
-		}
-
-		if connector == nil || parserFactory == nil {
-			return builder.Null()
-		}
-
-		connector = connectors.WithAttempts(connector, field.Model.ConnectorConfig.Attempts)
-
-		body, err := connector.Get(parsedValue, index)
-		if err != nil {
-			return builder.Null()
-		}
-
-		logger.Debugw("connector answer", "content", string(body))
-
-		result, err := parserFactory(body, logger).Parse(field.Model.Model)
+		result, err := NewEngine(field.Model.ConnectorConfig, logger.With("component", "engine")).Get(field.Model.Model, parsedValue, index)
 		if err != nil {
 			return builder.Null()
 		}
