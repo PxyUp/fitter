@@ -309,7 +309,7 @@ type ServerConnectorConfig struct {
 ```
 
 - Method - supported all http methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD
-- Headers - predefine headers for using during request
+- Headers - predefine headers for using during request [can be injected into value](#placeholder-list)
 - Timeout[sec] - default 60sec timeout or used provided
 - Body - body of the request, parsed value [can be injected](#placeholder-list)
 - Proxy - setup proxy for request [config](#proxy-config)

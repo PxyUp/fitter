@@ -89,7 +89,7 @@ func (api *apiConnector) get(parsedValue builder.Jsonable, index *uint32) (http.
 	}
 
 	for k, v := range api.cfg.Headers {
-		req.Header.Add(k, v)
+		req.Header.Add(k, utils.Format(v, parsedValue, index))
 	}
 
 	client := http_client.GetDefaultClient()
