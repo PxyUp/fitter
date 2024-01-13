@@ -81,7 +81,7 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 	if item.Name == "" {
 		return Null(errMissingName)
 	}
-	
+
 	var notifierInstance notifier.Notifier
 
 	if item.NotifierConfig != nil {
@@ -105,5 +105,5 @@ func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
 
 	logger = logger.With("name", item.Name)
 
-	return New(parser.NewEngine(item.ConnectorConfig, logger.With("component", "engine")), item.Model, notifierInstance).WithLogger(logger)
+	return New(parser.NewEngine(item.ConnectorConfig, logger.With("component", "processor_engine")), item.Model, notifierInstance).WithLogger(logger)
 }
