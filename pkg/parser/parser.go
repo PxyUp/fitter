@@ -95,6 +95,10 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 	}
 
 	if field.Model != nil {
+		if field.Model.Model == nil {
+			return builder.Null()
+		}
+
 		result, err := NewEngine(field.Model.ConnectorConfig, logger.With("component", "engine")).Get(field.Model.Model, parsedValue, index)
 		if err != nil {
 			return builder.Null()
