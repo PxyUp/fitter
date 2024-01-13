@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/PxyUp/fitter/pkg/config"
-	"github.com/PxyUp/fitter/pkg/connectors/limitter"
+	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/utils"
 	"github.com/playwright-community/playwright-go"

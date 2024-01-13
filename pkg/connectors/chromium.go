@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
-	"github.com/PxyUp/fitter/pkg/connectors/limitter"
+	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"os/exec"
 	"time"

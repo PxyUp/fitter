@@ -3,7 +3,7 @@ package registry
 import (
 	"errors"
 	"github.com/PxyUp/fitter/pkg/config"
-	"github.com/PxyUp/fitter/pkg/connectors/limitter"
+	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/processor"
 )

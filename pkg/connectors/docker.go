@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
-	"github.com/PxyUp/fitter/pkg/connectors/limitter"
+	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
