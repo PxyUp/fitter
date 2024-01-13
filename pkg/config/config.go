@@ -30,11 +30,15 @@ type Limits struct {
 type Config struct {
 	Items  []*Item `yaml:"items" json:"items"`
 	Limits *Limits `yaml:"limits" json:"limits"`
+
+	References map[string]*ModelField `json:"references" yaml:"references"`
 }
 
 type CliItem struct {
 	Item   *Item   `yaml:"item" json:"item"`
 	Limits *Limits `yaml:"limits" json:"limits"`
+
+	References map[string]*ModelField `json:"references" yaml:"references"`
 }
 
 type ObjectConfig struct {
@@ -67,10 +71,15 @@ type ConnectorConfig struct {
 	Url          string     `json:"url" yaml:"url"`
 	Attempts     uint32     `json:"attempts" yaml:"attempts"`
 
-	StaticConfig          *StaticConnectorConfig  `json:"static_config" yaml:"static_config"`
-	ServerConfig          *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
-	BrowserConfig         *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
-	PluginConnectorConfig *PluginConnectorConfig  `json:"plugin_connector_config" yaml:"plugin_connector_config"`
+	StaticConfig          *StaticConnectorConfig    `json:"static_config" yaml:"static_config"`
+	ServerConfig          *ServerConnectorConfig    `json:"server_config" yaml:"server_config"`
+	BrowserConfig         *BrowserConnectorConfig   `yaml:"browser_config" json:"browser_config"`
+	PluginConnectorConfig *PluginConnectorConfig    `json:"plugin_connector_config" yaml:"plugin_connector_config"`
+	ReferenceConfig       *ReferenceConnectorConfig `yaml:"reference_config" json:"reference_config"`
+}
+
+type ReferenceConnectorConfig struct {
+	Name string `yaml:"name" json:"name"`
 }
 
 type PlaywrightBrowser string

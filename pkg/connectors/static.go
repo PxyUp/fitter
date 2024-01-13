@@ -18,7 +18,8 @@ func (j *staticConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]by
 
 func NewStatic(cfg *config.StaticConnectorConfig) *staticConnector {
 	return &staticConnector{
-		cfg: cfg,
+		cfg:    cfg,
+		logger: logger.Null,
 	}
 }
 

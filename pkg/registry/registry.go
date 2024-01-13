@@ -29,7 +29,7 @@ func NewFromConfig(config *config.Config, logger logger.Logger) *localRegistry {
 	kv := make(map[string]processor.Processor)
 	if config != nil {
 		for _, item := range config.Items {
-			kv[item.Name] = processor.CreateProcessor(item, logger)
+			kv[item.Name] = processor.CreateProcessor(item, config.References, logger)
 		}
 	}
 	return &localRegistry{
@@ -44,7 +44,7 @@ func FromItem(itemCfg *config.CliItem, logger logger.Logger) *localRegistry {
 	return &localRegistry{
 		logger: logger,
 		kv: map[string]processor.Processor{
-			itemCfg.Item.Name: processor.CreateProcessor(itemCfg.Item, logger),
+			itemCfg.Item.Name: processor.CreateProcessor(itemCfg.Item, itemCfg.References, logger),
 		},
 	}
 }

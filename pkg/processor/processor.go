@@ -77,10 +77,12 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 	return result, nil
 }
 
-func CreateProcessor(item *config.Item, logger logger.Logger) Processor {
+func CreateProcessor(item *config.Item, references map[string]*config.ModelField, logger logger.Logger) Processor {
 	if item.Name == "" {
 		return Null(errMissingName)
 	}
+
+	parser.SetReference(references, logger)
 
 	var notifierInstance notifier.Notifier
 

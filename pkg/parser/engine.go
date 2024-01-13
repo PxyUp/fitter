@@ -61,6 +61,9 @@ func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {
 	if cfg.PluginConnectorConfig != nil {
 		connector = store.Store.GetConnectorPlugin(cfg.PluginConnectorConfig.Name, cfg.PluginConnectorConfig, logger.With("connector", cfg.PluginConnectorConfig.Name))
 	}
+	if cfg.ReferenceConfig != nil {
+		connector = refStoreImpl.Get(cfg.ReferenceConfig.Name)
+	}
 
 	var parserFactory Factory
 	if cfg.ResponseType == config.Json {
