@@ -8,10 +8,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func Parse(item *config.Item, limits *config.Limits, log logger.Logger) (*parser.ParseResult, error) {
+func Parse(item *config.Item, limits *config.Limits, refMap map[string]*config.ModelField, log logger.Logger) (*parser.ParseResult, error) {
 	cfg := &config.CliItem{
-		Item:   item,
-		Limits: limits,
+		Item:       item,
+		Limits:     limits,
+		References: refMap,
 	}
 	name := uuid.New().String()
 	cfg.Item.Name = name

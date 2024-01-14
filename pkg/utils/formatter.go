@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
+	"github.com/PxyUp/fitter/pkg/references"
 	"github.com/tidwall/gjson"
 	"strings"
 )
@@ -13,6 +14,7 @@ const (
 	placeHolder           = "{PL}"
 	indexPlaceHolder      = "{INDEX}"
 	humanIndexPlaceHolder = "{HUMAN_INDEX}"
+	refNamePrefix         = "RefName="
 )
 
 func Format(str string, value builder.Jsonable, index *uint32) string {
@@ -20,7 +22,7 @@ func Format(str string, value builder.Jsonable, index *uint32) string {
 		return str
 	}
 
-	if strings.Contains(str, placeHolder) && value != nil && value.ToJson() != builder.EmptyString {
+	if strings.Contains(str, placeHolder) && value != nil && (value.ToJson() != builder.EmptyString && len(value.ToJson()) != 0) {
 		str = strings.ReplaceAll(str, placeHolder, value.ToJson())
 	}
 
@@ -49,8 +51,20 @@ func formatJsonPathString(str string, value builder.Jsonable) string {
 
 		if isInJSONPath && strings.HasSuffix(path, jsonPathEnd) {
 			path = strings.TrimSuffix(path, jsonPathEnd)
+			if strings.HasPrefix(path, refNamePrefix) {
+				refValue := strings.Split(strings.TrimPrefix(path, refNamePrefix), " ")
+				tmp := ""
+				if len(refValue) > 1 {
+					tmp = gjson.Parse(references.Get(refValue[0]).ToJson()).Get(refValue[1]).String()
+				}
+				if len(refValue) == 1 {
+					tmp = references.Get(refValue[0]).ToJson()
+				}
+				new += builder.PureString(tmp).ToJson()
+			} else {
+				new += gjson.Parse(value.ToJson()).Get(path).String()
+			}
 			isInJSONPath = false
-			new += gjson.Parse(value.ToJson()).Get(path).String()
 			path = ""
 		}
 

@@ -87,7 +87,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 	}
 
 	if field.Formatted != nil {
-		return builder.String(utils.Format(field.Formatted.Template, parsedValue, index))
+		return builder.String(utils.Format(field.Formatted.Template, parsedValue, index), false)
 	}
 
 	if field.Plugin != nil {

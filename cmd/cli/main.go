@@ -66,7 +66,7 @@ func main() {
 	}
 
 	cfg := getConfig(*filePath)
-	res, err := lib.Parse(cfg.Item, cfg.Limits, log)
+	res, err := lib.Parse(cfg.Item, cfg.Limits, cfg.References, log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return

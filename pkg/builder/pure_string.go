@@ -1,6 +1,8 @@
 package builder
 
-import "strings"
+import (
+	"strings"
+)
 
 const (
 	EmptyString = `""`
@@ -29,6 +31,9 @@ func PureString(value string) *pureStringField {
 }
 
 func (s *pureStringField) ToJson() string {
+	if s.value == EmptyString {
+		return ""
+	}
 	return s.value
 }
 

@@ -77,7 +77,7 @@ func main() {
 				},
 			},
 		},
-	}, nil, nil)
+	}, nil, nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -160,6 +160,7 @@ type ConnectorConfig struct {
     ServerConfig          *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
     BrowserConfig         *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
     PluginConnectorConfig *PluginConnectorConfig  `json:"plugin_connector_config" yaml:"plugin_connector_config"`
+    ReferenceConfig       *ReferenceConnectorConfig `yaml:"reference_config" json:"reference_config"`
 }
 ```
 
@@ -172,6 +173,7 @@ Config can be one of:
 - [BrowserConfig](#browserconnectorconfig)
 - [StaticConfig](#staticconnectorconfig)
 - [PluginConnectorConfig](#pluginconnectorconfig)
+- [ReferenceConfig](#referenceconnectorconfig)
 
 Example:
 ```json
@@ -273,6 +275,21 @@ func (pl *plugin) SetConfig(cfg *config.PluginConnectorConfig, logger logger.Log
 	}
 }
 ```
+
+### ReferenceConnectorConfig
+Connector which allow get prefetched data from [references](#references)
+
+```go
+type ReferenceConnectorConfig struct {
+	Name string `yaml:"name" json:"name"`
+}
+```
+
+Example
+
+https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L66
+
+- Name - reference name from [references](#references) map
 
 ### StaticConnectorConfig
 Connector type which fetch data from provided string
@@ -1005,6 +1022,86 @@ Examples:
 2. {INDEX} - for inject index in parent array
 3. {HUMAN_INDEX} - for inject index in parent array in human way
 4. {{{json_path}}} - will get information from propagated "object"/"array" field
+5. {{{RefName=SomeName}}} - get [reference](#references) value by name. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L54)
+6. {{{RefName=SomeName json.path}}} - get [reference](#references) value by name and extract value by json path. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L54)
+
+## References
+Special map which **prefetched**(before any processing) and can be user for [connector](#referenceconnectorconfig) or for [placeholder](#placeholder-list)
+
+Can be used for:
+1. Cache jwt token and use them in headers
+2. Cache values
+3. Etc
+
+For [Fitter](#how-to-use-fitter)
+```go
+type Config struct {
+    // Other Config Fields
+    
+    Limits     *Limits                `yaml:"limits" json:"limits"`
+    References map[string]*ModelField `json:"references" yaml:"references"`
+}
+```
+
+For [Fitter Cli](#how-to-use-fittercli)
+
+```go
+type CliItem struct {
+    // Other Config Fields
+    
+    Limits     *Limits                `yaml:"limits" json:"limits"`
+    References map[string]*ModelField `json:"references" yaml:"references"`
+}
+```
+
+Example
+
+https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L2
+```json
+{
+  "references": {
+    "TokenRef": {
+      "connector_config": {
+        "response_type": "json",
+        "static_config": {
+          "value": "\"plain token\""
+        }
+      },
+      "model": {
+        "base_field": {
+          "type": "string"
+        }
+      }
+    },
+    "TokenObjectRef": {
+      "connector_config": {
+        "response_type": "json",
+        "static_config": {
+          "value": "{\"token\":\"token from object\"}"
+        }
+      },
+      "model": {
+        "object_config": {
+          "fields": {
+            "token": {
+              "base_field": {
+                "type": "string",
+                "path": "token"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+- References - map[string]*[ModelField](#model-field) - object where is key if ReferenceName (can be user for [connector](#referenceconnectorconfig) or [placeholder](#placeholder-list)) and value is [ModelField](#model-field)
+- [Limits](#limits)
+
+
+[Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json)
 
 ## Limits
 Provide limitation for prevent DDOS, big usage of memory

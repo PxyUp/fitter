@@ -3,9 +3,11 @@ package parser_test
 import (
 	"bytes"
 	"fmt"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
+	"github.com/PxyUp/fitter/pkg/references"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -117,6 +119,48 @@ func (t *testHandler) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 func (s *ModelFieldParserSuite) SetupSuite() {
 	s.tmpFilePath = os.TempDir()
 	s.notExistingTempDir = path.Join(os.TempDir(), uuid.New().String())
+	references.SetReference(map[string]*config.ModelField{
+		"TokenRef": {
+			ConnectorConfig: &config.ConnectorConfig{
+				ResponseType: config.Json,
+				StaticConfig: &config.StaticConnectorConfig{
+					Value: builder.Object(map[string]builder.Jsonable{
+						"token": builder.String("my_token"),
+					}).ToJson(),
+				},
+			},
+			Model: &config.Model{
+				BaseField: &config.BaseField{
+					Type: config.String,
+					Path: "token",
+				},
+			},
+		},
+		"TokenObjectRef": {
+			ConnectorConfig: &config.ConnectorConfig{
+				ResponseType: config.Json,
+				StaticConfig: &config.StaticConnectorConfig{
+					Value: builder.Object(map[string]builder.Jsonable{
+						"token": builder.String("my_token"),
+					}).ToJson(),
+				},
+			},
+			Model: &config.Model{
+				ObjectConfig: &config.ObjectConfig{
+					Fields: map[string]*config.Field{
+						"token": {
+							BaseField: &config.BaseField{
+								Type: config.String,
+								Path: "token",
+							},
+						},
+					},
+				},
+			},
+		},
+	}, func(_ string, model *config.ModelField) (builder.Jsonable, error) {
+		return parser.NewEngine(model.ConnectorConfig, logger.Null).Get(model.Model, nil, nil)
+	})
 }
 
 func (s *ModelFieldParserSuite) SetupTest() {
@@ -138,6 +182,141 @@ func (s *ModelFieldParserSuite) TearDownSuite() {
 	require.NoError(s.T(), err)
 	err = os.Remove(path.Join(s.notExistingTempDir, fileName))
 	require.NoError(s.T(), err)
+}
+
+func (s *ModelFieldParserSuite) TestReferenceFormat() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Generated: &config.GeneratedFieldConfig{
+				Formatted: &config.FormattedFieldConfig{
+					Template: "My token {{{RefName=TokenRef}}}",
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`"My token my_token"`), res.ToJson())
+}
+
+func (s *ModelFieldParserSuite) TestReferenceFormatArray() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		ArrayConfig: &config.ArrayConfig{
+			StaticConfig: &config.StaticArrayConfig{
+				Length: 4,
+				Items: map[uint32]*config.Field{
+					1: {
+						BaseField: &config.BaseField{
+							Generated: &config.GeneratedFieldConfig{
+								Formatted: &config.FormattedFieldConfig{
+									Template: "My token {{{RefName=TokenRef}}}",
+								},
+							},
+						},
+					},
+					3: {
+						BaseField: &config.BaseField{
+							Generated: &config.GeneratedFieldConfig{
+								Formatted: &config.FormattedFieldConfig{
+									Template: "My token {{{RefName=TokenRef}}}",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`[null, "My token my_token", null, "My token my_token"]`), res.ToJson())
+}
+
+func (s *ModelFieldParserSuite) TestReferenceObjectFormat() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Generated: &config.GeneratedFieldConfig{
+				Formatted: &config.FormattedFieldConfig{
+					Template: "My token {{{RefName=TokenObjectRef token}}}",
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`"My token my_token"`), res.ToJson())
+}
+
+func (s *ModelFieldParserSuite) TestReference_NotFound() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Generated: &config.GeneratedFieldConfig{
+				Formatted: &config.FormattedFieldConfig{
+					Template: "My token {{{RefName=NotFound token}}}",
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`"My token "`), res.ToJson())
+}
+
+func (s *ModelFieldParserSuite) TestReferenceConnectorObject() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Generated: &config.GeneratedFieldConfig{
+				Model: &config.ModelField{
+					Type: config.String,
+					ConnectorConfig: &config.ConnectorConfig{
+						ResponseType: config.Json,
+						ReferenceConfig: &config.ReferenceConnectorConfig{
+							Name: "TokenObjectRef",
+						},
+					},
+					Model: &config.Model{
+						BaseField: &config.BaseField{
+							Type: "string",
+							Path: "token",
+							Generated: &config.GeneratedFieldConfig{
+								Formatted: &config.FormattedFieldConfig{
+									Template: "My token {PL}",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`"My token my_token"`), res.ToJson())
+}
+
+func (s *ModelFieldParserSuite) TestReferenceConnector() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Generated: &config.GeneratedFieldConfig{
+				Model: &config.ModelField{
+					Type: config.String,
+					ConnectorConfig: &config.ConnectorConfig{
+						ResponseType: config.Json,
+						ReferenceConfig: &config.ReferenceConnectorConfig{
+							Name: "TokenRef",
+						},
+					},
+					Model: &config.Model{
+						BaseField: &config.BaseField{
+							Type: config.String,
+							Generated: &config.GeneratedFieldConfig{
+								Formatted: &config.FormattedFieldConfig{
+									Template: "My token {PL}",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`"My token my_token"`), res.ToJson())
 }
 
 func (s *ModelFieldParserSuite) TestFile() {

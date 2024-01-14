@@ -2,10 +2,12 @@ package processor
 
 import (
 	"errors"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/notifier"
 	"github.com/PxyUp/fitter/pkg/parser"
+	"github.com/PxyUp/fitter/pkg/references"
 )
 
 var (
@@ -77,12 +79,14 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 	return result, nil
 }
 
-func CreateProcessor(item *config.Item, references map[string]*config.ModelField, logger logger.Logger) Processor {
+func CreateProcessor(item *config.Item, refMap config.RefMap, logger logger.Logger) Processor {
 	if item.Name == "" {
 		return Null(errMissingName)
 	}
 
-	parser.SetReference(references, logger)
+	references.SetReference(refMap, func(refName string, model *config.ModelField) (builder.Jsonable, error) {
+		return parser.NewEngine(model.ConnectorConfig, logger.With("reference_name", refName)).Get(model.Model, nil, nil)
+	})
 
 	var notifierInstance notifier.Notifier
 

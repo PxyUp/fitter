@@ -1,0 +1,83 @@
+{
+  "references": {
+    "TokenRef": {
+      "connector_config": {
+        "response_type": "json",
+        "static_config": {
+          "value": "\"plain token\""
+        }
+      },
+      "model": {
+        "base_field": {
+          "type": "string"
+        }
+      }
+    },
+    "TokenObjectRef": {
+      "connector_config": {
+        "response_type": "json",
+        "static_config": {
+          "value": "{\"token\":\"token from object\"}"
+        }
+      },
+      "model": {
+        "object_config": {
+          "fields": {
+            "token": {
+              "base_field": {
+                "type": "string",
+                "path": "token"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "item": {
+    "connector_config": {
+      "response_type": "HTML",
+      "url": "https://time.is",
+      "server_config": {
+        "method": "GET"
+      }
+    },
+    "model": {
+      "object_config": {
+        "fields": {
+          "first_field": {
+            "base_field": {
+              "type": "string",
+              "path": "time#clock",
+              "generated": {
+                "formatted": {
+                  "template": "Current time is: {PL} with token from TokenRef={{{RefName=TokenRef}}} and TokenObjectRef={{{RefName=TokenObjectRef token}}}"
+                }
+              }
+            }
+          },
+          "second_field": {
+            "base_field": {
+              "generated": {
+                "model": {
+                  "connector_config": {
+                    "response_type": "json",
+                    "reference_config": {
+                      "name": "TokenObjectRef"
+                    }
+                  },
+                  "model": {
+                    "base_field": {
+                      "type": "string",
+                      "path": "token"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -7,10 +7,12 @@ import (
 	"github.com/PxyUp/fitter/pkg/connectors"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/plugins/store"
+	"github.com/PxyUp/fitter/pkg/references"
 )
 
 var (
-	errInvalid = errors.New("invalid engine")
+	errMissingModelConfig = errors.New("missing model config")
+	errInvalid            = errors.New("invalid engine")
 
 	_          Engine = &engine{}
 	nullEngine Engine = &null{}
@@ -34,6 +36,9 @@ func (n *null) Get(model *config.Model, parsedValue builder.Jsonable, index *uin
 }
 
 func (e *engine) Get(model *config.Model, parsedValue builder.Jsonable, index *uint32) (*ParseResult, error) {
+	if model == nil {
+		return nil, errMissingModelConfig
+	}
 	body, err := e.connector.Get(parsedValue, index)
 	if err != nil {
 		e.logger.Errorw("connector return error during fetch data", "error", err.Error())
@@ -62,7 +67,9 @@ func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {
 		connector = store.Store.GetConnectorPlugin(cfg.PluginConnectorConfig.Name, cfg.PluginConnectorConfig, logger.With("connector", cfg.PluginConnectorConfig.Name))
 	}
 	if cfg.ReferenceConfig != nil {
-		connector = refStoreImpl.Get(cfg.ReferenceConfig.Name)
+		connector = connectors.NewStatic(&config.StaticConnectorConfig{
+			Value: references.Get(cfg.ReferenceConfig.Name).ToJson(),
+		})
 	}
 
 	var parserFactory Factory
