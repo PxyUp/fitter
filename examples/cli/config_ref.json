@@ -13,6 +13,19 @@
         }
       }
     },
+    "TokenHtmlRef": {
+      "connector_config": {
+        "response_type": "HTML",
+        "static_config": {
+          "value": "<html><title>Hello</title></html>"
+        }
+      },
+      "model": {
+        "base_field": {
+          "type": "html"
+        }
+      }
+    },
     "TokenObjectRef": {
       "connector_config": {
         "response_type": "json",
@@ -70,6 +83,26 @@
                     "base_field": {
                       "type": "string",
                       "path": "token"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "third_field": {
+            "base_field": {
+              "generated": {
+                "model": {
+                  "connector_config": {
+                    "response_type": "HTML",
+                    "reference_config": {
+                      "name": "TokenHtmlRef"
+                    }
+                  },
+                  "model": {
+                    "base_field": {
+                      "type": "string",
+                      "path": "title"
                     }
                   }
                 }

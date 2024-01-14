@@ -5,13 +5,14 @@ import "encoding/json"
 type FieldType string
 
 const (
-	Null    FieldType = "null"
-	Bool    FieldType = "boolean"
-	String  FieldType = "string"
-	Int     FieldType = "int"
-	Int64   FieldType = "int64"
-	Float   FieldType = "float"
-	Float64 FieldType = "float64"
+	Null       FieldType = "null"
+	Bool       FieldType = "boolean"
+	String     FieldType = "string"
+	Int        FieldType = "int"
+	Int64      FieldType = "int64"
+	Float      FieldType = "float"
+	Float64    FieldType = "float64"
+	HtmlString FieldType = "html"
 
 	Array  FieldType = "array"
 	Object FieldType = "object"

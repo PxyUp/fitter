@@ -636,7 +636,7 @@ type BaseField struct {
 }
 ```
 
-- FieldType - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object"] - static field for parse
+- FieldType - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object", "html"] - static field for parse. **Important**: type html will only works from connector which return HTML (HTMLAttribute - have no effect in this case). [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L25) 
 - Path - selector(relative in case it is array child) for parsing
 - HTMLAttribute - extra value which have effect only in HTML parsing via **goquery**. Here you can specify which attribute need to be parsed.
 
@@ -1022,8 +1022,8 @@ Examples:
 2. {INDEX} - for inject index in parent array
 3. {HUMAN_INDEX} - for inject index in parent array in human way
 4. {{{json_path}}} - will get information from propagated "object"/"array" field
-5. {{{RefName=SomeName}}} - get [reference](#references) value by name. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L54)
-6. {{{RefName=SomeName json.path}}} - get [reference](#references) value by name and extract value by json path. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L54)
+5. {{{RefName=SomeName}}} - get [reference](#references) value by name. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L67)
+6. {{{RefName=SomeName json.path}}} - get [reference](#references) value by name and extract value by json path. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L67)
 
 ## References
 Special map which **prefetched**(before any processing) and can be user for [connector](#referenceconnectorconfig) or for [placeholder](#placeholder-list)

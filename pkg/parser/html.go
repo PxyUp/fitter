@@ -228,6 +228,14 @@ func (h *htmlParser) fillUpBaseField(source *goquery.Selection, field *config.Ba
 		return builder.Null()
 	}
 
+	if field.Type == config.HtmlString {
+		htmlString, err := source.Html()
+		if err != nil {
+			return builder.Null()
+		}
+		return builder.String(htmlString)
+	}
+
 	var text string
 
 	if field.HTMLAttribute != "" {

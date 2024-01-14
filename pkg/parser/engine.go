@@ -67,9 +67,25 @@ func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {
 		connector = store.Store.GetConnectorPlugin(cfg.PluginConnectorConfig.Name, cfg.PluginConnectorConfig, logger.With("connector", cfg.PluginConnectorConfig.Name))
 	}
 	if cfg.ReferenceConfig != nil {
-		connector = connectors.NewStatic(&config.StaticConnectorConfig{
-			Value: references.Get(cfg.ReferenceConfig.Name).ToJson(),
-		})
+		logger.Debugw("get value from reference store", "type", string(cfg.ResponseType), "name", cfg.ReferenceConfig.Name)
+		if cfg.ResponseType == config.Json {
+			connector = connectors.NewStatic(&config.StaticConnectorConfig{
+				Value: references.Get(cfg.ReferenceConfig.Name).ToJson(),
+			})
+		}
+		if cfg.ResponseType == config.XPath || cfg.ResponseType == config.HTML {
+			var htmlValue string
+			rawValue, ok := references.Get(cfg.ReferenceConfig.Name).Raw().(string)
+			if ok {
+				htmlValue = rawValue
+			} else {
+				htmlValue = "<html></html>"
+			}
+			connector = connectors.NewStatic(&config.StaticConnectorConfig{
+				Value: htmlValue,
+			})
+		}
+
 	}
 
 	var parserFactory Factory
