@@ -142,11 +142,17 @@ func (s *HTMLParserArraySuite) Test_ParseSimpleObject() {
 						Path: ".w3-main .intro",
 					},
 				},
+				"title_html": {
+					BaseField: &config.BaseField{
+						Type: config.HtmlString,
+						Path: "#googleSearch",
+					},
+				},
 			},
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"title\": \"Tutorials\",\"intro\": \"HTML headings are titles or subtitles that you want to display on a webpage.\"}", res.ToJson())
+	assert.JSONEq(s.T(), "{\"title\": \"Tutorials\",\"intro\": \"HTML headings are titles or subtitles that you want to display on a webpage.\", \"title_html\": \"&lt;div class=&#34;gcse-search&#34;&gt;&lt;/div&gt;\"}", res.ToJson())
 }
 
 func (s *HTMLParserArraySuite) TestGeneratedField() {
