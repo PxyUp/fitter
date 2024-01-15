@@ -195,7 +195,7 @@ func (s *ModelFieldParserSuite) TestReferenceFormat() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), fmt.Sprintf(`"My token my_token"`), res.ToJson())
+	assert.JSONEq(s.T(), `"My token my_token"`, res.ToJson())
 }
 
 func (s *ModelFieldParserSuite) TestReferenceFormatArray() {
@@ -227,7 +227,7 @@ func (s *ModelFieldParserSuite) TestReferenceFormatArray() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), fmt.Sprintf(`[null, "My token my_token", null, "My token my_token"]`), res.ToJson())
+	assert.JSONEq(s.T(), `[null, "My token my_token", null, "My token my_token"]`, res.ToJson())
 }
 
 func (s *ModelFieldParserSuite) TestReferenceObjectFormat() {
@@ -241,7 +241,7 @@ func (s *ModelFieldParserSuite) TestReferenceObjectFormat() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), fmt.Sprintf(`"My token my_token"`), res.ToJson())
+	assert.JSONEq(s.T(), `"My token my_token"`, res.ToJson())
 }
 
 func (s *ModelFieldParserSuite) TestReference_NotFound() {
@@ -255,7 +255,7 @@ func (s *ModelFieldParserSuite) TestReference_NotFound() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), fmt.Sprintf(`"My token "`), res.ToJson())
+	assert.JSONEq(s.T(), `"My token "`, res.ToJson())
 }
 
 func (s *ModelFieldParserSuite) TestReferenceConnectorObject() {
@@ -286,7 +286,7 @@ func (s *ModelFieldParserSuite) TestReferenceConnectorObject() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), fmt.Sprintf(`"My token my_token"`), res.ToJson())
+	assert.JSONEq(s.T(), `"My token my_token"`, res.ToJson())
 }
 
 func (s *ModelFieldParserSuite) TestReferenceConnector() {
@@ -316,7 +316,7 @@ func (s *ModelFieldParserSuite) TestReferenceConnector() {
 		},
 	})
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), fmt.Sprintf(`"My token my_token"`), res.ToJson())
+	assert.JSONEq(s.T(), `"My token my_token"`, res.ToJson())
 }
 
 func (s *ModelFieldParserSuite) TestFile() {

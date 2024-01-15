@@ -445,7 +445,7 @@ type ChromiumConfig struct {
 - Path - path to binary of Chromium
 - Timeout[sec] - timeout for execution of the chromium
 - Wait[msec] - timeout of page loading
-- Flags - flags for Chromium default: "--headless", "--proxy-auto-detect", "--temp-profile", "--incognito", "--disable-logging", "--disable-gpu"
+- Flags - flags for Chromium default: "--headless", "--proxy-auto-detect", "--temp-profile", "--incognito", "--disable-logging", "--disable-extensions", "--no-sandbox"
 
 Example:
 ```json

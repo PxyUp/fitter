@@ -18,7 +18,8 @@ var (
 		"--temp-profile",
 		"--incognito",
 		"--disable-logging",
-		"--disable-gpu",
+		"--disable-extensions",
+		"--no-sandbox",
 	}
 )
 

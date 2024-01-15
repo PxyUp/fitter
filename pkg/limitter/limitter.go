@@ -3,6 +3,7 @@ package limitter
 import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"golang.org/x/sync/semaphore"
+	"sync"
 )
 
 var (
@@ -10,13 +11,15 @@ var (
 	chromiumInstance   *semaphore.Weighted
 	dockerContainers   *semaphore.Weighted
 	playwrightInstance *semaphore.Weighted
+
+	once = &sync.Once{}
 )
 
-func setSemaphoreLimit(sem *semaphore.Weighted, count uint32) {
+func setSemaphoreLimit(sem **semaphore.Weighted, count uint32) {
 	if count <= 0 {
 		return
 	}
-	sem = semaphore.NewWeighted(int64(count))
+	*sem = semaphore.NewWeighted(int64(count))
 }
 
 func setRequestPerHost(limits config.HostRequestLimiter) {
@@ -28,13 +31,15 @@ func setRequestPerHost(limits config.HostRequestLimiter) {
 }
 
 func SetLimits(limits *config.Limits) {
-	if limits == nil {
-		return
-	}
-	setSemaphoreLimit(chromiumInstance, limits.ChromiumInstance)
-	setSemaphoreLimit(dockerContainers, limits.DockerContainers)
-	setSemaphoreLimit(playwrightInstance, limits.PlaywrightInstance)
-	setRequestPerHost(limits.HostRequestLimiter)
+	once.Do(func() {
+		if limits == nil {
+			return
+		}
+		setSemaphoreLimit(&chromiumInstance, limits.ChromiumInstance)
+		setSemaphoreLimit(&dockerContainers, limits.DockerContainers)
+		setSemaphoreLimit(&playwrightInstance, limits.PlaywrightInstance)
+		setRequestPerHost(limits.HostRequestLimiter)
+	})
 }
 
 func HostLimiter(host string) *semaphore.Weighted {
