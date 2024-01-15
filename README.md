@@ -1,4 +1,4 @@
-# Fitter + Fitter CLI
+# [Fitter + Fitter CLI](https://github.com/PxyUp/fitter)
 
 Fitter - new way for collect information from the API's/Websites
 
