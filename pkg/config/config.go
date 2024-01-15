@@ -72,11 +72,18 @@ type ConnectorConfig struct {
 	Url          string     `json:"url" yaml:"url"`
 	Attempts     uint32     `json:"attempts" yaml:"attempts"`
 
-	StaticConfig          *StaticConnectorConfig    `json:"static_config" yaml:"static_config"`
-	ServerConfig          *ServerConnectorConfig    `json:"server_config" yaml:"server_config"`
-	BrowserConfig         *BrowserConnectorConfig   `yaml:"browser_config" json:"browser_config"`
-	PluginConnectorConfig *PluginConnectorConfig    `json:"plugin_connector_config" yaml:"plugin_connector_config"`
-	ReferenceConfig       *ReferenceConnectorConfig `yaml:"reference_config" json:"reference_config"`
+	StaticConfig          *StaticConnectorConfig      `json:"static_config" yaml:"static_config"`
+	IntSequenceConfig     *IntSequenceConnectorConfig `json:"int_sequence_config" yaml:"int_sequence_config"`
+	ServerConfig          *ServerConnectorConfig      `json:"server_config" yaml:"server_config"`
+	BrowserConfig         *BrowserConnectorConfig     `yaml:"browser_config" json:"browser_config"`
+	PluginConnectorConfig *PluginConnectorConfig      `json:"plugin_connector_config" yaml:"plugin_connector_config"`
+	ReferenceConfig       *ReferenceConnectorConfig   `yaml:"reference_config" json:"reference_config"`
+}
+
+type IntSequenceConnectorConfig struct {
+	Start int `json:"start" yaml:"start"`
+	End   int `json:"end" yaml:"end"`
+	Step  int `json:"step" yaml:"step"`
 }
 
 type ReferenceConnectorConfig struct {

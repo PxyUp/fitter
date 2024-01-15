@@ -2,12 +2,14 @@ package parser
 
 import (
 	"errors"
+	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/PxyUp/fitter/pkg/references"
+	"github.com/PxyUp/fitter/pkg/utils"
 )
 
 var (
@@ -86,6 +88,17 @@ func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {
 			})
 		}
 
+	}
+	if cfg.IntSequenceConfig != nil {
+		genSlice := utils.SafeNewSliceGenerator(cfg.IntSequenceConfig.Start, cfg.IntSequenceConfig.End, cfg.IntSequenceConfig.Step)
+		logger.Debugw("generated slice", "length", fmt.Sprintf("%d", len(genSlice)), "start", fmt.Sprintf("%d", cfg.IntSequenceConfig.Start), "end", fmt.Sprintf("%d", cfg.IntSequenceConfig.End), "step", fmt.Sprintf("%d", cfg.IntSequenceConfig.Step))
+		jsonArr := make([]builder.Jsonable, len(genSlice))
+		for i, v := range genSlice {
+			jsonArr[i] = builder.Int(v)
+		}
+		connector = connectors.NewStatic(&config.StaticConnectorConfig{
+			Value: builder.Array(jsonArr).ToJson(),
+		})
 	}
 
 	var parserFactory Factory

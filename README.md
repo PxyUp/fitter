@@ -161,6 +161,7 @@ type ConnectorConfig struct {
     BrowserConfig         *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
     PluginConnectorConfig *PluginConnectorConfig  `json:"plugin_connector_config" yaml:"plugin_connector_config"`
     ReferenceConfig       *ReferenceConnectorConfig `yaml:"reference_config" json:"reference_config"`
+    IntSequenceConfig     *IntSequenceConnectorConfig `json:"int_sequence_config" yaml:"int_sequence_config"`
 }
 ```
 
@@ -174,6 +175,7 @@ Config can be one of:
 - [StaticConfig](#staticconnectorconfig)
 - [PluginConnectorConfig](#pluginconnectorconfig)
 - [ReferenceConfig](#referenceconnectorconfig)
+- [IntSequenceConfig](#intsequenceconnectorconfig)
 
 Example:
 ```json
@@ -290,6 +292,33 @@ Example
 https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L66
 
 - Name - reference name from [references](#references) map
+
+### IntSequenceConnectorConfig
+Improved version of static connector which generate int sequence as result
+
+```go
+type IntSequenceConnectorConfig struct {
+	Start int `json:"start" yaml:"start"`
+	End   int `json:"end" yaml:"end"`
+	Step  int `json:"step" yaml:"step"`
+}
+```
+- Start[0] - start point for generation(**included**)
+- End[0] - end point for generation(**excluded** from final result like range in any lang)
+- Step[1] - interval for sequence
+
+Example
+```json
+{
+    "start": 0,
+    "end": 2 
+    // Generate [0, 1]
+}
+```
+
+
+[Config example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_seq.json)
+
 
 ### StaticConnectorConfig
 Connector type which fetch data from provided string
