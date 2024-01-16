@@ -29,6 +29,8 @@ func (s *static) ToJson() string {
 	switch s.fieldType {
 	case config.Null:
 		return Null().ToJson()
+	case config.RawString:
+		return String(s.stringValue, false).ToJson()
 	case config.String:
 		return String(s.stringValue).ToJson()
 	case config.Bool:
@@ -70,6 +72,8 @@ func (s *static) Raw() interface{} {
 	switch s.fieldType {
 	case config.Null:
 		return Null().Raw()
+	case config.RawString:
+		return String(s.stringValue, false).Raw()
 	case config.String:
 		return String(s.stringValue).Raw()
 	case config.Bool:

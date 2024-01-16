@@ -12,6 +12,7 @@ type stringField struct {
 
 var (
 	_ Jsonable = &stringField{}
+	r          = strings.NewReplacer("\n", "", "\r", "", "\t", "")
 )
 
 func String(value string, trim ...bool) *stringField {
@@ -22,8 +23,9 @@ func String(value string, trim ...bool) *stringField {
 			}
 		}
 	}
+
 	return &stringField{
-		value: strings.TrimSpace(value),
+		value: r.Replace(strings.TrimSpace(value)),
 	}
 }
 

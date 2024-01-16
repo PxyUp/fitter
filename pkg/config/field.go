@@ -13,6 +13,7 @@ const (
 	Float      FieldType = "float"
 	Float64    FieldType = "float64"
 	HtmlString FieldType = "html"
+	RawString  FieldType = "raw_string"
 
 	Array  FieldType = "array"
 	Object FieldType = "object"

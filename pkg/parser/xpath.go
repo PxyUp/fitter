@@ -258,6 +258,8 @@ func (x *xpathParser) fillUpBaseField(source *html.Node, field *config.BaseField
 	switch field.Type {
 	case config.Null:
 		return builder.Null()
+	case config.RawString:
+		return builder.String(text, false)
 	case config.String:
 		return builder.String(text)
 	case config.Bool:

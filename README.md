@@ -665,9 +665,11 @@ type BaseField struct {
 }
 ```
 
-- FieldType - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object", "html"] - static field for parse. **Important**: type html will only works from connector which return HTML (HTMLAttribute - have no effect in this case). [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L25) 
+- FieldType - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object", "html", "raw_string"] - static field for parse. **Important**: type html will only works from connector which return HTML (HTMLAttribute - have no effect in this case). [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L25) 
 - Path - selector(relative in case it is array child) for parsing
 - HTMLAttribute - extra value which have effect only in HTML parsing via **goquery**. Here you can specify which attribute need to be parsed.
+
+**Important**: by default "string" type trimmed and all special chars is replaced, if you need plain string use "raw_string"
 
 Config can be one of or empty:
 - [Generated](#generatedfieldconfig) - field can be generated one which custom configuration

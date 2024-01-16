@@ -251,6 +251,8 @@ func (h *htmlParser) fillUpBaseField(source *goquery.Selection, field *config.Ba
 	switch field.Type {
 	case config.Null:
 		return builder.Null()
+	case config.RawString:
+		return builder.String(text, false)
 	case config.String:
 		return builder.String(text)
 	case config.Bool:

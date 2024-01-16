@@ -98,7 +98,6 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 		if field.Model.Model == nil {
 			return builder.Null()
 		}
-
 		result, err := NewEngine(field.Model.ConnectorConfig, logger.With("component", "engine")).Get(field.Model.Model, parsedValue, index)
 		if err != nil {
 			return builder.Null()
@@ -129,6 +128,8 @@ func fillUpBaseField(source gjson.Result, field *config.BaseField) builder.Jsona
 	switch field.Type {
 	case config.Null:
 		return builder.Null()
+	case config.RawString:
+		return builder.String(source.String(), false)
 	case config.String:
 		return builder.String(source.String())
 	case config.Bool:

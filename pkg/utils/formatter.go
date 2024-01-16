@@ -5,6 +5,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/references"
 	"github.com/tidwall/gjson"
+	"html"
 	"strings"
 )
 
@@ -23,7 +24,7 @@ func Format(str string, value builder.Jsonable, index *uint32) string {
 	}
 
 	if strings.Contains(str, placeHolder) && value != nil && (value.ToJson() != builder.EmptyString && len(value.ToJson()) != 0) {
-		str = strings.ReplaceAll(str, placeHolder, value.ToJson())
+		str = strings.ReplaceAll(str, placeHolder, html.UnescapeString(value.ToJson()))
 	}
 
 	if strings.Contains(str, indexPlaceHolder) && index != nil {
@@ -55,10 +56,10 @@ func formatJsonPathString(str string, value builder.Jsonable) string {
 				refValue := strings.Split(strings.TrimPrefix(path, refNamePrefix), " ")
 				tmp := ""
 				if len(refValue) > 1 {
-					tmp = gjson.Parse(references.Get(refValue[0]).ToJson()).Get(refValue[1]).String()
+					tmp = gjson.Parse(html.UnescapeString(references.Get(refValue[0]).ToJson())).Get(refValue[1]).String()
 				}
 				if len(refValue) == 1 {
-					tmp = references.Get(refValue[0]).ToJson()
+					tmp = html.UnescapeString(references.Get(refValue[0]).ToJson())
 				}
 				new += builder.PureString(tmp).ToJson()
 			} else {
