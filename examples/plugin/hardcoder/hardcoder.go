@@ -24,7 +24,7 @@ func (pl *plugin) Format(parsedValue builder.Jsonable, field *config.PluginField
 		err := json.Unmarshal(field.Config, pl)
 		if err != nil {
 			logger.Errorw("cant unmarshal plugin configuration", "error", err.Error())
-			return builder.Null()
+			return builder.NullValue
 		}
 		return builder.String(fmt.Sprintf("Hello %s", pl.Name))
 	}

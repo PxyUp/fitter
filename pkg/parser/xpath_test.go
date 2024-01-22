@@ -13,17 +13,17 @@ import (
 	"testing"
 )
 
-func TestNewXPathObject(t *testing.T) {
-	suite.Run(t, new(XPathParserArraySuite))
+func TestNewXPathV2Object(t *testing.T) {
+	suite.Run(t, new(XPathV2Suite))
 }
 
-type XPathParserArraySuite struct {
+type XPathV2Suite struct {
 	suite.Suite
 	body   []byte
 	parser parser.Parser
 }
 
-func (s *XPathParserArraySuite) SetupTest() {
+func (s *XPathV2Suite) SetupTest() {
 	jsonFile, err := os.Open("index.html")
 	require.NoError(s.T(), err)
 	defer jsonFile.Close()
@@ -33,10 +33,10 @@ func (s *XPathParserArraySuite) SetupTest() {
 		require.NoError(s.T(), err)
 	}
 	s.body = jsonBody
-	s.parser = parser.XPathFactory(s.body, logger.Null)
+	s.parser = parser.NewXPath(s.body, logger.Null)
 }
 
-func (s *XPathParserArraySuite) Test_Return_BaseField_String() {
+func (s *XPathV2Suite) Test_Return_BaseField_String() {
 	res, err := s.parser.Parse(&config.Model{
 		BaseField: &config.BaseField{
 			Type: config.String,
@@ -47,7 +47,7 @@ func (s *XPathParserArraySuite) Test_Return_BaseField_String() {
 	assert.JSONEq(s.T(), "\"HTML Headings\"", res.ToJson())
 }
 
-func (s *XPathParserArraySuite) Test_Return_BaseField_Calculated() {
+func (s *XPathV2Suite) Test_Return_BaseField_Calculated() {
 	res, err := s.parser.Parse(&config.Model{
 		BaseField: &config.BaseField{
 			Type: config.String,
@@ -64,7 +64,7 @@ func (s *XPathParserArraySuite) Test_Return_BaseField_Calculated() {
 	assert.JSONEq(s.T(), "15", res.ToJson())
 }
 
-func (s *XPathParserArraySuite) Test_Return_BaseField_Number() {
+func (s *XPathV2Suite) Test_Return_BaseField_Number() {
 	res, err := s.parser.Parse(&config.Model{
 		BaseField: &config.BaseField{
 			Type: config.Int,
@@ -75,7 +75,7 @@ func (s *XPathParserArraySuite) Test_Return_BaseField_Number() {
 	assert.JSONEq(s.T(), "5555655", res.ToJson())
 }
 
-func (s *XPathParserArraySuite) Test_FirstOf() {
+func (s *XPathV2Suite) Test_FirstOf() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -128,7 +128,7 @@ func (s *XPathParserArraySuite) Test_FirstOf() {
 	assert.JSONEq(s.T(), "{\"object\": {\"title\": \"HTML Headings\"},\"title\": \"HTML Headings\"}\n", res.ToJson())
 }
 
-func (s *XPathParserArraySuite) Test_StaticArray() {
+func (s *XPathV2Suite) Test_StaticArray() {
 	res, err := s.parser.Parse(&config.Model{
 		ArrayConfig: &config.ArrayConfig{
 			StaticConfig: &config.StaticArrayConfig{
@@ -159,7 +159,7 @@ func (s *XPathParserArraySuite) Test_StaticArray() {
 	assert.JSONEq(s.T(), "[\"Tutorials\",{\"intro\": \"HTML headings are titles or subtitles that you want to display on a webpage.\"}]", res.ToJson())
 }
 
-func (s *XPathParserArraySuite) Test_ParseSimpleObject() {
+func (s *XPathV2Suite) Test_ParseSimpleObject() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -182,7 +182,7 @@ func (s *XPathParserArraySuite) Test_ParseSimpleObject() {
 	assert.JSONEq(s.T(), "{\"title\": \"Tutorials\",\"intro\": \"HTML headings are titles or subtitles that you want to display on a webpage.\"}", res.ToJson())
 }
 
-func (s *XPathParserArraySuite) TestGeneratedField() {
+func (s *XPathV2Suite) TestGeneratedField() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -214,7 +214,7 @@ func (s *XPathParserArraySuite) TestGeneratedField() {
 	assert.Equal(s.T(), float64(5), jsonMap["name"])
 }
 
-func (s *XPathParserArraySuite) Test_ReturnSimpleArray() {
+func (s *XPathV2Suite) Test_ReturnSimpleArray() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -235,7 +235,7 @@ func (s *XPathParserArraySuite) Test_ReturnSimpleArray() {
 	assert.JSONEq(s.T(), "{\"menu\": [\"\",\"\",\"HTML\",\"CSS\",\"JAVASCRIPT\",\"SQL\",\"PYTHON\",\"JAVA\",\"PHP\",\"BOOTSTRAP\",\"HOW TO\",\"W3.CSS\",\"C\",\"C++\",\"C#\",\"REACT\",\"R\",\"JQUERY\",\"DJANGO\",\"TYPESCRIPT\",\"NODEJS\",\"MYSQL\",\"\uE802\",\"\uE801\",\"\uE80B\"]}\n", res.ToJson())
 }
 
-func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray() {
+func (s *XPathV2Suite) Test_ReturnSimpleArrayOfArray() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -261,7 +261,7 @@ func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray() {
 	assert.JSONEq(s.T(), "{\"menu\": [[\"TEST_1\",\"TEST_2\"],[\"TEST_3\",\"TEST_4\"]]}\n", res.ToJson())
 }
 
-func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray_Index() {
+func (s *XPathV2Suite) Test_ReturnSimpleArrayOfArray_Index() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -292,7 +292,7 @@ func (s *XPathParserArraySuite) Test_ReturnSimpleArrayOfArray_Index() {
 	assert.JSONEq(s.T(), "{\"menu\": [[\"TEST_1 0\",\"TEST_2 1\"],[\"TEST_3 0\",\"TEST_4 1\"]]}\n", res.ToJson())
 }
 
-func (s *XPathParserArraySuite) Test_ReturnNestedArray() {
+func (s *XPathV2Suite) Test_ReturnNestedArray() {
 	res, err := s.parser.Parse(&config.Model{
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "//*[@id='nav_tutorials']//*[contains(@class, 'w3-col')]",
@@ -327,7 +327,7 @@ func (s *XPathParserArraySuite) Test_ReturnNestedArray() {
 	assert.JSONEq(s.T(), "[{\"name\": \"HTML and CSS\",\"tutorials\": [{\"name\": \"Learn HTML\"},{\"name\": \"Learn CSS\"},{\"name\": \"Learn RWD\"},{\"name\": \"Learn Bootstrap\"},{\"name\": \"Learn W3.CSS\"},{\"name\": \"Learn Colors\"},{\"name\": \"Learn Icons\"},{\"name\": \"Learn Graphics\"},{\"name\": \"Learn SVG\"},{\"name\": \"Learn Canvas\"},{\"name\": \"Learn How To\"},{\"name\": \"Learn Sass\"},{\"name\": \"Learn AI\"},{\"name\": \"Learn Machine Learning\"},{\"name\": \"Learn Data Science\"},{\"name\": \"Learn NumPy\"},{\"name\": \"Learn Pandas\"},{\"name\": \"Learn SciPy\"},{\"name\": \"Learn Matplotlib\"},{\"name\": \"Learn Statistics\"},{\"name\": \"Learn Excel\"},{\"name\": \"Learn XML\"},{\"name\": \"Learn XML AJAX\"},{\"name\": \"Learn XML DOM\"},{\"name\": \"Learn XML DTD\"},{\"name\": \"Learn XML Schema\"},{\"name\": \"Learn XSLT\"},{\"name\": \"Learn XPath\"},{\"name\": \"Learn XQuery\"}]},{\"name\": \"JavaScript\",\"tutorials\": [{\"name\": \"Learn JavaScript\"},{\"name\": \"Learn jQuery\"},{\"name\": \"Learn React\"},{\"name\": \"Learn AngularJS\"},{\"name\": \"Learn JSON\"},{\"name\": \"Learn AJAX\"},{\"name\": \"Learn AppML\"},{\"name\": \"Learn W3.JS\"},{\"name\": \"Learn Python\"},{\"name\": \"Learn Java\"},{\"name\": \"Learn C\"},{\"name\": \"Learn C++\"},{\"name\": \"Learn C#\"},{\"name\": \"Learn R\"},{\"name\": \"Learn Kotlin\"},{\"name\": \"Learn Go\"},{\"name\": \"Learn Django\"},{\"name\": \"Learn TypeScript\"}]},{\"name\": \"Server Side\",\"tutorials\": [{\"name\": \"Learn SQL\"},{\"name\": \"Learn MySQL\"},{\"name\": \"Learn PHP\"},{\"name\": \"Learn ASP\"},{\"name\": \"Learn Node.js\"},{\"name\": \"Learn Raspberry Pi\"},{\"name\": \"Learn Git\"},{\"name\": \"Learn MongoDB\"},{\"name\": \"Learn AWS Cloud\"},{\"name\": \"Create a Website NEW\"},{\"name\": \"Where To Start\"},{\"name\": \"Web Templates\"},{\"name\": \"Web Statistics\"},{\"name\": \"Web Certificates\"},{\"name\": \"Web Development\"},{\"name\": \"Code Editor\"},{\"name\": \"Test Your Typing Speed\"},{\"name\": \"Play a Code Game\"},{\"name\": \"Cyber Security\"},{\"name\": \"Accessibility\"},{\"name\": \"Join our Newsletter\"}]},{\"name\": \"Data Analytics\",\"tutorials\": [{\"name\": \"Learn AI\"},{\"name\": \"Learn Machine Learning\"},{\"name\": \"Learn Data Science\"},{\"name\": \"Learn NumPy\"},{\"name\": \"Learn Pandas\"},{\"name\": \"Learn SciPy\"},{\"name\": \"Learn Matplotlib\"},{\"name\": \"Learn Statistics\"},{\"name\": \"Learn Excel\"},{\"name\": \"Learn Google Sheets\"},{\"name\": \"Learn XML\"},{\"name\": \"Learn XML AJAX\"},{\"name\": \"Learn XML DOM\"},{\"name\": \"Learn XML DTD\"},{\"name\": \"Learn XML Schema\"},{\"name\": \"Learn XSLT\"},{\"name\": \"Learn XPath\"},{\"name\": \"Learn XQuery\"}]}]\n", res.ToJson())
 }
 
-func (s *XPathParserArraySuite) Test_ParseNestedObject() {
+func (s *XPathV2Suite) Test_ParseNestedObject() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{

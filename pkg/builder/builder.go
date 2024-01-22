@@ -8,4 +8,6 @@ type Jsonable interface {
 
 var (
 	EMPTY = PureString("")
+
+	NullValue = Null()
 )

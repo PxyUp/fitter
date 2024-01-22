@@ -13,17 +13,17 @@ import (
 	"testing"
 )
 
-func TestNewJsonObject(t *testing.T) {
-	suite.Run(t, new(JsonParserObjectSuite))
+func TestJsonV2Object(t *testing.T) {
+	suite.Run(t, new(JsonV2ObjectSuite))
 }
 
-type JsonParserObjectSuite struct {
+type JsonV2ObjectSuite struct {
 	suite.Suite
 	body   []byte
 	parser parser.Parser
 }
 
-func (s *JsonParserObjectSuite) SetupTest() {
+func (s *JsonV2ObjectSuite) SetupTest() {
 	jsonFile, err := os.Open("json_example_object.json")
 	require.NoError(s.T(), err)
 	defer jsonFile.Close()
@@ -33,10 +33,10 @@ func (s *JsonParserObjectSuite) SetupTest() {
 		require.NoError(s.T(), err)
 	}
 	s.body = jsonBody
-	s.parser = parser.JsonFactory(s.body, logger.Null)
+	s.parser = parser.NewJson(s.body, logger.Null)
 }
 
-func (s *JsonParserObjectSuite) Test_Return_BaseField_String() {
+func (s *JsonV2ObjectSuite) Test_Return_BaseField_String() {
 	res, err := s.parser.Parse(&config.Model{
 		BaseField: &config.BaseField{
 			Type: config.String,
@@ -47,7 +47,7 @@ func (s *JsonParserObjectSuite) Test_Return_BaseField_String() {
 	assert.JSONEq(s.T(), "\"green\"", res.ToJson())
 }
 
-func (s *JsonParserObjectSuite) Test_Return_BaseField_Number() {
+func (s *JsonV2ObjectSuite) Test_Return_BaseField_Number() {
 	res, err := s.parser.Parse(&config.Model{
 		BaseField: &config.BaseField{
 			Type: config.Int,
@@ -58,7 +58,7 @@ func (s *JsonParserObjectSuite) Test_Return_BaseField_Number() {
 	assert.JSONEq(s.T(), "27", res.ToJson())
 }
 
-func (s *JsonParserObjectSuite) Test_Return_BaseField_Calculated() {
+func (s *JsonV2ObjectSuite) Test_Return_BaseField_Calculated() {
 	res, err := s.parser.Parse(&config.Model{
 		BaseField: &config.BaseField{
 			Type: config.Int,
@@ -75,7 +75,7 @@ func (s *JsonParserObjectSuite) Test_Return_BaseField_Calculated() {
 	assert.JSONEq(s.T(), "true", res.ToJson())
 }
 
-func (s *JsonParserObjectSuite) Test_FirstOf() {
+func (s *JsonV2ObjectSuite) Test_FirstOf() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -128,7 +128,7 @@ func (s *JsonParserObjectSuite) Test_FirstOf() {
 	assert.JSONEq(s.T(), "{\"object\": {\"title\": \"Henderson Gonzales\"},\"title\": \"Henderson Gonzales\"}\n", res.ToJson())
 }
 
-func (s *JsonParserObjectSuite) Test_StaticArray() {
+func (s *JsonV2ObjectSuite) Test_StaticArray() {
 	res, err := s.parser.Parse(&config.Model{
 		ArrayConfig: &config.ArrayConfig{
 			StaticConfig: &config.StaticArrayConfig{
@@ -171,7 +171,7 @@ func (s *JsonParserObjectSuite) Test_StaticArray() {
 	assert.JSONEq(s.T(), "[\"male\",{\"test\": \"Cooley Spence\"}, true]", res.ToJson())
 }
 
-func (s *JsonParserObjectSuite) Test_ParseSimpleObject() {
+func (s *JsonV2ObjectSuite) Test_ParseSimpleObject() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -194,7 +194,7 @@ func (s *JsonParserObjectSuite) Test_ParseSimpleObject() {
 	assert.JSONEq(s.T(), "{\"address\": \"472 Cheever Place, Spelter, New Jersey, 5250\",\"name\": \"Cooley Spence\"}", res.ToJson())
 }
 
-func (s *JsonParserObjectSuite) TestGeneratedField() {
+func (s *JsonV2ObjectSuite) TestGeneratedField() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -226,7 +226,7 @@ func (s *JsonParserObjectSuite) TestGeneratedField() {
 	assert.Equal(s.T(), float64(5), jsonMap["name"])
 }
 
-func (s *JsonParserObjectSuite) Test_ReturnSimpleArray_Concat() {
+func (s *JsonV2ObjectSuite) Test_ReturnSimpleArray_Concat() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -247,7 +247,7 @@ func (s *JsonParserObjectSuite) Test_ReturnSimpleArray_Concat() {
 	assert.JSONEq(s.T(), "{\"prices\": [292,357,695,315,279,336,594,821,791]}\n", res.ToJson())
 }
 
-func (s *JsonParserObjectSuite) Test_ReturnSimpleArray() {
+func (s *JsonV2ObjectSuite) Test_ReturnSimpleArray() {
 	res, err := s.parser.Parse(&config.Model{
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "tags",
@@ -263,7 +263,7 @@ func (s *JsonParserObjectSuite) Test_ReturnSimpleArray() {
 	assert.JSONEq(s.T(), "[\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]", res.ToJson())
 }
 
-func (s *JsonParserObjectSuite) Test_ReturnSimpleArrayOfArray() {
+func (s *JsonV2ObjectSuite) Test_ReturnSimpleArrayOfArray() {
 	res, err := s.parser.Parse(&config.Model{
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "tags_nested",
@@ -282,7 +282,7 @@ func (s *JsonParserObjectSuite) Test_ReturnSimpleArrayOfArray() {
 	assert.JSONEq(s.T(), "[[\"tempor\"],[\"test\"]]\n", res.ToJson())
 }
 
-func (s *JsonParserObjectSuite) Test_ReturnNestedArray() {
+func (s *JsonV2ObjectSuite) Test_ReturnNestedArray() {
 	res, err := s.parser.Parse(&config.Model{
 		ArrayConfig: &config.ArrayConfig{
 			RootPath: "friends",
@@ -317,7 +317,7 @@ func (s *JsonParserObjectSuite) Test_ReturnNestedArray() {
 	assert.JSONEq(s.T(), "[{\"name\": \"Cooley Spence\",\"meals\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}]},{\"name\": \"Dixie Padilla\",\"meals\": [{\"my_price\": 315},{\"my_price\": 279},{\"my_price\": 336}]},{\"name\": \"Tanisha Kline\",\"meals\": [{\"my_price\": 594},{\"my_price\": 821},{\"my_price\": 791}]}]\n", res.ToJson())
 }
 
-func (s *JsonParserObjectSuite) Test_ParseNestedObject() {
+func (s *JsonV2ObjectSuite) Test_ParseNestedObject() {
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{

@@ -24,7 +24,7 @@ func Get(name string) builder.Jsonable {
 	refStoreImpl.mutex.Unlock()
 
 	if !ok {
-		return builder.Null()
+		return builder.NullValue
 	}
 
 	return value
@@ -36,7 +36,7 @@ func SetReference(references map[string]*config.ModelField, cb func(name string,
 			res, err := cb(k, v)
 			if err != nil {
 				refStoreImpl.mutex.Lock()
-				refStoreImpl.kv[k] = builder.Null()
+				refStoreImpl.kv[k] = builder.NullValue
 				refStoreImpl.mutex.Unlock()
 				continue
 			}

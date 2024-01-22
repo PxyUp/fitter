@@ -17,7 +17,7 @@ type nullFieldPlugin struct {
 }
 
 func (n *nullFieldPlugin) Format(parsedValue builder.Jsonable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
-	return builder.Null()
+	return builder.NullValue
 }
 
 type nullConnectorPlugin struct {

@@ -12,15 +12,15 @@ import (
 
 var (
 	JsonFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
-		return newJson(bytes).WithLogger(logger.With("parser", "json"))
+		return NewJson(bytes, logger.With("parser", "json"))
 	}
 
 	HTMLFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
-		return newHTML(bytes).WithLogger(logger.With("parser", "html"))
+		return NewHTML(bytes, logger.With("parser", "html"))
 	}
 
 	XPathFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
-		return newXPath(bytes).WithLogger(logger.With("parser", "xpath"))
+		return NewXPath(bytes, logger.With("parser", "xpath"))
 	}
 )
 
@@ -64,7 +64,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 		filePath, err := ProcessFileField(parsedValue, index, field.File, logger)
 		if err != nil {
 			logger.Errorw("error during process file field", "error", err.Error())
-			return builder.Null()
+			return builder.NullValue
 		}
 		return builder.String(filePath)
 	}
@@ -73,7 +73,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 		res, err := ProcessExpression(field.Calculated.Expression, parsedValue, index)
 		if err != nil {
 			logger.Errorw("error during process calculated field", "error", err.Error())
-			return builder.Null()
+			return builder.NullValue
 		}
 
 		return builder.Static(&config.StaticGeneratedFieldConfig{
@@ -96,11 +96,11 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 
 	if field.Model != nil {
 		if field.Model.Model == nil {
-			return builder.Null()
+			return builder.NullValue
 		}
 		result, err := NewEngine(field.Model.ConnectorConfig, logger.With("component", "engine")).Get(field.Model.Model, parsedValue, index)
 		if err != nil {
-			return builder.Null()
+			return builder.NullValue
 		}
 
 		if field.Model.Type == config.Array || field.Model.Type == config.Object {
@@ -118,23 +118,23 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 		return result
 	}
 
-	return builder.Null()
+	return builder.NullValue
 }
 
 func fillUpBaseField(source gjson.Result, field *config.BaseField) builder.Jsonable {
 	if !source.Exists() {
-		return builder.Null()
+		return builder.NullValue
 	}
 	switch field.Type {
 	case config.Null:
-		return builder.Null()
+		return builder.NullValue
 	case config.RawString:
 		return builder.String(source.String(), false)
 	case config.String:
 		return builder.String(source.String())
 	case config.Bool:
 		if !source.IsBool() {
-			return builder.Null()
+			return builder.NullValue
 		}
 		return builder.Bool(source.Bool())
 	case config.Float:
