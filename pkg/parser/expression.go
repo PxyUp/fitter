@@ -2,7 +2,7 @@ package parser
 
 import (
 	"github.com/PxyUp/fitter/pkg/builder"
-	"github.com/antonmedv/expr"
+	"github.com/expr-lang/expr"
 )
 
 const (

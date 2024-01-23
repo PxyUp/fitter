@@ -6,13 +6,13 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/antchfx/htmlquery v1.3.0
 	github.com/antchfx/xmlquery v1.3.18
-	github.com/antonmedv/expr v1.12.5
 	github.com/atotto/clipboard v0.1.4
 	github.com/docker/docker v23.0.1+incompatible
+	github.com/expr-lang/expr v1.15.8
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/google/uuid v1.3.0
 	github.com/playwright-community/playwright-go v0.2000.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/gjson v1.14.4
 	go.uber.org/atomic v1.10.0
 	go.uber.org/zap v1.24.0

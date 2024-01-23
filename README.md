@@ -866,7 +866,7 @@ type CalculatedConfig struct {
 ```
 
 - Type - resulting type of expression\
-- Expression - expression for calculation (we use [this lib](https://github.com/antonmedv/expr) for calculated expression)
+- Expression - expression for calculation (we use [this lib](https://github.com/expr-lang/expr) for calculated expression)
 
 **Predefined values:**
 
