@@ -22,6 +22,10 @@ var (
 	XPathFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
 		return NewXPath(bytes, logger.With("parser", "xpath"))
 	}
+
+	XMLFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
+		return NewXML(bytes, logger.With("parser", "xml"))
+	}
 )
 
 type Factory func([]byte, logger.Logger) Parser

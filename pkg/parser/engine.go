@@ -111,6 +111,9 @@ func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {
 	if cfg.ResponseType == config.XPath {
 		parserFactory = XPathFactory
 	}
+	if cfg.ResponseType == config.XML {
+		parserFactory = XMLFactory
+	}
 
 	if connector == nil || parserFactory == nil {
 		return nullEngine
