@@ -202,6 +202,13 @@ func (e *engineParser[T]) buildObject(object *config.ObjectConfig) builder.Jsona
 }
 
 func (e *engineParser[T]) Parse(model *config.Model) (*ParseResult, error) {
+	if IsZero(e.parserBody) {
+		return &ParseResult{
+			RawResult: builder.NullValue.Raw(),
+			Json:      builder.NullValue.ToJson(),
+		}, nil
+	}
+
 	if model.BaseField != nil {
 		res := e.buildBaseField(e.parserBody, model.BaseField, nil)
 		return &ParseResult{
