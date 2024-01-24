@@ -76,8 +76,9 @@ type ModelField struct {
 	// Model of the response
 	Model *Model `yaml:"model" json:"model"`
 
-	Type FieldType `yaml:"type" json:"type"`
-	Path string    `yaml:"path" json:"path"`
+	Type       FieldType `yaml:"type" json:"type"`
+	Path       string    `yaml:"path" json:"path"`
+	Expression string    `yaml:"expression" json:"expression"`
 }
 
 type StaticGeneratedFieldConfig struct {

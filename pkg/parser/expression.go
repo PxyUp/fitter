@@ -32,7 +32,7 @@ func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint3
 
 func ProcessExpression(expression string, result builder.Jsonable, index *uint32) (interface{}, error) {
 	env := extendEnv(defEnv, result, index)
-	
+
 	program, err := expr.Compile(utils.Format(expression, result, index), expr.Env(env))
 	if err != nil {
 		return false, err

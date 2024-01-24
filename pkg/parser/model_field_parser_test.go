@@ -188,6 +188,37 @@ func (s *ModelFieldParserSuite) TearDownSuite() {
 	require.NoError(s.T(), err)
 }
 
+func (s *ModelFieldParserSuite) TestModelExpression() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.Int,
+			Generated: &config.GeneratedFieldConfig{
+				Model: &config.ModelField{
+					Type: config.Bool,
+					ConnectorConfig: &config.ConnectorConfig{
+						ResponseType: config.Json,
+						StaticConfig: &config.StaticConnectorConfig{
+							Value: "[1,2,3]",
+						},
+					},
+					Model: &config.Model{
+						ArrayConfig: &config.ArrayConfig{
+							ItemConfig: &config.ObjectConfig{
+								Field: &config.BaseField{
+									Type: config.Int,
+								},
+							},
+						},
+					},
+					Expression: "all(fRes, # > 1)",
+				},
+			},
+		},
+	})
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), `false`, res.ToJson())
+}
+
 func (s *ModelFieldParserSuite) TestReferenceFormat() {
 	res, err := s.jsonDatesParser.Parse(&config.Model{
 		BaseField: &config.BaseField{

@@ -909,6 +909,8 @@ type ModelField struct {
 
 	Type FieldType `yaml:"type" json:"type"`
 	Path string             `yaml:"path" json:"path"`
+
+	Expression string    `yaml:"expression" json:"expression"`
 }
 ```
 
@@ -916,6 +918,7 @@ type ModelField struct {
 - [Model](#model) - configuration of the underhood model
 - Type - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object"] - type of generated field
 - Path - in case we cant extract some information from generated field we can use json selector for extract
+- Expression - string which can be used for post processing of the Model (**ignoring path field**)
 
 Examples:
 
