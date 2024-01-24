@@ -28,7 +28,6 @@ func (e *engineParser[T]) fillUpBaseField(source T, field *config.BaseField) bui
 	}
 
 	text := e.getText(source)
-
 	switch field.Type {
 	case config.Null:
 		return builder.NullValue

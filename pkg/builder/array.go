@@ -33,7 +33,7 @@ func (s *arrayField) ToJson() string {
 
 	for i, item := range s.values {
 		if item == nil {
-			str += Null().ToJson()
+			str += NullValue.ToJson()
 		} else {
 			str += item.ToJson()
 		}
@@ -51,7 +51,7 @@ func (s *arrayField) Raw() interface{} {
 
 	for i, item := range s.values {
 		if item == nil {
-			res[i] = Null().Raw()
+			res[i] = NullValue.Raw()
 		} else {
 			res[i] = item.Raw()
 		}

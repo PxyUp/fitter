@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/PxyUp/fitter/pkg/builder"
+	"github.com/PxyUp/fitter/pkg/utils"
 	"github.com/expr-lang/expr"
 )
 
@@ -31,8 +32,8 @@ func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint3
 
 func ProcessExpression(expression string, result builder.Jsonable, index *uint32) (interface{}, error) {
 	env := extendEnv(defEnv, result, index)
-
-	program, err := expr.Compile(expression, expr.Env(env))
+	
+	program, err := expr.Compile(utils.Format(expression, result, index), expr.Env(env))
 	if err != nil {
 		return false, err
 	}
