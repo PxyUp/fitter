@@ -19,7 +19,13 @@ const (
 )
 
 type HostRequestLimiter map[string]int64
-type RefMap map[string]*ModelField
+type RefMap map[string]*Reference
+
+type Reference struct {
+	*ModelField
+
+	Expire uint32 `yaml:"expire" json:"expire"`
+}
 
 type Limits struct {
 	HostRequestLimiter HostRequestLimiter `yaml:"host_request_limiter" json:"host_request_limiter"`
@@ -38,8 +44,8 @@ type Config struct {
 type CliItem struct {
 	Item *Item `yaml:"item" json:"item"`
 
-	Limits     *Limits                `yaml:"limits" json:"limits"`
-	References map[string]*ModelField `json:"references" yaml:"references"`
+	Limits     *Limits `yaml:"limits" json:"limits"`
+	References RefMap  `json:"references" yaml:"references"`
 }
 
 type ObjectConfig struct {

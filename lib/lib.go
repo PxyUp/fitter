@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func Parse(item *config.Item, limits *config.Limits, refMap map[string]*config.ModelField, log logger.Logger) (*parser.ParseResult, error) {
+func Parse(item *config.Item, limits *config.Limits, refMap config.RefMap, log logger.Logger) (*parser.ParseResult, error) {
 	cfg := &config.CliItem{
 		Item:       item,
 		Limits:     limits,

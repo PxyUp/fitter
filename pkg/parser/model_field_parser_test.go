@@ -119,39 +119,43 @@ func (t *testHandler) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 func (s *ModelFieldParserSuite) SetupSuite() {
 	s.tmpFilePath = os.TempDir()
 	s.notExistingTempDir = path.Join(os.TempDir(), uuid.New().String())
-	references.SetReference(map[string]*config.ModelField{
+	references.SetReference(map[string]*config.Reference{
 		"TokenRef": {
-			ConnectorConfig: &config.ConnectorConfig{
-				ResponseType: config.Json,
-				StaticConfig: &config.StaticConnectorConfig{
-					Value: builder.Object(map[string]builder.Jsonable{
-						"token": builder.String("my_token"),
-					}).ToJson(),
+			ModelField: &config.ModelField{
+				ConnectorConfig: &config.ConnectorConfig{
+					ResponseType: config.Json,
+					StaticConfig: &config.StaticConnectorConfig{
+						Value: builder.Object(map[string]builder.Jsonable{
+							"token": builder.String("my_token"),
+						}).ToJson(),
+					},
 				},
-			},
-			Model: &config.Model{
-				BaseField: &config.BaseField{
-					Type: config.String,
-					Path: "token",
+				Model: &config.Model{
+					BaseField: &config.BaseField{
+						Type: config.String,
+						Path: "token",
+					},
 				},
 			},
 		},
 		"TokenObjectRef": {
-			ConnectorConfig: &config.ConnectorConfig{
-				ResponseType: config.Json,
-				StaticConfig: &config.StaticConnectorConfig{
-					Value: builder.Object(map[string]builder.Jsonable{
-						"token": builder.String("my_token"),
-					}).ToJson(),
+			ModelField: &config.ModelField{
+				ConnectorConfig: &config.ConnectorConfig{
+					ResponseType: config.Json,
+					StaticConfig: &config.StaticConnectorConfig{
+						Value: builder.Object(map[string]builder.Jsonable{
+							"token": builder.String("my_token"),
+						}).ToJson(),
+					},
 				},
-			},
-			Model: &config.Model{
-				ObjectConfig: &config.ObjectConfig{
-					Fields: map[string]*config.Field{
-						"token": {
-							BaseField: &config.BaseField{
-								Type: config.String,
-								Path: "token",
+				Model: &config.Model{
+					ObjectConfig: &config.ObjectConfig{
+						Fields: map[string]*config.Field{
+							"token": {
+								BaseField: &config.BaseField{
+									Type: config.String,
+									Path: "token",
+								},
 							},
 						},
 					},

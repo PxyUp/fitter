@@ -1064,26 +1064,47 @@ Can be used for:
 2. Cache values
 3. Etc
 
+### Reference
+
+```go
+type Reference struct {
+    *ModelField
+    
+    Expire uint32 `yaml:"expire" json:"expire"`
+}
+```
+
+- [ModelField](#model-field) - is embedded struct, you can use same fields
+- Expire[sec] - duration when reference is expired after fetching (0 means no expired)
+
 For [Fitter](#how-to-use-fitter)
 ```go
+type RefMap map[string]*Reference
+
 type Config struct {
     // Other Config Fields
-    
-    Limits     *Limits                `yaml:"limits" json:"limits"`
-    References map[string]*ModelField `json:"references" yaml:"references"`
+
+    Limits     *Limits `yaml:"limits" json:"limits"`
+    References RefMap  `json:"references" yaml:"references"`
 }
 ```
 
 For [Fitter Cli](#how-to-use-fittercli)
 
 ```go
+type RefMap map[string]*Reference
+
 type CliItem struct {
     // Other Config Fields
-    
-    Limits     *Limits                `yaml:"limits" json:"limits"`
-    References map[string]*ModelField `json:"references" yaml:"references"`
+
+    Limits     *Limits `yaml:"limits" json:"limits"`
+    References RefMap  `json:"references" yaml:"references"`
 }
 ```
+
+
+- References - map[string]*Reference - object where is key if ReferenceName (can be user for [connector](#referenceconnectorconfig) or [placeholder](#placeholder-list)) and value is [Reference](#reference)
+- [Limits](#limits)
 
 Example
 
@@ -1092,6 +1113,7 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L2
 {
   "references": {
     "TokenRef": {
+      "expire": 10,
       "connector_config": {
         "response_type": "json",
         "static_config": {
@@ -1127,10 +1149,6 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L2
   }
 }
 ```
-
-- References - map[string]*[ModelField](#model-field) - object where is key if ReferenceName (can be user for [connector](#referenceconnectorconfig) or [placeholder](#placeholder-list)) and value is [ModelField](#model-field)
-- [Limits](#limits)
-
 
 [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json)
 
