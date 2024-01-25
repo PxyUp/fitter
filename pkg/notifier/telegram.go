@@ -18,11 +18,24 @@ type telegramBot struct {
 	botApi *tgbotapi.BotAPI
 }
 
+func (t *telegramBot) notify(record *singleRecord) error {
+	msg, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+
+	if t.cfg.Pretty {
+		return t.sendMessage(t.prettyMsg(string(msg)))
+	}
+
+	return t.sendMessage(string(msg))
+}
+
 var (
 	_ Notifier = &telegramBot{}
 )
 
-func NewTelegramBot(name string, cfg *config.TelegramBotConfig) (*telegramBot, error) {
+func NewTelegramBot(name string, generalCfg *config.NotifierConfig, cfg *config.TelegramBotConfig) (*telegramBot, error) {
 	botApi, err := tgbotapi.NewBotAPI(utils.Format(cfg.Token, nil, nil))
 	if err != nil {
 		return nil, err
@@ -38,10 +51,6 @@ func NewTelegramBot(name string, cfg *config.TelegramBotConfig) (*telegramBot, e
 func (o *telegramBot) WithLogger(logger logger.Logger) *telegramBot {
 	o.logger = logger
 	return o
-}
-
-func (t *telegramBot) sendError(msg string) error {
-	return t.sendMessage(msg)
 }
 
 func (t *telegramBot) sendMessage(msg string) error {
@@ -69,34 +78,6 @@ func (t *telegramBot) prettyMsg(msg string) string {
 	return prettyJSON.String()
 }
 
-func (t *telegramBot) sendSuccess(result *parser.ParseResult, isArray bool) error {
-	if !t.cfg.SendArrayByItem || !isArray {
-		return t.sendMessage(fmt.Sprintf("Result for: %s\n\n\n%s", t.name, t.prettyMsg(result.ToJson())))
-	}
-
-	var arr []interface{}
-	err := json.Unmarshal([]byte(result.ToJson()), &arr)
-	if err != nil {
-		t.logger.Errorw("unable to unmarshal result like array", "error", err.Error())
-		return err
-	}
-
-	for _, value := range arr {
-		body, errMarshal := json.Marshal(value)
-		if errMarshal != nil {
-			t.logger.Errorw("unable to unmarshal like array", "error", err.Error())
-			continue
-		}
-		_ = t.sendMessage(fmt.Sprintf("Result for: %s\n\n%s", t.name, t.prettyMsg(string(body))))
-	}
-
-	return nil
-}
-
-func (t *telegramBot) Inform(result *parser.ParseResult, errResult error, isArray bool) error {
-	if errResult != nil {
-		return t.sendError(fmt.Sprintf("Result for: %s\n\nError: %s", t.name, errResult))
-	}
-
-	return t.sendSuccess(result, isArray)
+func (t *telegramBot) Inform(result *parser.ParseResult, errResult error, asArray bool) error {
+	return inform(t, t.name, result, errResult, asArray, t.logger)
 }

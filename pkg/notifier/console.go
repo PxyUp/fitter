@@ -1,15 +1,31 @@
 package notifier
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
+	"os"
 )
 
 type console struct {
 	logger logger.Logger
 	name   string
 	cfg    *config.ConsoleConfig
+}
+
+func (o *console) notify(record *singleRecord) error {
+	bb, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+	if o.cfg.OnlyResult {
+		_, errOut := fmt.Fprintln(os.Stdout, string(bb))
+		return errOut
+	}
+	o.logger.Infow("Processing done", "response", string(bb))
+	return nil
 }
 
 var (
@@ -29,12 +45,6 @@ func (o *console) WithLogger(logger logger.Logger) *console {
 	return o
 }
 
-func (o *console) Inform(result *parser.ParseResult, errResult error, isArray bool) error {
-	if errResult != nil {
-		o.logger.Errorf("result for %s is error: %s", o.name, errResult.Error())
-		return nil
-	}
-
-	o.logger.Infow("Processing done", "response", result.ToJson())
-	return nil
+func (o *console) Inform(result *parser.ParseResult, errResult error, asArray bool) error {
+	return inform(o, o.name, result, errResult, asArray, o.logger)
 }

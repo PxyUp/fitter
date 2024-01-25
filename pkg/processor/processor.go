@@ -77,7 +77,7 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 				return result, nil
 			}
 		}
-		errNot := p.notifier.Inform(result, err, isArray)
+		errNot := p.notifier.Inform(result, err, isArray && p.notifierCfg.SendArrayByItem)
 		if errNot != nil {
 			p.logger.Errorw("cannot notify about result", "error", errNot.Error())
 		}
@@ -103,7 +103,7 @@ func CreateProcessor(item *config.Item, refMap config.RefMap, logger logger.Logg
 
 	if item.NotifierConfig != nil {
 		if item.NotifierConfig.TelegramBot != nil {
-			tgBot, errBot := notifier.NewTelegramBot(item.Name, item.NotifierConfig.TelegramBot)
+			tgBot, errBot := notifier.NewTelegramBot(item.Name, item.NotifierConfig, item.NotifierConfig.TelegramBot)
 			if errBot != nil {
 				logger.Infow("cant setup telegram bot notifier", "error", errBot.Error())
 			} else {

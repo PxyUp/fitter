@@ -13,6 +13,9 @@ type staticConnector struct {
 }
 
 func (j *staticConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
+	if len(j.cfg.Raw) != 0 {
+		return []byte(utils.Format(string(j.cfg.Raw), parsedValue, index)), nil
+	}
 	return []byte(utils.Format(j.cfg.Value, parsedValue, index)), nil
 }
 

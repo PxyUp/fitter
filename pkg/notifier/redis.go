@@ -22,11 +22,11 @@ type redisNotifier struct {
 	redisClient *redis.Client
 }
 
-func (r *redisNotifier) Inform(result *parser.ParseResult, err error, isArray bool) error {
+func (r *redisNotifier) notify(record *singleRecord) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	msg, errMars := json.Marshal(buildBody(r.name, result, err, r.logger))
+	msg, errMars := json.Marshal(record)
 	if errMars != nil {
 		r.logger.Errorw("cant marshal message", "error", errMars.Error())
 		return errMars
@@ -37,6 +37,10 @@ func (r *redisNotifier) Inform(result *parser.ParseResult, err error, isArray bo
 		return errSend
 	}
 	return nil
+}
+
+func (r *redisNotifier) Inform(result *parser.ParseResult, err error, asArray bool) error {
+	return inform(r, r.name, result, err, asArray, r.logger)
 }
 
 func (r *redisNotifier) WithLogger(logger logger.Logger) *redisNotifier {

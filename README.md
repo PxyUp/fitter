@@ -339,12 +339,13 @@ type FileConnectorConfig struct {
 Connector type which fetch data from provided string
 ```go
 type StaticConnectorConfig struct {
-	Value string `json:"value" yaml:"value"`
+    Value string `json:"value" yaml:"value"`
+    Raw   json.RawMessage `json:"raw" yaml:"raw"`
 }
 ```
 
 - Value - static string as data, can be html, json
-
+- Raw - accept raw json. [Example](https://github.com/PxyUp/fitter/blob/master/examples/config_static.json). Also support [formatting](#placeholder-list)
 
 Example:
 

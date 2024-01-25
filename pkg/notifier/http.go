@@ -19,34 +19,8 @@ type httpNotifier struct {
 	cfg    *config.HttpConfig
 }
 
-type HttpRequestBody struct {
-	Name  string           `json:"name"`
-	Error bool             `json:"error,omitempty"`
-	Value *json.RawMessage `json:"result,omitempty"`
-}
-
-func buildBody(name string, result *parser.ParseResult, err error, logger logger.Logger) *HttpRequestBody {
-	rr := &HttpRequestBody{
-		Name: name,
-	}
-	if err != nil {
-		rr.Error = true
-		return rr
-	}
-	val := json.RawMessage{}
-	errUn := json.Unmarshal([]byte(result.ToJson()), &val)
-	if errUn != nil {
-		logger.Errorw("cant unmarshal result into json.RawMessage", "error", errUn.Error())
-		return rr
-	}
-	rr.Value = &val
-
-	return rr
-}
-
-func (h *httpNotifier) Inform(result *parser.ParseResult, err error, isArray bool) error {
-	rr := buildBody(h.name, result, err, h.logger)
-	bb, err := json.Marshal(rr)
+func (h *httpNotifier) notify(record *singleRecord) error {
+	bb, err := json.Marshal(record)
 	if err != nil {
 		h.logger.Errorw("cant unmarshal request body", "error", err.Error())
 		return err
@@ -78,6 +52,10 @@ func (h *httpNotifier) Inform(result *parser.ParseResult, err error, isArray boo
 	}
 
 	return nil
+}
+
+func (h *httpNotifier) Inform(result *parser.ParseResult, err error, asArray bool) error {
+	return inform(h, h.name, result, err, asArray, h.logger)
 }
 
 func (h *httpNotifier) WithLogger(logger logger.Logger) *httpNotifier {

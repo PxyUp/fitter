@@ -122,7 +122,8 @@ type PlaywrightConfig struct {
 }
 
 type StaticConnectorConfig struct {
-	Value string `json:"value" yaml:"value"`
+	Value string          `json:"value" yaml:"value"`
+	Raw   json.RawMessage `json:"raw" yaml:"raw"`
 }
 
 type BrowserConnectorConfig struct {
@@ -188,8 +189,9 @@ type HTTPTrigger struct {
 }
 
 type NotifierConfig struct {
-	Expression string `yaml:"expression" json:"expression"`
-	Force      bool   `json:"force" yaml:"force"`
+	Expression      string `yaml:"expression" json:"expression"`
+	Force           bool   `json:"force" yaml:"force"`
+	SendArrayByItem bool   `yaml:"send_array_by_item" json:"send_array_by_item"`
 
 	Console     *ConsoleConfig       `yaml:"console" json:"console"`
 	TelegramBot *TelegramBotConfig   `yaml:"telegram_bot" json:"telegram_bot"`
@@ -205,6 +207,7 @@ type HttpConfig struct {
 }
 
 type ConsoleConfig struct {
+	OnlyResult bool `json:"only_result" yaml:"only_result"`
 }
 
 type RedisNotifierConfig struct {
@@ -215,10 +218,9 @@ type RedisNotifierConfig struct {
 }
 
 type TelegramBotConfig struct {
-	Token           string  `json:"token" yaml:"token"`
-	UsersId         []int64 `json:"users_id" yaml:"users_id"`
-	Pretty          bool    `json:"pretty" yaml:"pretty"`
-	SendArrayByItem bool    `yaml:"send_array_by_item" json:"send_array_by_item"`
+	Token   string  `json:"token" yaml:"token"`
+	UsersId []int64 `json:"users_id" yaml:"users_id"`
+	Pretty  bool    `json:"pretty" yaml:"pretty"`
 }
 
 type Item struct {
