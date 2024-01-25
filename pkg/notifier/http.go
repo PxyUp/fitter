@@ -16,8 +16,6 @@ type httpNotifier struct {
 	logger logger.Logger
 	name   string
 	cfg    *config.HttpConfig
-
-	notifierCfg *config.NotifierConfig
 }
 
 type HttpRequestBody struct {
@@ -39,15 +37,6 @@ func buildBody(result *parser.ParseResult, err error) *HttpRequestBody {
 }
 
 func (h *httpNotifier) Inform(result *parser.ParseResult, err error, isArray bool) error {
-	should, err := shouldInform(h.notifierCfg.Expression, result, h.notifierCfg.Force)
-	if err != nil {
-		h.logger.Errorw("unable to calculate expression for informing", "error", err.Error())
-		return err
-	}
-	if !(should) {
-		return nil
-	}
-
 	rr := buildBody(result, err)
 	bb, err := json.Marshal(rr)
 	if err != nil {
@@ -80,10 +69,6 @@ func (h *httpNotifier) Inform(result *parser.ParseResult, err error, isArray boo
 	}
 
 	return nil
-}
-
-func (h *httpNotifier) SetConfig(cfg *config.NotifierConfig) {
-	h.notifierCfg = cfg
 }
 
 func (h *httpNotifier) WithLogger(logger logger.Logger) *httpNotifier {

@@ -15,8 +15,6 @@ type telegramBot struct {
 	name   string
 	cfg    *config.TelegramBotConfig
 	botApi *tgbotapi.BotAPI
-
-	notifierCfg *config.NotifierConfig
 }
 
 var (
@@ -98,21 +96,6 @@ func (t *telegramBot) Inform(result *parser.ParseResult, errResult error, isArra
 	if errResult != nil {
 		return t.sendError(fmt.Sprintf("Result for: %s\n\nError: %s", t.name, errResult))
 	}
-	should, err := shouldInform(t.notifierCfg.Expression, result, t.notifierCfg.Force)
-	if err != nil {
-		t.logger.Errorw("unable to calculate expression for informing", "error", err.Error())
-		return err
-	}
-	if !(should) {
-		return nil
-	}
 
 	return t.sendSuccess(result, isArray)
-}
-
-func (t *telegramBot) SetConfig(cfg *config.NotifierConfig) {
-	if t == nil {
-		return
-	}
-	t.notifierCfg = cfg
 }

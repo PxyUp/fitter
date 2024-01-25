@@ -10,8 +10,6 @@ type console struct {
 	logger logger.Logger
 	name   string
 	cfg    *config.ConsoleConfig
-
-	notifierCfg *config.NotifierConfig
 }
 
 var (
@@ -36,22 +34,7 @@ func (o *console) Inform(result *parser.ParseResult, errResult error, isArray bo
 		o.logger.Errorf("result for %s is error: %s", o.name, errResult.Error())
 		return nil
 	}
-	should, err := shouldInform(o.notifierCfg.Expression, result, o.notifierCfg.Force)
-	if err != nil {
-		o.logger.Errorw("unable to calculate expression for informing", "error", err.Error())
-		return err
-	}
-	if !(should) {
-		return nil
-	}
 
 	o.logger.Infow("Processing done", "response", result.ToJson())
 	return nil
-}
-
-func (o *console) SetConfig(cfg *config.NotifierConfig) {
-	if o == nil {
-		return
-	}
-	o.notifierCfg = cfg
 }

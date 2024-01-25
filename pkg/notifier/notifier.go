@@ -10,15 +10,14 @@ import (
 
 type Notifier interface {
 	Inform(result *parser.ParseResult, err error, isArray bool) error
-	SetConfig(cfg *config.NotifierConfig)
 }
 
-func shouldInform(expression string, result builder.Jsonable, force bool) (bool, error) {
-	if force || expression == "" {
+func ShouldInform(cfg *config.NotifierConfig, result builder.Jsonable) (bool, error) {
+	if cfg.Force || cfg.Expression == "" {
 		return true, nil
 	}
 
-	out, err := parser.ProcessExpression(expression, result, nil)
+	out, err := parser.ProcessExpression(cfg.Expression, result, nil)
 	if err != nil {
 		return false, err
 	}

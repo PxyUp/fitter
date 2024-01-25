@@ -20,10 +20,11 @@ type Processor interface {
 }
 
 type processor struct {
-	logger   logger.Logger
-	model    *config.Model
-	notifier notifier.Notifier
-	engine   parser.Engine
+	logger      logger.Logger
+	model       *config.Model
+	notifier    notifier.Notifier
+	notifierCfg *config.NotifierConfig
+	engine      parser.Engine
 }
 
 type nullProcessor struct {
@@ -44,12 +45,13 @@ func (n *nullProcessor) Process() (*parser.ParseResult, error) {
 	return nil, n.err
 }
 
-func New(engine parser.Engine, model *config.Model, notifier notifier.Notifier) *processor {
+func New(engine parser.Engine, model *config.Model, notifier notifier.Notifier, notifierCfg *config.NotifierConfig) *processor {
 	return &processor{
-		engine:   engine,
-		logger:   logger.Null,
-		model:    model,
-		notifier: notifier,
+		engine:      engine,
+		logger:      logger.Null,
+		notifierCfg: notifierCfg,
+		model:       model,
+		notifier:    notifier,
 	}
 }
 
@@ -65,7 +67,16 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 		if p.model.ArrayConfig != nil {
 			isArray = true
 		}
-
+		if p.notifierCfg != nil {
+			need, errShInform := notifier.ShouldInform(p.notifierCfg, result)
+			if errShInform != nil {
+				p.logger.Errorw("cannot calculate notification setting", "error", errShInform.Error())
+				return nil, errShInform
+			}
+			if !need {
+				return result, nil
+			}
+		}
 		errNot := p.notifier.Inform(result, err, isArray)
 		if errNot != nil {
 			p.logger.Errorw("cannot notify about result", "error", errNot.Error())
@@ -107,14 +118,9 @@ func CreateProcessor(item *config.Item, refMap config.RefMap, logger logger.Logg
 		if item.NotifierConfig.Http != nil {
 			notifierInstance = notifier.NewHttpNotifier(item.Name, item.NotifierConfig.Http).WithLogger(logger.With("notifier", "http"))
 		}
-
-		if notifierInstance != nil {
-			notifierInstance.SetConfig(item.NotifierConfig)
-		}
-
 	}
 
 	logger = logger.With("name", item.Name)
 
-	return New(parser.NewEngine(item.ConnectorConfig, logger.With("component", "processor_engine")), item.Model, notifierInstance).WithLogger(logger)
+	return New(parser.NewEngine(item.ConnectorConfig, logger.With("component", "processor_engine")), item.Model, notifierInstance, item.NotifierConfig).WithLogger(logger)
 }
