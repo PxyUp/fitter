@@ -6,6 +6,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/references"
 	"github.com/tidwall/gjson"
 	"html"
+	"os"
 	"strings"
 )
 
@@ -16,6 +17,7 @@ const (
 	indexPlaceHolder      = "{INDEX}"
 	humanIndexPlaceHolder = "{HUMAN_INDEX}"
 	refNamePrefix         = "RefName="
+	envNamePrefix         = "FromEnv="
 )
 
 func Format(str string, value builder.Jsonable, index *uint32) string {
@@ -38,6 +40,28 @@ func Format(str string, value builder.Jsonable, index *uint32) string {
 	return formatJsonPathString(str, value)
 }
 
+func processPrefix(prefix string, value builder.Jsonable) string {
+	if strings.HasPrefix(prefix, refNamePrefix) {
+		refValue := strings.Split(strings.TrimPrefix(prefix, refNamePrefix), " ")
+		tmp := ""
+		if len(refValue) > 1 {
+			tmp = gjson.Parse(html.UnescapeString(references.Get(refValue[0]).ToJson())).Get(refValue[1]).String()
+		}
+		if len(refValue) == 1 {
+			tmp = html.UnescapeString(references.Get(refValue[0]).ToJson())
+		}
+
+		return builder.PureString(tmp).ToJson()
+	}
+
+	if strings.HasPrefix(prefix, envNamePrefix) {
+		envValue := strings.TrimPrefix(prefix, envNamePrefix)
+		return builder.PureString(os.Getenv(envValue)).ToJson()
+	}
+
+	return gjson.Parse(value.ToJson()).Get(prefix).String()
+}
+
 func formatJsonPathString(str string, value builder.Jsonable) string {
 	new := ""
 	runes := []rune(str)
@@ -52,19 +76,9 @@ func formatJsonPathString(str string, value builder.Jsonable) string {
 
 		if isInJSONPath && strings.HasSuffix(path, jsonPathEnd) {
 			path = strings.TrimSuffix(path, jsonPathEnd)
-			if strings.HasPrefix(path, refNamePrefix) {
-				refValue := strings.Split(strings.TrimPrefix(path, refNamePrefix), " ")
-				tmp := ""
-				if len(refValue) > 1 {
-					tmp = gjson.Parse(html.UnescapeString(references.Get(refValue[0]).ToJson())).Get(refValue[1]).String()
-				}
-				if len(refValue) == 1 {
-					tmp = html.UnescapeString(references.Get(refValue[0]).ToJson())
-				}
-				new += builder.PureString(tmp).ToJson()
-			} else {
-				new += gjson.Parse(value.ToJson()).Get(path).String()
-			}
+
+			new += processPrefix(path, value)
+
 			isInJSONPath = false
 			path = ""
 		}

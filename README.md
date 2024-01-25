@@ -1058,6 +1058,8 @@ Examples:
 4. {{{json_path}}} - will get information from propagated "object"/"array" field
 5. {{{RefName=SomeName}}} - get [reference](#references) value by name. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L67)
 6. {{{RefName=SomeName json.path}}} - get [reference](#references) value by name and extract value by json path. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L67)
+7. {{{FromEnv=ENV_KEY}}} - get value from environment variable
+
 
 ## References
 Special map which **prefetched**(before any processing) and can be user for [connector](#referenceconnectorconfig) or for [placeholder](#placeholder-list)
