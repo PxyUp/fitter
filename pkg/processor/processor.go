@@ -99,8 +99,13 @@ func CreateProcessor(item *config.Item, refMap config.RefMap, logger logger.Logg
 				notifierInstance = tgBot.WithLogger(logger.With("notifier", "telegram_bot"))
 			}
 		}
+
 		if item.NotifierConfig.Console != nil {
 			notifierInstance = notifier.NewConsole(item.Name, item.NotifierConfig.Console).WithLogger(logger.With("notifier", "console"))
+		}
+
+		if item.NotifierConfig.Http != nil {
+			notifierInstance = notifier.NewHttpNotifier(item.Name, item.NotifierConfig.Http).WithLogger(logger.With("notifier", "http"))
 		}
 
 		if notifierInstance != nil {

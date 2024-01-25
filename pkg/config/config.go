@@ -193,6 +193,14 @@ type NotifierConfig struct {
 
 	Console     *ConsoleConfig     `yaml:"console" json:"console"`
 	TelegramBot *TelegramBotConfig `yaml:"telegram_bot" json:"telegram_bot"`
+	Http        *HttpConfig        `yaml:"http" json:"http"`
+}
+
+type HttpConfig struct {
+	Url     string            `yaml:"url" json:"url"`
+	Method  string            `json:"method" yaml:"method"`
+	Headers map[string]string `yaml:"headers" json:"headers"`
+	Timeout uint32            `yaml:"timeout" json:"timeout"`
 }
 
 type ConsoleConfig struct {
