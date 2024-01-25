@@ -33,13 +33,8 @@ func buildBody(name string, result *parser.ParseResult, err error, logger logger
 		rr.Error = true
 		return rr
 	}
-	val := json.RawMessage{}
-	errUn := json.Unmarshal([]byte(result.ToJson()), &val)
-	if errUn != nil {
-		logger.Errorw("cant unmarshal result into json.RawMessage", "error", errUn.Error())
-		return rr
-	}
-	rr.Value = &val
+	msg := json.RawMessage(result.ToJson())
+	rr.Value = &msg
 
 	return rr
 }
