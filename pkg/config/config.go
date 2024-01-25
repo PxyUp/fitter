@@ -191,9 +191,10 @@ type NotifierConfig struct {
 	Expression string `yaml:"expression" json:"expression"`
 	Force      bool   `json:"force" yaml:"force"`
 
-	Console     *ConsoleConfig     `yaml:"console" json:"console"`
-	TelegramBot *TelegramBotConfig `yaml:"telegram_bot" json:"telegram_bot"`
-	Http        *HttpConfig        `yaml:"http" json:"http"`
+	Console     *ConsoleConfig       `yaml:"console" json:"console"`
+	TelegramBot *TelegramBotConfig   `yaml:"telegram_bot" json:"telegram_bot"`
+	Http        *HttpConfig          `yaml:"http" json:"http"`
+	Redis       *RedisNotifierConfig `json:"redis" yaml:"redis"`
 }
 
 type HttpConfig struct {
@@ -204,6 +205,13 @@ type HttpConfig struct {
 }
 
 type ConsoleConfig struct {
+}
+
+type RedisNotifierConfig struct {
+	Addr     string `json:"addr" yaml:"addr"`
+	Password string `json:"password" yaml:"password"`
+	DB       int    `json:"db" yaml:"db"`
+	Channel  string `json:"channel" yaml:"channel"`
 }
 
 type TelegramBotConfig struct {
