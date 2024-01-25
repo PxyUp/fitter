@@ -1095,7 +1095,7 @@ type Reference struct {
 ```
 
 - [ModelField](#model-field) - is embedded struct, you can use same fields
-- Expire[sec] - duration when reference is expired after fetching (0 means no expired)
+- Expire[sec] - duration when reference is expired after fetching. Not set => **forever cached**. Set to 0 => **every time re-fetch**. Set to n > 0 => **cached for n second** 
 
 For [Fitter](#how-to-use-fitter)
 ```go

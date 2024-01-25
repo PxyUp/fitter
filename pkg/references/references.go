@@ -36,13 +36,18 @@ func getValueFromFetcher(fetcher refFetcher, name string, cfg *config.ModelField
 	return res
 }
 
-func getExpireTime(expire uint32) *time.Time {
-	if expire > 0 {
-		expireTime := time.Now().Add(time.Nanosecond * time.Duration(expire))
+func getExpireTime(expire *uint32) *time.Time {
+	if expire == nil {
+		return nil
+	}
+
+	if *expire > 0 {
+		expireTime := time.Now().Add(time.Nanosecond * time.Duration(*expire))
 		return &expireTime
 	}
 
-	return nil
+	zero := time.Time{}
+	return &zero
 }
 
 func Get(name string) builder.Jsonable {

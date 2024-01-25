@@ -24,7 +24,7 @@ type RefMap map[string]*Reference
 type Reference struct {
 	*ModelField
 
-	Expire uint32 `yaml:"expire" json:"expire"`
+	Expire *uint32 `yaml:"expire" json:"expire"`
 }
 
 type Limits struct {
