@@ -8,6 +8,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/http_client"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
+	"github.com/PxyUp/fitter/pkg/utils"
 	"net/http"
 	"time"
 )
@@ -19,38 +20,46 @@ type httpNotifier struct {
 }
 
 type HttpRequestBody struct {
+	Name  string           `json:"name"`
 	Error bool             `json:"error,omitempty"`
 	Value *json.RawMessage `json:"result,omitempty"`
 }
 
-func buildBody(result *parser.ParseResult, err error) *HttpRequestBody {
-	rr := &HttpRequestBody{}
+func buildBody(name string, result *parser.ParseResult, err error, logger logger.Logger) *HttpRequestBody {
+	rr := &HttpRequestBody{
+		Name: name,
+	}
 	if err != nil {
 		rr.Error = true
 		return rr
 	}
 	val := json.RawMessage{}
-	json.Unmarshal([]byte(result.ToJson()), &val)
+	errUn := json.Unmarshal([]byte(result.ToJson()), &val)
+	if errUn != nil {
+		logger.Errorw("cant unmarshal result into json.RawMessage", "error", errUn.Error())
+		return rr
+	}
 	rr.Value = &val
 
 	return rr
 }
 
 func (h *httpNotifier) Inform(result *parser.ParseResult, err error, isArray bool) error {
-	rr := buildBody(result, err)
+	rr := buildBody(h.name, result, err, h.logger)
 	bb, err := json.Marshal(rr)
 	if err != nil {
 		h.logger.Errorw("cant unmarshal request body", "error", err.Error())
 		return err
 	}
-	req, err := http.NewRequest(h.cfg.Method, h.cfg.Url, bytes.NewReader(bb))
+
+	req, err := http.NewRequest(h.cfg.Method, utils.Format(h.cfg.Url, nil, nil), bytes.NewReader(bb))
 	if err != nil {
 		h.logger.Errorw("cant create request", "error", err.Error())
 		return err
 	}
 
 	for k, v := range h.cfg.Headers {
-		req.Header.Add(k, v)
+		req.Header.Add(k, utils.Format(v, nil, nil))
 	}
 
 	if h.cfg.Timeout > 0 {

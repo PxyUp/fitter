@@ -7,6 +7,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
+	"github.com/PxyUp/fitter/pkg/utils"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -22,7 +23,7 @@ var (
 )
 
 func NewTelegramBot(name string, cfg *config.TelegramBotConfig) (*telegramBot, error) {
-	botApi, err := tgbotapi.NewBotAPI(cfg.Token)
+	botApi, err := tgbotapi.NewBotAPI(utils.Format(cfg.Token, nil, nil))
 	if err != nil {
 		return nil, err
 	}
