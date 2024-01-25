@@ -84,6 +84,12 @@ type ConnectorConfig struct {
 	BrowserConfig         *BrowserConnectorConfig     `yaml:"browser_config" json:"browser_config"`
 	PluginConnectorConfig *PluginConnectorConfig      `json:"plugin_connector_config" yaml:"plugin_connector_config"`
 	ReferenceConfig       *ReferenceConnectorConfig   `yaml:"reference_config" json:"reference_config"`
+	FileConfig            *FileConnectorConfig        `json:"file_config" yaml:"file_config"`
+}
+
+type FileConnectorConfig struct {
+	Path          string `yaml:"path" json:"path"`
+	UseFormatting bool   `yaml:"use_formatting" json:"use_formatting"`
 }
 
 type IntSequenceConnectorConfig struct {

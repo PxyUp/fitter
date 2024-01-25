@@ -56,6 +56,9 @@ func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {
 	}
 
 	var connector connectors.Connector
+	if cfg.FileConfig != nil {
+		connector = connectors.NewFile(cfg.FileConfig).WithLogger(logger.With("connector", "file"))
+	}
 	if cfg.StaticConfig != nil {
 		connector = connectors.NewStatic(cfg.StaticConfig).WithLogger(logger.With("connector", "static"))
 	}

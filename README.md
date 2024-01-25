@@ -155,13 +155,14 @@ type ConnectorConfig struct {
     ResponseType ParserType `json:"response_type" yaml:"response_type"`
     Url          string     `json:"url" yaml:"url"`
     Attempts     uint32     `json:"attempts" yaml:"attempts"`
-    
-    StaticConfig          *StaticConnectorConfig  `json:"static_config" yaml:"static_config"`
-    ServerConfig          *ServerConnectorConfig  `json:"server_config" yaml:"server_config"`
-    BrowserConfig         *BrowserConnectorConfig `yaml:"browser_config" json:"browser_config"`
-    PluginConnectorConfig *PluginConnectorConfig  `json:"plugin_connector_config" yaml:"plugin_connector_config"`
-    ReferenceConfig       *ReferenceConnectorConfig `yaml:"reference_config" json:"reference_config"`
+
+    StaticConfig          *StaticConnectorConfig      `json:"static_config" yaml:"static_config"`
     IntSequenceConfig     *IntSequenceConnectorConfig `json:"int_sequence_config" yaml:"int_sequence_config"`
+    ServerConfig          *ServerConnectorConfig      `json:"server_config" yaml:"server_config"`
+    BrowserConfig         *BrowserConnectorConfig     `yaml:"browser_config" json:"browser_config"`
+    PluginConnectorConfig *PluginConnectorConfig      `json:"plugin_connector_config" yaml:"plugin_connector_config"`
+    ReferenceConfig       *ReferenceConnectorConfig   `yaml:"reference_config" json:"reference_config"`
+    FileConfig            *FileConnectorConfig        `json:"file_config" yaml:"file_config"`
 }
 ```
 
@@ -176,6 +177,7 @@ Config can be one of:
 - [PluginConnectorConfig](#pluginconnectorconfig)
 - [ReferenceConfig](#referenceconnectorconfig)
 - [IntSequenceConfig](#intsequenceconnectorconfig)
+- [FileConfig](#fileconnectorconfig)
 
 Example:
 ```json
@@ -319,6 +321,19 @@ Example
 
 [Config example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_seq.json)
 
+
+### FileConnectorConfig
+Connector type which fetch data from provided file
+
+```go
+type FileConnectorConfig struct {
+    Path          string `yaml:"path" json:"path"`
+    UseFormatting bool   `yaml:"use_formatting" json:"use_formatting"`
+}
+```
+
+- Path - file path
+- UseFormatting[false] - use [formatting](#placeholder-list) file content or not
 
 ### StaticConnectorConfig
 Connector type which fetch data from provided string
