@@ -332,7 +332,7 @@ type FileConnectorConfig struct {
 }
 ```
 
-- Path - file path
+- Path - file path. Support [formatting](#placeholder-list)
 - UseFormatting[false] - use [formatting](#placeholder-list) file content or not
 
 ### StaticConnectorConfig

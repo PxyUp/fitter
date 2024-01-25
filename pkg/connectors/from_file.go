@@ -15,7 +15,7 @@ type fileConnector struct {
 }
 
 func (j *fileConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
-	file, err := os.Open(j.cfg.Path)
+	file, err := os.Open(utils.Format(j.cfg.Path, parsedValue, index))
 	if err != nil {
 		j.logger.Errorw("cant open file", "error", err.Error())
 		return nil, err
