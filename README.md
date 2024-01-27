@@ -884,7 +884,7 @@ type CalculatedConfig struct {
 - Type - resulting type of expression\
 - Expression - expression for calculation (we use [this lib](https://github.com/expr-lang/expr) for calculated expression)
 
-**Predefined values:**
+##### Predefined values
 
 **fRes** - it is raw(with proper type) result from the parsing [base field](#basefield)
 
@@ -1075,7 +1075,7 @@ Examples:
 5. {{{RefName=SomeName}}} - get [reference](#references) value by name. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L67)
 6. {{{RefName=SomeName json.path}}} - get [reference](#references) value by name and extract value by json path. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L67)
 7. {{{FromEnv=ENV_KEY}}} - get value from environment variable
-
+8. {{{FromExp=fRes + 5 + fIndex}}} - get value from the [expression](https://github.com/expr-lang/expr). [Predefined values](#predefined-values)  
 
 ## References
 Special map which **prefetched**(before any processing) and can be user for [connector](#referenceconnectorconfig) or for [placeholder](#placeholder-list)

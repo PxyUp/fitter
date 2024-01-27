@@ -18,6 +18,7 @@ const (
 	humanIndexPlaceHolder = "{HUMAN_INDEX}"
 	refNamePrefix         = "RefName="
 	envNamePrefix         = "FromEnv="
+	exprNamePrefix        = "FromExp="
 )
 
 func Format(str string, value builder.Jsonable, index *uint32) string {
@@ -37,10 +38,10 @@ func Format(str string, value builder.Jsonable, index *uint32) string {
 		str = strings.ReplaceAll(str, humanIndexPlaceHolder, fmt.Sprintf("%d", *index+1))
 	}
 
-	return formatJsonPathString(str, value)
+	return formatJsonPathString(str, value, index)
 }
 
-func processPrefix(prefix string, value builder.Jsonable) string {
+func processPrefix(prefix string, value builder.Jsonable, index *uint32) string {
 	if strings.HasPrefix(prefix, refNamePrefix) {
 		refValue := strings.Split(strings.TrimPrefix(prefix, refNamePrefix), " ")
 		tmp := ""
@@ -54,6 +55,16 @@ func processPrefix(prefix string, value builder.Jsonable) string {
 		return builder.PureString(tmp).ToJson()
 	}
 
+	if strings.HasPrefix(prefix, exprNamePrefix) {
+		raw, err := ProcessExpression(strings.TrimPrefix(prefix, exprNamePrefix), value, index)
+		tmp := ""
+		if err == nil {
+			tmp = fmt.Sprintf("%v", raw)
+		}
+
+		return builder.PureString(tmp).ToJson()
+	}
+
 	if strings.HasPrefix(prefix, envNamePrefix) {
 		envValue := strings.TrimPrefix(prefix, envNamePrefix)
 		return builder.PureString(os.Getenv(envValue)).ToJson()
@@ -62,11 +73,12 @@ func processPrefix(prefix string, value builder.Jsonable) string {
 	return gjson.Parse(value.ToJson()).Get(prefix).String()
 }
 
-func formatJsonPathString(str string, value builder.Jsonable) string {
+func formatJsonPathString(str string, value builder.Jsonable, index *uint32) string {
 	new := ""
 	runes := []rune(str)
 	isInJSONPath := false
 	path := ""
+
 	for i := 0; i < len(runes); i++ {
 		if !isInJSONPath {
 			new += string(runes[i])
@@ -77,7 +89,7 @@ func formatJsonPathString(str string, value builder.Jsonable) string {
 		if isInJSONPath && strings.HasSuffix(path, jsonPathEnd) {
 			path = strings.TrimSuffix(path, jsonPathEnd)
 
-			new += processPrefix(path, value)
+			new += processPrefix(path, value, index)
 
 			isInJSONPath = false
 			path = ""

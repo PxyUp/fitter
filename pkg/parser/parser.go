@@ -56,7 +56,7 @@ func (p *ParseResult) ToJson() string {
 }
 
 func getExpressionResult(expr string, fieldType config.FieldType, value builder.Jsonable, index *uint32, logger logger.Logger) builder.Jsonable {
-	res, err := ProcessExpression(expr, value, index)
+	res, err := utils.ProcessExpression(expr, value, index)
 	if err != nil {
 		logger.Errorw("error during process calculated field", "error", err.Error())
 		return builder.NullValue

@@ -7,6 +7,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
+	"github.com/PxyUp/fitter/pkg/utils"
 	"strconv"
 )
 
@@ -86,7 +87,7 @@ func ShouldInform(cfg *config.NotifierConfig, result builder.Jsonable) (bool, er
 		return true, nil
 	}
 
-	out, err := parser.ProcessExpression(cfg.Expression, result, nil)
+	out, err := utils.ProcessExpression(cfg.Expression, result, nil)
 	if err != nil {
 		return false, err
 	}

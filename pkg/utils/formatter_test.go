@@ -22,10 +22,17 @@ func TestRun(t *testing.T) {
 }
 
 func (s *TestFormatterSuite) TestFormatter() {
+	assert.Equal(s.T(), "", utils.Format("", nil, nil))
+
 	index := uint32(8)
 	assert.Equal(s.T(), "TokenRef=my_token and TokenObjectRef=my_token Object=value kek {\"value\": \"value kek\"} Env=test 8 9", utils.Format("TokenRef={{{RefName=TokenRef}}} and TokenObjectRef={{{RefName=TokenObjectRef token}}} Object={{{value}}} {PL} Env={{{FromEnv=TEST_VAL}}} {INDEX} {HUMAN_INDEX}", builder.Object(map[string]builder.Jsonable{
 		"value": builder.String("value kek"),
 	}), &index))
+}
+
+func (s *TestFormatterSuite) TestExpr() {
+	index := uint32(1)
+	assert.Equal(s.T(), "8", utils.Format("{{{FromExp=fRes + 5 + fIndex}}}", builder.Int(2), &index))
 }
 
 func (s *TestFormatterSuite) TearDownSuite() {
