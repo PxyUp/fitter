@@ -206,9 +206,7 @@ type HttpConfig struct {
 	Timeout uint32            `yaml:"timeout" json:"timeout"`
 }
 
-type ConsoleConfig struct {
-	OnlyResult bool `json:"only_result" yaml:"only_result"`
-}
+type ConsoleConfig struct{}
 
 type RedisNotifierConfig struct {
 	Addr     string `json:"addr" yaml:"addr"`

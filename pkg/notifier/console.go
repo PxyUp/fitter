@@ -18,13 +18,16 @@ type console struct {
 func (o *console) notify(record *singleRecord) error {
 	bb, err := json.Marshal(record)
 	if err != nil {
+		o.logger.Errorw("cant unmarshal record", "error", err.Error())
 		return err
 	}
-	if o.cfg.OnlyResult {
-		_, errOut := fmt.Fprintln(os.Stdout, string(bb))
+
+	_, errOut := fmt.Fprintln(os.Stdout, string(bb))
+	if errOut != nil {
+		o.logger.Errorw("cant send to stdout", "error", errOut.Error())
 		return errOut
 	}
-	o.logger.Infow("Processing done", "response", string(bb))
+
 	return nil
 }
 
