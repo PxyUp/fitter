@@ -3,6 +3,7 @@ package connectors
 import (
 	"context"
 	"errors"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -19,7 +20,7 @@ var (
 	errNoDriver          = errors.New("empty playwright driver")
 )
 
-func getFromPlaywright(url string, cfg *config.PlaywrightConfig, script string, logger logger.Logger) ([]byte, error) {
+func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue builder.Jsonable, index *uint32, logger logger.Logger) ([]byte, error) {
 	if instanceLimit := limitter.PlaywrightLimiter(); instanceLimit != nil {
 		errInstance := instanceLimit.Acquire(ctx, 1)
 		if errInstance != nil {
@@ -90,13 +91,13 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, script string, 
 		if cfg.Proxy != nil {
 			proxy := &playwright.BrowserTypeLaunchOptionsProxy{}
 			if cfg.Proxy.Server != "" {
-				proxy.Server = utils.String(cfg.Proxy.Server)
+				proxy.Server = utils.String(utils.Format(cfg.Proxy.Server, parsedValue, index))
 			}
 			if cfg.Proxy.Username != "" {
-				proxy.Server = utils.String(cfg.Proxy.Username)
+				proxy.Username = utils.String(utils.Format(cfg.Proxy.Username, parsedValue, index))
 			}
 			if cfg.Proxy.Password != "" {
-				proxy.Server = utils.String(cfg.Proxy.Password)
+				proxy.Password = utils.String(utils.Format(cfg.Proxy.Password, parsedValue, index))
 			}
 			logger.Debugw("set proxy", "server", cfg.Proxy.Server, "username", cfg.Proxy.Username, "password", cfg.Proxy.Password)
 			opts = append(opts, playwright.BrowserTypeLaunchOptions{
@@ -168,10 +169,10 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, script string, 
 			return
 		}
 
-		if script != "" {
-			_, err = page.Evaluate(script)
+		if cfg.PreRunScript != "" {
+			_, err = page.Evaluate(utils.Format(cfg.PreRunScript, parsedValue, index))
 			if err != nil {
-				logger.Errorw("could execute script on page", "error", err.Error(), "script", script)
+				logger.Errorw("could execute script on page", "error", err.Error(), "script", cfg.PreRunScript)
 				return
 			}
 		}

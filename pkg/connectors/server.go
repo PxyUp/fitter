@@ -98,7 +98,7 @@ func (api *apiConnector) get(parsedValue builder.Jsonable, index *uint32) (http.
 	}
 
 	if api.cfg.Proxy != nil {
-		proxyUrl, errProxy := url.Parse(api.cfg.Proxy.Server)
+		proxyUrl, errProxy := url.Parse(utils.Format(api.cfg.Proxy.Server, parsedValue, index))
 		if errProxy != nil {
 			api.logger.Errorw("unable to create proxy", "error", errProxy.Error())
 			return nil, nil, err
@@ -106,9 +106,9 @@ func (api *apiConnector) get(parsedValue builder.Jsonable, index *uint32) (http.
 
 		if api.cfg.Proxy.Username != "" {
 			if api.cfg.Proxy.Password != "" {
-				proxyUrl.User = url.UserPassword(api.cfg.Proxy.Username, api.cfg.Proxy.Password)
+				proxyUrl.User = url.UserPassword(utils.Format(api.cfg.Proxy.Username, parsedValue, index), utils.Format(api.cfg.Proxy.Password, parsedValue, index))
 			} else {
-				proxyUrl.User = url.User(api.cfg.Proxy.Username)
+				proxyUrl.User = url.User(utils.Format(api.cfg.Proxy.Username, parsedValue, index))
 			}
 		}
 		api.logger.Debugw("set proxy", "server", api.cfg.Proxy.Server, "username", api.cfg.Proxy.Username, "password", api.cfg.Proxy.Password)

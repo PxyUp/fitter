@@ -404,9 +404,9 @@ type ProxyConfig struct {
 }
 ```
 
-- Server - address with schema of proxy server
-- Username - username for proxy(can be empty)
-- Password - password for proxy(can be empty)
+- Server - address with schema of proxy server. Also support [formatting](#placeholder-list)
+- Username - username for proxy(can be empty). Also support [formatting](#placeholder-list)
+- Password - password for proxy(can be empty). Also support [formatting](#placeholder-list)
 
 ```json
 {

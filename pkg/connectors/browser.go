@@ -42,7 +42,7 @@ func (c *browserConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]b
 	}
 
 	if c.cfg.Playwright != nil {
-		return getFromPlaywright(formattedURL, c.cfg.Playwright, utils.Format(c.cfg.Playwright.PreRunScript, parsedValue, index), c.logger.With("emulator", "playwright"))
+		return getFromPlaywright(formattedURL, c.cfg.Playwright, parsedValue, index, c.logger.With("emulator", "playwright"))
 	}
 
 	return nil, nil
