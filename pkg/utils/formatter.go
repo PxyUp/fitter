@@ -74,38 +74,27 @@ func processPrefix(prefix string, value builder.Jsonable, index *uint32) string 
 }
 
 func formatJsonPathString(str string, value builder.Jsonable, index *uint32) string {
-	new := ""
 	runes := []rune(str)
-	isInJSONPath := false
-	path := ""
+	stack := []string{
+		"",
+	}
 
 	for i := 0; i < len(runes); i++ {
-		if !isInJSONPath {
-			new += string(runes[i])
-		} else {
-			path += string(runes[i])
+		stack[len(stack)-1] += string(runes[i])
+		last := stack[len(stack)-1]
+
+		if strings.HasSuffix(last, jsonPathEnd) {
+			tmp := processPrefix(strings.TrimSuffix(last, jsonPathEnd), value, index)
+			stack = stack[:len(stack)-1]
+			stack[len(stack)-1] += tmp
 		}
 
-		if isInJSONPath && strings.HasSuffix(path, jsonPathEnd) {
-			path = strings.TrimSuffix(path, jsonPathEnd)
-
-			new += processPrefix(path, value, index)
-
-			isInJSONPath = false
-			path = ""
-		}
-
-		if !isInJSONPath && strings.HasSuffix(new, jsonPathStart) {
-			new = strings.TrimSuffix(new, jsonPathStart)
-			isInJSONPath = true
+		if strings.HasSuffix(last, jsonPathStart) {
+			stack[len(stack)-1] = strings.TrimSuffix(last, jsonPathStart)
+			stack = append(stack, "")
 		}
 
 	}
 
-	if isInJSONPath {
-		return str
-	}
-
-	return new
-
+	return stack[0]
 }

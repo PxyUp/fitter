@@ -1077,6 +1077,21 @@ Examples:
 7. {{{FromEnv=ENV_KEY}}} - get value from environment variable
 8. {{{FromExp=fRes + 5 + fIndex}}} - get value from the [expression](https://github.com/expr-lang/expr). [Predefined values](#predefined-values)  
 
+Examples:
+```text
+{{{FromExp="{{{FromEnv=TEST_VAL}}}" + "hello"}}}
+```
+```text
+Current time is: {PL} with token from TokenRef={{{RefName=TokenRef}}} and TokenObjectRef={{{RefName=TokenObjectRef token}}}
+```
+```text
+Current time is: {PL} with token from TokenRef={{{RefName=TokenRef}}} and TokenObjectRef={{{RefName=TokenObjectRef token}}}
+```
+```text
+TokenRef={{{RefName=TokenRef}}} and TokenObjectRef={{{RefName=TokenObjectRef token}}} Object={{{value}}} {PL} Env={{{FromEnv=TEST_VAL}}} {INDEX} {HUMAN_INDEX}
+```
+
+
 ## References
 Special map which **prefetched**(before any processing) and can be user for [connector](#referenceconnectorconfig) or for [placeholder](#placeholder-list)
 

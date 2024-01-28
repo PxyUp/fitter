@@ -21,6 +21,16 @@ func TestRun(t *testing.T) {
 	suite.Run(t, new(TestFormatterSuite))
 }
 
+func (s *TestFormatterSuite) TestInvalidValue() {
+	assert.Equal(s.T(), "{{{asfasf}}}", "{{{asfasf}}}")
+	assert.Equal(s.T(), "{{{asfasf", "{{{asfasf")
+	assert.Equal(s.T(), "{{{FromEnv=", "{{{FromEnv=")
+}
+
+func (s *TestFormatterSuite) TestDeepFormatter() {
+	assert.Equal(s.T(), "testhello", utils.Format("{{{FromExp=\"{{{FromEnv=TEST_VAL}}}\" + \"hello\"}}}", nil, nil))
+}
+
 func (s *TestFormatterSuite) TestFormatter() {
 	assert.Equal(s.T(), "", utils.Format("", nil, nil))
 

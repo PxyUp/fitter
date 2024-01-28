@@ -21,7 +21,9 @@ func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint3
 		kv[k] = v
 	}
 
-	kv[fitterResultRef] = result.Raw()
+	if result != nil {
+		kv[fitterResultRef] = result.Raw()
+	}
 	if index != nil {
 		kv[fitterIndexRef] = *index
 	}
