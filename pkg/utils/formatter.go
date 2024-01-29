@@ -83,7 +83,7 @@ func formatJsonPathString(str string, value builder.Jsonable, index *uint32) str
 		stack[len(stack)-1] += string(runes[i])
 		last := stack[len(stack)-1]
 
-		if strings.HasSuffix(last, jsonPathEnd) {
+		if len(stack) > 1 && strings.HasSuffix(last, jsonPathEnd) {
 			tmp := processPrefix(strings.TrimSuffix(last, jsonPathEnd), value, index)
 			stack = stack[:len(stack)-1]
 			stack[len(stack)-1] += tmp
