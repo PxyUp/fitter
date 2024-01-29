@@ -71,7 +71,7 @@ func processPrefix(prefix string, value builder.Jsonable, index *uint32) string 
 	}
 
 	if value == nil {
-		return builder.PureString("").ToJson()
+		return builder.EMPTY.ToJson()
 	}
 
 	return gjson.Parse(value.ToJson()).Get(prefix).String()
