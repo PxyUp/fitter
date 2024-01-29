@@ -42,7 +42,7 @@ func getExpireTime(expire *uint32) *time.Time {
 	}
 
 	if *expire > 0 {
-		expireTime := time.Now().Add(time.Nanosecond * time.Duration(*expire))
+		expireTime := time.Now().Add(time.Second * time.Duration(*expire))
 		return &expireTime
 	}
 
