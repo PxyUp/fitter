@@ -70,6 +70,10 @@ func processPrefix(prefix string, value builder.Jsonable, index *uint32) string 
 		return builder.PureString(os.Getenv(envValue)).ToJson()
 	}
 
+	if value == nil {
+		return builder.PureString("").ToJson()
+	}
+
 	return gjson.Parse(value.ToJson()).Get(prefix).String()
 }
 

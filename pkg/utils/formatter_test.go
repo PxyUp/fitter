@@ -22,9 +22,11 @@ func TestRun(t *testing.T) {
 }
 
 func (s *TestFormatterSuite) TestInvalidValue() {
-	assert.Equal(s.T(), "{{{asfasf}}}", "{{{asfasf}}}")
-	assert.Equal(s.T(), "{{{asfasf", "{{{asfasf")
-	assert.Equal(s.T(), "{{{FromEnv=", "{{{FromEnv=")
+	assert.Equal(s.T(), "", utils.Format("{{{asfasf}}}", nil, nil))
+	assert.Equal(s.T(), "", utils.Format("{{{asfasf", nil, nil))
+	assert.Equal(s.T(), "", utils.Format("{{{FromEnv=", nil, nil))
+	assert.Equal(s.T(), "FromEnv=}}}test", utils.Format("FromEnv=}}}test", nil, nil))
+	assert.Equal(s.T(), "FromEnv=}}}testFromEnv=}}}test", utils.Format("FromEnv=}}}testFromEnv=}}}test", nil, nil))
 }
 
 func (s *TestFormatterSuite) TestDeepFormatter() {
