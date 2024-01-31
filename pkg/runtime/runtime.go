@@ -43,9 +43,12 @@ func (r *runtime) createRunTime(updates <-chan string) {
 			select {
 			case <-r.ctx.Done():
 				return
-			case name := <-updates:
-				r.logger.Infow("new trigger comes", "name", name)
-				_, _ = reg.Get(name).Process()
+			case n := <-updates:
+				lName := n
+				go func(name string) {
+					r.logger.Infow("new trigger comes", "name", name)
+					_, _ = reg.Get(name).Process()
+				}(lName)
 			}
 		}
 	}()
