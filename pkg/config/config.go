@@ -39,6 +39,12 @@ type Config struct {
 
 	Limits     *Limits `yaml:"limits" json:"limits"`
 	References RefMap  `json:"references" yaml:"references"`
+
+	HttpServer *HttpServerCfg `json:"http_server" yaml:"http_server"`
+}
+
+type HttpServerCfg struct {
+	Port int `yaml:"port" json:"port"`
 }
 
 type CliItem struct {

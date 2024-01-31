@@ -1,4 +1,7 @@
 {
+  "http_server": {
+    "port": 8080
+  },
   "items": [
     {
       "name": "Current time",
@@ -19,9 +22,7 @@
         }
       },
       "trigger_config": {
-        "scheduler_trigger": {
-          "interval": 10
-        }
+        "http_trigger": {}
       },
       "notifier_config": {
         "send_array_by_item": true,

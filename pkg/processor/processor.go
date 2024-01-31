@@ -34,7 +34,7 @@ type nullProcessor struct {
 func Null(errs ...error) *nullProcessor {
 	err := errEmpty
 	if len(errs) >= 1 {
-		err = errs[1]
+		err = errs[0]
 	}
 	return &nullProcessor{
 		err: err,
