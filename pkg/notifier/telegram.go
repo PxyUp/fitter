@@ -35,7 +35,7 @@ var (
 	_ Notifier = &telegramBot{}
 )
 
-func NewTelegramBot(name string, generalCfg *config.NotifierConfig, cfg *config.TelegramBotConfig) (*telegramBot, error) {
+func NewTelegramBot(name string, cfg *config.TelegramBotConfig) (*telegramBot, error) {
 	botApi, err := tgbotapi.NewBotAPI(utils.Format(cfg.Token, nil, nil))
 	if err != nil {
 		return nil, err

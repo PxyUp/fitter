@@ -16,6 +16,15 @@ type console struct {
 }
 
 func (o *console) notify(record *singleRecord) error {
+	if o.cfg.OnlyResult {
+		_, errOut := fmt.Fprintln(os.Stdout, string(record.Body))
+		if errOut != nil {
+			o.logger.Errorw("cant send to stdout", "error", errOut.Error())
+			return errOut
+		}
+		return nil
+	}
+
 	bb, err := json.Marshal(record)
 	if err != nil {
 		o.logger.Errorw("cant unmarshal record", "error", err.Error())
