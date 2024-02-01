@@ -77,6 +77,7 @@ type Model struct {
 	ObjectConfig *ObjectConfig `yaml:"object_config" json:"object_config"`
 	ArrayConfig  *ArrayConfig  `json:"array_config" yaml:"array_config"`
 	BaseField    *BaseField    `json:"base_field" yaml:"base_field"`
+	IsArray      bool          `json:"is_array" yaml:"is_array"`
 }
 
 type ConnectorConfig struct {

@@ -559,6 +559,7 @@ type Model struct {
     ObjectConfig *ObjectConfig `yaml:"object_config" json:"object_config"`
     ArrayConfig  *ArrayConfig  `json:"array_config" yaml:"array_config"`
     BaseField    *BaseField    `json:"base_field" yaml:"base_field"`
+    IsArray      bool          `json:"is_array" yaml:"is_array"`
 }
 ```
 
@@ -566,6 +567,7 @@ Config can be one of:
 - [ObjectConfig](#objectconfig) - configuration of object format
 - [ArrayConfig](#arrayconfig) - configuration of array format
 - [BaseField](#basefield) - configuration of single/generated field 
+- IsArray - bool[false] - force indicate that field is array(usable in case of [model field](#model-field) with [base field](#basefield))
 
 Example:
 ```json

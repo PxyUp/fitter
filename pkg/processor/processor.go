@@ -64,7 +64,7 @@ func (p *processor) Process(input builder.Jsonable) (*parser.ParseResult, error)
 	result, err := p.engine.Get(p.model, nil, nil, input)
 	if p.notifier != nil {
 		isArray := false
-		if p.model.ArrayConfig != nil {
+		if p.model.ArrayConfig != nil || p.model.IsArray {
 			isArray = true
 		}
 		if p.notifierCfg != nil {
