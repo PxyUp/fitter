@@ -52,7 +52,7 @@ func (s *scheduler) Run(updates chan<- *Message) {
 
 		updates <- &Message{
 			Name:  s.name,
-			Value: builder.Int(int(time.Now().Sub(startTime).Seconds())),
+			Value: builder.Int(int(time.Since(startTime).Seconds())),
 		}
 
 		for {
