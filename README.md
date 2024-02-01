@@ -1077,7 +1077,7 @@ Examples:
 6. {{{RefName=SomeName json.path}}} - get [reference](#references) value by name and extract value by json path. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L67)
 7. {{{FromEnv=ENV_KEY}}} - get value from environment variable
 8. {{{FromExp=fRes + 5 + fIndex}}} - get value from the [expression](https://github.com/expr-lang/expr). [Predefined values](#predefined-values)  
-9. {{{FromInput=.}}} || {{{FromInput=json.path}}} - get value from input of trigger or library
+9. {{{FromInput=.}}} or {{{FromInput=json.path}}} - get value from input of trigger or library
 
 Examples:
 ```text
