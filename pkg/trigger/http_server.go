@@ -19,7 +19,6 @@ type httpServer struct {
 
 	serverCfg *config.HttpServerCfg
 	logger    logger.Logger
-	name      string
 }
 
 func (s *httpServer) WithLogger(logger logger.Logger) *httpServer {
@@ -61,7 +60,7 @@ func (s *httpServer) Run(updates chan<- *Message) {
 		go func(name string, value json.RawMessage) {
 			updates <- &Message{
 				Name:  name,
-				Value: builder.PureString(string(msg)),
+				Value: builder.PureString(string(value)),
 			}
 		}(n, msg)
 		c.Status(http.StatusOK)
