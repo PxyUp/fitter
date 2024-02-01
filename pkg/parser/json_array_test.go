@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -39,7 +40,7 @@ func (s *JsonV2ArraySuite) SetupTest() {
 func (s *JsonV2ArraySuite) TestFileConnector() {
 	body, err := connectors.NewFile(&config.FileConnectorConfig{
 		Path: "json_example_array.json",
-	}).Get(nil, nil)
+	}).Get(nil, nil, nil)
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), s.body, body)
 }
@@ -60,11 +61,21 @@ func (s *JsonV2ArraySuite) Test_ParseSimpleObject() {
 						Path: "1.address",
 					},
 				},
+				"address_3": {
+					BaseField: &config.BaseField{
+						Type: config.String,
+						Generated: &config.GeneratedFieldConfig{
+							Formatted: &config.FormattedFieldConfig{
+								Template: "{{{FromInput=.}}}",
+							},
+						},
+					},
+				},
 			},
 		},
-	})
+	}, builder.Int(55))
 	assert.NoError(s.T(), err)
-	assert.JSONEq(s.T(), "{\"address_1\": \"433 Bennet Court, Manchester, Rhode Island, 6346\",\"address_2\": \"472 Cheever Place, Spelter, New Jersey, 5250\"}\n", res.ToJson())
+	assert.JSONEq(s.T(), "{\"address_1\": \"433 Bennet Court, Manchester, Rhode Island, 6346\",\"address_2\": \"472 Cheever Place, Spelter, New Jersey, 5250\", \"address_3\": \"55\"}\n", res.ToJson())
 }
 
 func (s *JsonV2ArraySuite) Test_ReturnNestedArray_Concat() {
@@ -78,7 +89,7 @@ func (s *JsonV2ArraySuite) Test_ReturnNestedArray_Concat() {
 				},
 			},
 		},
-	})
+	}, nil)
 
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[215,692,257,623,172,567,960,924,857,292,357,695,315,279,336,594,821,791]\n", res.ToJson())
@@ -95,7 +106,7 @@ func (s *JsonV2ArraySuite) Test_ReturnSimpleArray_Concat() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"veniam\",\"nostrud\",\"elit\",\"consequat\",\"mollit\",\"pariatur\",\"proident\",\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]\n", res.ToJson())
 }
@@ -111,7 +122,7 @@ func (s *JsonV2ArraySuite) Test_ReturnSimpleArray() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"nolanlester@qimonk.com\",\"hendersongonzales@megall.com\"]", res.ToJson())
 }
@@ -132,7 +143,7 @@ func (s *JsonV2ArraySuite) Test_ReturnSimpleArray_Index() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"EMAIL: nolanlester@qimonk.com INDEX: 0\",\"EMAIL: hendersongonzales@megall.com INDEX: 1\"]\n", res.ToJson())
 }
@@ -152,7 +163,7 @@ func (s *JsonV2ArraySuite) Test_ReturnSimpleArrayOfArray() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[[\"veniam\",\"nostrud\",\"elit\",\"consequat\",\"mollit\",\"pariatur\",\"proident\"],[\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"]]\n", res.ToJson())
 }
@@ -187,7 +198,7 @@ func (s *JsonV2ArraySuite) Test_ReturnNestedArray() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[{\"name\": \"Nolan Lester\",\"meals\": [{\"my_price\": 215},{\"my_price\": 692},{\"my_price\": 257}]},{\"name\": \"Henderson Gonzales\",\"meals\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}]}]\n", res.ToJson())
 }
@@ -268,7 +279,7 @@ func (s *JsonV2ArraySuite) Test_ParseNestedObject() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "{\"player\": {\"null\": null,\"latitude\": 44.823498,\"player_meal\": [{\"my_price\": 315},{\"my_price\": 279},{\"my_price\": 336}],\"name\": \"Nolan Lester\",\"isActive\": false},\"tags\": [\"tempor\",\"magna\",\"ullamco\",\"Lorem\",\"sunt\",\"irure\",\"et\"],\"player_meal\": [{\"my_price\": 292},{\"my_price\": 357},{\"my_price\": 695}]}\n", res.ToJson())
 }

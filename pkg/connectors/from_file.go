@@ -14,8 +14,8 @@ type fileConnector struct {
 	logger logger.Logger
 }
 
-func (j *fileConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
-	file, err := os.Open(utils.Format(j.cfg.Path, parsedValue, index))
+func (j *fileConnector) Get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) ([]byte, error) {
+	file, err := os.Open(utils.Format(j.cfg.Path, parsedValue, index, input))
 	if err != nil {
 		j.logger.Errorw("cant open file", "error", err.Error())
 		return nil, err
@@ -34,7 +34,7 @@ func (j *fileConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte
 		return body, nil
 	}
 
-	return []byte(utils.Format(string(body), parsedValue, index)), nil
+	return []byte(utils.Format(string(body), parsedValue, index, input)), nil
 }
 
 func NewFile(cfg *config.FileConnectorConfig) *fileConnector {

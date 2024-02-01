@@ -44,7 +44,7 @@ func (s *StaticArraySuite) Test_JSON_Custom_Length() {
 				Length: 3,
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"Page: 0\",null,null]", res.ToJson())
 }
@@ -67,7 +67,7 @@ func (s *StaticArraySuite) Test_HTML_Custom_Length() {
 				Length: 3,
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"Page: 0\",null,null]", res.ToJson())
 }
@@ -90,7 +90,7 @@ func (s *StaticArraySuite) Test_XPATH_Custom_Length() {
 				Length: 3,
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"Page: 0\",null,null]", res.ToJson())
 }
@@ -130,7 +130,7 @@ func (s *StaticArraySuite) Test_JSON() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"Page: 0\",\"Page: 1\",\"Page: 2\"]\n", res.ToJson())
 }
@@ -170,7 +170,7 @@ func (s *StaticArraySuite) Test_HTML() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"Page: 0\",\"Page: 1\",\"Page: 2\"]\n", res.ToJson())
 }
@@ -210,7 +210,7 @@ func (s *StaticArraySuite) Test_XPATH() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"Page: 0\",\"Page: 1\",\"Page: 2\"]\n", res.ToJson())
 }
@@ -250,7 +250,7 @@ func (s *StaticArraySuite) Test_JSON_HUMAN() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"Page: 1\",\"Page: 2\",\"Page: 3\"]\n", res.ToJson())
 }
@@ -290,7 +290,7 @@ func (s *StaticArraySuite) Test_HTML_HUMAN() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"Page: 1\",\"Page: 2\",\"Page: 3\"]\n", res.ToJson())
 }
@@ -330,7 +330,7 @@ func (s *StaticArraySuite) Test_XPATH_HUMAN() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"Page: 1\",\"Page: 2\",\"Page: 3\"]\n", res.ToJson())
 }

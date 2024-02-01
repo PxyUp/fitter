@@ -21,7 +21,7 @@ var (
 )
 
 type Engine interface {
-	Get(model *config.Model, parsedValue builder.Jsonable, index *uint32) (*ParseResult, error)
+	Get(model *config.Model, parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) (*ParseResult, error)
 }
 
 type engine struct {
@@ -33,21 +33,21 @@ type engine struct {
 type null struct {
 }
 
-func (n *null) Get(model *config.Model, parsedValue builder.Jsonable, index *uint32) (*ParseResult, error) {
+func (n *null) Get(model *config.Model, parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) (*ParseResult, error) {
 	return nil, errInvalid
 }
 
-func (e *engine) Get(model *config.Model, parsedValue builder.Jsonable, index *uint32) (*ParseResult, error) {
+func (e *engine) Get(model *config.Model, parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) (*ParseResult, error) {
 	if model == nil {
 		return nil, errMissingModelConfig
 	}
-	body, err := e.connector.Get(parsedValue, index)
+	body, err := e.connector.Get(parsedValue, index, input)
 	if err != nil {
 		e.logger.Errorw("connector return error during fetch data", "error", err.Error())
 		return nil, err
 	}
 	e.logger.Debugw("connector answer", "content", string(body))
-	return e.parser(body, e.logger).Parse(model)
+	return e.parser(body, e.logger).Parse(model, input)
 }
 
 func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {

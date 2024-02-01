@@ -41,7 +41,7 @@ func (s *NewXMLSuite) Test_Return_BaseField_String() {
 			Type: config.String,
 			Path: "/breakfast_menu/food/name",
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "\"Belgian Waffles\"", res.ToJson())
 }
@@ -58,7 +58,7 @@ func (s *NewXMLSuite) Test_Return_BaseField_Calculated() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "652", res.ToJson())
 }
@@ -69,7 +69,7 @@ func (s *NewXMLSuite) Test_Return_BaseField_Number() {
 			Type: config.Int,
 			Path: "/breakfast_menu/food/calories",
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "650", res.ToJson())
 }
@@ -99,7 +99,7 @@ func (s *NewXMLSuite) Test_StaticArray() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "[\"Belgian Waffles\",{\"intro\": \"Light Belgian waffles covered with strawberries and whipped cream\"}]", res.ToJson())
 }
@@ -121,7 +121,7 @@ func (s *NewXMLSuite) Test_ReturnSimpleArray() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "{\"menu\": [\"Belgian Waffles\",\"Strawberry Belgian Waffles\",\"Berry-Berry Belgian Waffles\",\"French Toast\",\"Homestyle Breakfast\"]}\n", res.ToJson())
 }
@@ -152,7 +152,7 @@ func (s *NewXMLSuite) Test_ReturnSimpleArrayOfArray_Index() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "{\"menu\": [[\"1 0\",\"4 1\"],[\"1 0\",\"3 1\"],[\"1 0\",\"5 1\"],[\"1 0\",\"6 1\"],[\"1 0\",\"7 1\"]]}\n", res.ToJson())
 }

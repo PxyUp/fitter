@@ -22,29 +22,35 @@ func TestRun(t *testing.T) {
 }
 
 func (s *TestFormatterSuite) TestInvalidValue() {
-	assert.Equal(s.T(), "", utils.Format("{{{asfasf}}}", nil, nil))
-	assert.Equal(s.T(), "", utils.Format("{{{asfasf", nil, nil))
-	assert.Equal(s.T(), "", utils.Format("{{{FromEnv=", nil, nil))
-	assert.Equal(s.T(), "FromEnv=}}}test", utils.Format("FromEnv=}}}test", nil, nil))
-	assert.Equal(s.T(), "FromEnv=}}}testFromEnv=}}}test", utils.Format("FromEnv=}}}testFromEnv=}}}test", nil, nil))
+	assert.Equal(s.T(), "", utils.Format("{{{asfasf}}}", nil, nil, nil))
+	assert.Equal(s.T(), "", utils.Format("{{{asfasf", nil, nil, nil))
+	assert.Equal(s.T(), "", utils.Format("{{{FromEnv=", nil, nil, nil))
+	assert.Equal(s.T(), "FromEnv=}}}test", utils.Format("FromEnv=}}}test", nil, nil, nil))
+	assert.Equal(s.T(), "FromEnv=}}}testFromEnv=}}}test", utils.Format("FromEnv=}}}testFromEnv=}}}test", nil, nil, nil))
 }
 
 func (s *TestFormatterSuite) TestDeepFormatter() {
-	assert.Equal(s.T(), "testhello", utils.Format("{{{FromExp=\"{{{FromEnv=TEST_VAL}}}\" + \"hello\"}}}", nil, nil))
+	assert.Equal(s.T(), "testhello", utils.Format("{{{FromExp=\"{{{FromEnv=TEST_VAL}}}\" + \"hello\"}}}", nil, nil, nil))
+}
+
+func (s *TestFormatterSuite) TestInputWithPath() {
+	assert.Equal(s.T(), "3", utils.Format("{{{FromInput=index}}}", nil, nil, builder.Object(map[string]builder.Jsonable{
+		"index": builder.Int(3),
+	})))
 }
 
 func (s *TestFormatterSuite) TestFormatter() {
-	assert.Equal(s.T(), "", utils.Format("", nil, nil))
+	assert.Equal(s.T(), "", utils.Format("", nil, nil, nil))
 
 	index := uint32(8)
-	assert.Equal(s.T(), "TokenRef=my_token and TokenObjectRef=my_token Object=value kek {\"value\": \"value kek\"} Env=test 8 9", utils.Format("TokenRef={{{RefName=TokenRef}}} and TokenObjectRef={{{RefName=TokenObjectRef token}}} Object={{{value}}} {PL} Env={{{FromEnv=TEST_VAL}}} {INDEX} {HUMAN_INDEX}", builder.Object(map[string]builder.Jsonable{
+	assert.Equal(s.T(), "TokenRef=my_token and TokenObjectRef=my_token Object=value kek {\"value\": \"value kek\"} Env=test 8 9 5", utils.Format("TokenRef={{{RefName=TokenRef}}} and TokenObjectRef={{{RefName=TokenObjectRef token}}} Object={{{value}}} {PL} Env={{{FromEnv=TEST_VAL}}} {INDEX} {HUMAN_INDEX} {{{FromInput=.}}}", builder.Object(map[string]builder.Jsonable{
 		"value": builder.String("value kek"),
-	}), &index))
+	}), &index, builder.Int(5)))
 }
 
 func (s *TestFormatterSuite) TestExpr() {
 	index := uint32(1)
-	assert.Equal(s.T(), "8", utils.Format("{{{FromExp=fRes + 5 + fIndex}}}", builder.Int(2), &index))
+	assert.Equal(s.T(), "8", utils.Format("{{{FromExp=fRes + 5 + fIndex}}}", builder.Int(2), &index, nil))
 }
 
 func (s *TestFormatterSuite) TearDownSuite() {
@@ -95,7 +101,7 @@ func (s *TestFormatterSuite) SetupSuite() {
 			},
 		},
 	}, func(_ string, model *config.ModelField) (builder.Jsonable, error) {
-		return parser.NewEngine(model.ConnectorConfig, logger.Null).Get(model.Model, nil, nil)
+		return parser.NewEngine(model.ConnectorConfig, logger.Null).Get(model.Model, nil, nil, nil)
 	})
 	os.Setenv("TEST_VAL", "test")
 }

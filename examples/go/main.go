@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/PxyUp/fitter/lib"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/logger"
 	"log"
 	"net/http"
 )
@@ -46,7 +47,7 @@ func main() {
 				},
 			},
 		},
-	}, nil, nil, nil)
+	}, nil, nil, nil, logger.Null)
 	if err != nil {
 		log.Fatal(err)
 	}

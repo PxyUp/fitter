@@ -2,6 +2,7 @@ package trigger
 
 import (
 	"context"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"time"
@@ -32,7 +33,7 @@ func (s *scheduler) WithLogger(logger logger.Logger) *scheduler {
 	return s
 }
 
-func (s *scheduler) Run(updates chan<- string) {
+func (s *scheduler) Run(updates chan<- *Message) {
 	if s.ctx != nil {
 		return
 	}
@@ -47,15 +48,23 @@ func (s *scheduler) Run(updates chan<- string) {
 			return
 		}
 
-		updates <- s.name
+		startTime := time.Now()
+
+		updates <- &Message{
+			Name:  s.name,
+			Value: builder.Int(int(time.Now().Sub(startTime).Seconds())),
+		}
 
 		for {
 			select {
 			case <-localCtx.Done():
 				s.logger.Infof("stop scheduler trigger %s", s.name)
 				return
-			case <-time.After(time.Duration(s.cfg.Interval) * time.Second):
-				updates <- s.name
+			case val := <-time.After(time.Duration(s.cfg.Interval) * time.Second):
+				updates <- &Message{
+					Name:  s.name,
+					Value: builder.Int(int(val.Sub(startTime).Seconds())),
+				}
 				s.logger.Infof("send scheduled trigger for %s", s.name)
 			}
 		}

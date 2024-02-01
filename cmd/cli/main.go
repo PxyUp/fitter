@@ -6,10 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"github.com/PxyUp/fitter/lib"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/atotto/clipboard"
+	"github.com/tidwall/gjson"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
@@ -50,6 +52,7 @@ func main() {
 	omitPrettyErrorFlag := flag.Bool("omit-error-pretty", false, "Provide pure value if pretty is invalid")
 	pluginsFlag := flag.String("plugins", "", "Provide plugins folder")
 	logLevel := flag.String("log-level", "info", "Level for logger")
+	inputFlag := flag.String("input", "", "Input for model")
 	flag.Parse()
 
 	log := logger.Null
@@ -66,7 +69,7 @@ func main() {
 	}
 
 	cfg := getConfig(*filePath)
-	res, err := lib.Parse(cfg.Item, cfg.Limits, cfg.References, log)
+	res, err := lib.Parse(cfg.Item, cfg.Limits, cfg.References, builder.PureString(gjson.Parse(*inputFlag).String()), log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return

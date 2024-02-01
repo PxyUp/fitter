@@ -163,7 +163,7 @@ func (s *ModelFieldParserSuite) SetupSuite() {
 			},
 		},
 	}, func(_ string, model *config.ModelField) (builder.Jsonable, error) {
-		return parser.NewEngine(model.ConnectorConfig, logger.Null).Get(model.Model, nil, nil)
+		return parser.NewEngine(model.ConnectorConfig, logger.Null).Get(model.Model, nil, nil, nil)
 	})
 }
 
@@ -214,7 +214,7 @@ func (s *ModelFieldParserSuite) TestModelExpression() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), `false`, res.ToJson())
 }
@@ -228,7 +228,7 @@ func (s *ModelFieldParserSuite) TestReferenceFormat() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), `"My token my_token"`, res.ToJson())
 }
@@ -260,7 +260,7 @@ func (s *ModelFieldParserSuite) TestReferenceFormatArray() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), `[null, "My token my_token", null, "My token my_token"]`, res.ToJson())
 }
@@ -274,7 +274,7 @@ func (s *ModelFieldParserSuite) TestReferenceObjectFormat() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), `"My token my_token"`, res.ToJson())
 }
@@ -288,7 +288,7 @@ func (s *ModelFieldParserSuite) TestReference_NotFound() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), `"My token "`, res.ToJson())
 }
@@ -319,7 +319,7 @@ func (s *ModelFieldParserSuite) TestReferenceConnectorObject() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), `"My token my_token"`, res.ToJson())
 }
@@ -349,7 +349,7 @@ func (s *ModelFieldParserSuite) TestReferenceConnector() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), `"My token my_token"`, res.ToJson())
 }
@@ -369,7 +369,7 @@ func (s *ModelFieldParserSuite) TestFile() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), fmt.Sprintf(`"%s"`, path.Join(s.tmpFilePath, fileName)), res.ToJson())
 	assert.FileExists(s.T(), path.Join(s.tmpFilePath, fileName))
@@ -395,7 +395,7 @@ func (s *ModelFieldParserSuite) TestFile_NotExistingDir() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), fmt.Sprintf(`"%s"`, path.Join(s.notExistingTempDir, fileName)), res.ToJson())
 	assert.FileExists(s.T(), path.Join(s.notExistingTempDir, fileName))
@@ -420,7 +420,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelField_Formating() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), `["From: 2023-07-10 To: 2023-07-14","From: 2023-07-11 To: 2023-07-15","From: 2023-07-07 To: 2023-07-11","From: 2023-07-06 To: 2023-07-12"]`, res.ToJson())
 }
@@ -573,7 +573,7 @@ func (s *ModelFieldParserSuite) TestJSONObject_ModelFieldFetching() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "{\"codes\": [{\"neighbour\": [{\"code\": 10102,\"population\": 1010210102},{\"population\": 1010010100,\"code\": 10100}],\"population\": 1010110101,\"code\": 10101,\"title\": \"Here 10101\"},{\"population\": 1010210102,\"code\": 10102,\"title\": \"Here 10102\",\"neighbour\": [{\"population\": 1010110101,\"code\": 10101},{\"code\": 10103,\"population\": 1010310103}]}]}\n", res.ToJson())
 }
@@ -726,7 +726,7 @@ func (s *ModelFieldParserSuite) TestJSONArray_ModelFieldFetching() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "{\"codes\": [{\"neighbour\": [{\"code\": 10102,\"population\": 1010210102},{\"population\": 1010010100,\"code\": 10100}],\"population\": 1010110101,\"code\": 10101,\"title\": \"Here 10101\"},{\"population\": 1010210102,\"code\": 10102,\"title\": \"Here 10102\",\"neighbour\": [{\"population\": 1010110101,\"code\": 10101},{\"code\": 10103,\"population\": 1010310103}]}]}\n", res.ToJson())
 }
@@ -879,7 +879,7 @@ func (s *ModelFieldParserSuite) TestHTML_ModelFieldFetching() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "{\"codes\": [{\"neighbour\": [{\"code\": 10102,\"population\": 1010210102},{\"population\": 1010010100,\"code\": 10100}],\"population\": 1010110101,\"code\": 10101,\"title\": \"Here 10101\"},{\"population\": 1010210102,\"code\": 10102,\"title\": \"Here 10102\",\"neighbour\": [{\"population\": 1010110101,\"code\": 10101},{\"code\": 10103,\"population\": 1010310103}]}]}\n", res.ToJson())
 }
@@ -1032,7 +1032,7 @@ func (s *ModelFieldParserSuite) TestXPath_ModelFieldFetching() {
 				},
 			},
 		},
-	})
+	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "{\"codes\": [{\"neighbour\": [{\"code\": 10102,\"population\": 1010210102},{\"population\": 1010010100,\"code\": 10100}],\"population\": 1010110101,\"code\": 10101,\"title\": \"Here 10101\"},{\"population\": 1010210102,\"code\": 10102,\"title\": \"Here 10102\",\"neighbour\": [{\"population\": 1010110101,\"code\": 10101},{\"code\": 10103,\"population\": 1010310103}]}]}\n", res.ToJson())
 }

@@ -20,7 +20,7 @@ var (
 	errNoDriver          = errors.New("empty playwright driver")
 )
 
-func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue builder.Jsonable, index *uint32, logger logger.Logger) ([]byte, error) {
+func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue builder.Jsonable, index *uint32, input builder.Jsonable, logger logger.Logger) ([]byte, error) {
 	if instanceLimit := limitter.PlaywrightLimiter(); instanceLimit != nil {
 		errInstance := instanceLimit.Acquire(ctx, 1)
 		if errInstance != nil {
@@ -91,13 +91,13 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue bui
 		if cfg.Proxy != nil {
 			proxy := &playwright.BrowserTypeLaunchOptionsProxy{}
 			if cfg.Proxy.Server != "" {
-				proxy.Server = utils.String(utils.Format(cfg.Proxy.Server, parsedValue, index))
+				proxy.Server = utils.String(utils.Format(cfg.Proxy.Server, parsedValue, index, input))
 			}
 			if cfg.Proxy.Username != "" {
-				proxy.Username = utils.String(utils.Format(cfg.Proxy.Username, parsedValue, index))
+				proxy.Username = utils.String(utils.Format(cfg.Proxy.Username, parsedValue, index, input))
 			}
 			if cfg.Proxy.Password != "" {
-				proxy.Password = utils.String(utils.Format(cfg.Proxy.Password, parsedValue, index))
+				proxy.Password = utils.String(utils.Format(cfg.Proxy.Password, parsedValue, index, input))
 			}
 			logger.Debugw("set proxy", "server", cfg.Proxy.Server, "username", cfg.Proxy.Username, "password", cfg.Proxy.Password)
 			opts = append(opts, playwright.BrowserTypeLaunchOptions{
@@ -170,7 +170,7 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue bui
 		}
 
 		if cfg.PreRunScript != "" {
-			_, err = page.Evaluate(utils.Format(cfg.PreRunScript, parsedValue, index))
+			_, err = page.Evaluate(utils.Format(cfg.PreRunScript, parsedValue, index, input))
 			if err != nil {
 				logger.Errorw("could execute script on page", "error", err.Error(), "script", cfg.PreRunScript)
 				return

@@ -31,7 +31,7 @@ var (
 type Factory func([]byte, logger.Logger) Parser
 
 type Parser interface {
-	Parse(model *config.Model) (*ParseResult, error)
+	Parse(model *config.Model, input builder.Jsonable) (*ParseResult, error)
 }
 
 var (
@@ -55,8 +55,8 @@ func (p *ParseResult) ToJson() string {
 	return p.Json
 }
 
-func getExpressionResult(expr string, fieldType config.FieldType, value builder.Jsonable, index *uint32, logger logger.Logger) builder.Jsonable {
-	res, err := utils.ProcessExpression(expr, value, index)
+func getExpressionResult(expr string, fieldType config.FieldType, value builder.Jsonable, index *uint32, input builder.Jsonable, logger logger.Logger) builder.Jsonable {
+	res, err := utils.ProcessExpression(expr, value, index, input)
 	if err != nil {
 		logger.Errorw("error during process calculated field", "error", err.Error())
 		return builder.NullValue
@@ -68,7 +68,7 @@ func getExpressionResult(expr string, fieldType config.FieldType, value builder.
 	})
 }
 
-func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldType, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable {
+func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldType, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32, input builder.Jsonable) builder.Jsonable {
 	if fieldType == config.String {
 		parsedValue = builder.PureString(parsedValue.ToJson())
 	}
@@ -78,7 +78,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 	}
 
 	if field.File != nil {
-		filePath, err := ProcessFileField(parsedValue, index, field.File, logger)
+		filePath, err := ProcessFileField(parsedValue, index, input, field.File, logger)
 		if err != nil {
 			logger.Errorw("error during process file field", "error", err.Error())
 			return builder.NullValue
@@ -87,7 +87,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 	}
 
 	if field.Calculated != nil && field.Calculated.Expression != "" {
-		return getExpressionResult(field.Calculated.Expression, field.Calculated.Type, parsedValue, index, logger)
+		return getExpressionResult(field.Calculated.Expression, field.Calculated.Type, parsedValue, index, input, logger)
 	}
 
 	if field.Static != nil {
@@ -95,24 +95,24 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 	}
 
 	if field.Formatted != nil {
-		return builder.String(utils.Format(field.Formatted.Template, parsedValue, index), false)
+		return builder.String(utils.Format(field.Formatted.Template, parsedValue, index, input), false)
 	}
 
 	if field.Plugin != nil {
-		return store.Store.GetFieldPlugin(field.Plugin.Name, logger).Format(parsedValue, field.Plugin, logger.With("plugin", field.Plugin.Name), index)
+		return store.Store.GetFieldPlugin(field.Plugin.Name, logger).Format(parsedValue, field.Plugin, logger.With("plugin", field.Plugin.Name), index, input)
 	}
 
 	if field.Model != nil {
 		if field.Model.Model == nil {
 			return builder.NullValue
 		}
-		result, err := NewEngine(field.Model.ConnectorConfig, logger.With("component", "engine")).Get(field.Model.Model, parsedValue, index)
+		result, err := NewEngine(field.Model.ConnectorConfig, logger.With("component", "engine")).Get(field.Model.Model, parsedValue, index, input)
 		if err != nil {
 			return builder.NullValue
 		}
 
 		if field.Model.Expression != "" {
-			return getExpressionResult(field.Model.Expression, field.Model.Type, result, index, logger)
+			return getExpressionResult(field.Model.Expression, field.Model.Type, result, index, input, logger)
 		}
 
 		if field.Model.Type == config.Array || field.Model.Type == config.Object {

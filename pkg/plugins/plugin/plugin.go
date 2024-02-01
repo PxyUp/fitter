@@ -8,7 +8,7 @@ import (
 )
 
 type FieldPlugin interface {
-	Format(parsedValue builder.Jsonable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32) builder.Jsonable
+	Format(parsedValue builder.Jsonable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32, input builder.Jsonable) builder.Jsonable
 }
 
 type ConnectorPlugin interface {

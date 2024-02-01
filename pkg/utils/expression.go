@@ -31,10 +31,10 @@ func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint3
 	return kv
 }
 
-func ProcessExpression(expression string, result builder.Jsonable, index *uint32) (interface{}, error) {
+func ProcessExpression(expression string, result builder.Jsonable, index *uint32, input builder.Jsonable) (interface{}, error) {
 	env := extendEnv(defEnv, result, index)
 
-	program, err := expr.Compile(Format(expression, result, index), expr.Env(env))
+	program, err := expr.Compile(Format(expression, result, index, input), expr.Env(env))
 	if err != nil {
 		return false, err
 	}

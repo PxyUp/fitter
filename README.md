@@ -77,7 +77,7 @@ func main() {
 				},
 			},
 		},
-	}, nil, nil, nil)
+	}, nil, nil, nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -129,6 +129,7 @@ go run cmd/cli/main.go --path=./examples/cli/config_cli.json
 5. **--omit-error-pretty** - bool[false] -  Provide pure value if pretty is invalid
 6. **--plugins** - string[""] - [path for plugins for Fitter](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md)
 7. **--log-level** - enum["info", "error", "debug", "fatal"] - set log level(only if verbose set to true)
+8. **--input** - string[""] - specify input value for [formatting](#placeholder-list). Examples: `--input=\""124"\"` `--input=124` `--input='{"test": 5}'`
 
 ```bash
 ./fitter_cli_${VERSION} --path=./examples/cli/config_cli.json --copy=true
@@ -263,7 +264,7 @@ type plugin struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func (pl *plugin) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
+func (pl *plugin) Get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) ([]byte, error) {
 	return []byte(fmt.Sprintf(`{"name": "%s"}`, pl.Name)), nil
 }
 
@@ -1076,6 +1077,7 @@ Examples:
 6. {{{RefName=SomeName json.path}}} - get [reference](#references) value by name and extract value by json path. [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L67)
 7. {{{FromEnv=ENV_KEY}}} - get value from environment variable
 8. {{{FromExp=fRes + 5 + fIndex}}} - get value from the [expression](https://github.com/expr-lang/expr). [Predefined values](#predefined-values)  
+9. {{{FromInput=.}}} || {{{FromInput=json.path}}} - get value from input of trigger or library
 
 Examples:
 ```text

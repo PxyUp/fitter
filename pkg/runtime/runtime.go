@@ -2,15 +2,11 @@ package runtime
 
 import (
 	"context"
-	"fmt"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/registry"
 	"github.com/PxyUp/fitter/pkg/trigger"
-	"github.com/gin-gonic/gin"
-	"log"
-	"net/http"
-	"time"
 )
 
 type runtime struct {
@@ -28,7 +24,7 @@ func New(ctx context.Context, cfg *config.Config, logger logger.Logger) *runtime
 }
 
 func (r *runtime) Start() {
-	updates := make(chan string)
+	updates := make(chan *trigger.Message)
 	r.createRunTime(updates)
 	r.runScheduler(updates)
 	r.runHTTPServer(updates)
@@ -36,7 +32,7 @@ func (r *runtime) Start() {
 	close(updates)
 }
 
-func (r *runtime) createRunTime(updates <-chan string) {
+func (r *runtime) createRunTime(updates <-chan *trigger.Message) {
 	reg := registry.NewFromConfig(r.cfg, r.logger.With("registry", "runtime"))
 	go func() {
 		for {
@@ -45,16 +41,16 @@ func (r *runtime) createRunTime(updates <-chan string) {
 				return
 			case n := <-updates:
 				lName := n
-				go func(name string) {
+				go func(name string, value builder.Jsonable) {
 					r.logger.Infow("new trigger comes", "name", name)
-					_, _ = reg.Get(name).Process()
-				}(lName)
+					_, _ = reg.Get(name).Process(value)
+				}(lName.Name, lName.Value)
 			}
 		}
 	}()
 }
 
-func (r *runtime) runHTTPServer(updates chan<- string) {
+func (r *runtime) runHTTPServer(updates chan<- *trigger.Message) {
 	needRun := false
 	for _, item := range r.cfg.Items {
 		if item.TriggerConfig != nil && item.TriggerConfig.HTTPTrigger != nil {
@@ -66,46 +62,17 @@ func (r *runtime) runHTTPServer(updates chan<- string) {
 	if !needRun {
 		return
 	}
-	if r.cfg.HttpServer == nil || r.cfg.HttpServer.Port == 0 {
-		log.Fatalf("port for http server not setup")
-		return
-	}
-	gin.SetMode(gin.ReleaseMode)
-	engine := gin.New()
-	engine.Use(gin.Recovery())
-	port := fmt.Sprintf(":%d", r.cfg.HttpServer.Port)
-	path := "/trigger/:name"
-	engine.POST(path, func(c *gin.Context) {
-		n := c.Param("name")
-		go func(name string) {
-			updates <- name
-		}(n)
-		c.Status(http.StatusOK)
-	})
 
-	srv := &http.Server{
-		Addr:    port,
-		Handler: engine,
-	}
+	serverRun := trigger.HttpServer(r.ctx, r.cfg.HttpServer).WithLogger(r.logger.With("scheduler_type", "http_server"))
+	serverRun.Run(updates)
 	go func() {
 		<-r.ctx.Done()
-		r.logger.Debug("starting graceful shutdown for http_server")
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-		_ = srv.Shutdown(ctx)
-		r.logger.Debug("graceful shutdown done for http_server")
+		serverRun.Stop()
+	}()
 
-	}()
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %s\n", err)
-		}
-	}()
-	r.logger.Infow("start http server...", "port", port)
-	r.logger.Infow("you send POST request for trigger", "path", path)
 }
 
-func (r *runtime) runScheduler(updates chan<- string) {
+func (r *runtime) runScheduler(updates chan<- *trigger.Message) {
 	for _, item := range r.cfg.Items {
 		if item.TriggerConfig != nil && item.TriggerConfig.SchedulerTrigger != nil {
 			localTrigger := trigger.Scheduler(r.ctx, item.Name, item.TriggerConfig.SchedulerTrigger).WithLogger(r.logger.With("scheduler_name", item.Name))

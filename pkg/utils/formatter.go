@@ -19,9 +19,10 @@ const (
 	refNamePrefix         = "RefName="
 	envNamePrefix         = "FromEnv="
 	exprNamePrefix        = "FromExp="
+	inputNamePrefix       = "FromInput="
 )
 
-func Format(str string, value builder.Jsonable, index *uint32) string {
+func Format(str string, value builder.Jsonable, index *uint32, input builder.Jsonable) string {
 	if len(str) == 0 {
 		return str
 	}
@@ -38,10 +39,24 @@ func Format(str string, value builder.Jsonable, index *uint32) string {
 		str = strings.ReplaceAll(str, humanIndexPlaceHolder, fmt.Sprintf("%d", *index+1))
 	}
 
-	return formatJsonPathString(str, value, index)
+	return formatJsonPathString(str, value, index, input)
 }
 
-func processPrefix(prefix string, value builder.Jsonable, index *uint32) string {
+func processPrefix(prefix string, value builder.Jsonable, index *uint32, input builder.Jsonable) string {
+	if strings.HasPrefix(prefix, inputNamePrefix) {
+		path := strings.TrimPrefix(prefix, inputNamePrefix)
+		tmp := ""
+		if input != nil {
+			if path == "" || path == "." {
+				tmp = html.UnescapeString(gjson.Parse(input.ToJson()).String())
+			} else {
+				tmp = gjson.Parse(html.UnescapeString(input.ToJson())).Get(path).String()
+			}
+		}
+
+		return builder.PureString(tmp).ToJson()
+	}
+
 	if strings.HasPrefix(prefix, refNamePrefix) {
 		refValue := strings.Split(strings.TrimPrefix(prefix, refNamePrefix), " ")
 		tmp := ""
@@ -56,7 +71,7 @@ func processPrefix(prefix string, value builder.Jsonable, index *uint32) string 
 	}
 
 	if strings.HasPrefix(prefix, exprNamePrefix) {
-		raw, err := ProcessExpression(strings.TrimPrefix(prefix, exprNamePrefix), value, index)
+		raw, err := ProcessExpression(strings.TrimPrefix(prefix, exprNamePrefix), value, index, input)
 		tmp := ""
 		if err == nil {
 			tmp = fmt.Sprintf("%v", raw)
@@ -77,7 +92,7 @@ func processPrefix(prefix string, value builder.Jsonable, index *uint32) string 
 	return gjson.Parse(value.ToJson()).Get(prefix).String()
 }
 
-func formatJsonPathString(str string, value builder.Jsonable, index *uint32) string {
+func formatJsonPathString(str string, value builder.Jsonable, index *uint32, input builder.Jsonable) string {
 	runes := []rune(str)
 	stack := []string{
 		"",
@@ -88,7 +103,7 @@ func formatJsonPathString(str string, value builder.Jsonable, index *uint32) str
 		last := stack[len(stack)-1]
 
 		if len(stack) > 1 && strings.HasSuffix(last, jsonPathEnd) {
-			tmp := processPrefix(strings.TrimSuffix(last, jsonPathEnd), value, index)
+			tmp := processPrefix(strings.TrimSuffix(last, jsonPathEnd), value, index, input)
 			stack = stack[:len(stack)-1]
 			stack[len(stack)-1] += tmp
 		}

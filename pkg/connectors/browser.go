@@ -26,8 +26,8 @@ func (c *browserConnector) WithLogger(logger logger.Logger) *browserConnector {
 	return c
 }
 
-func (c *browserConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]byte, error) {
-	formattedURL := utils.Format(c.url, parsedValue, index)
+func (c *browserConnector) Get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) ([]byte, error) {
+	formattedURL := utils.Format(c.url, parsedValue, index, input)
 
 	if formattedURL == "" {
 		return nil, errEmpty
@@ -42,7 +42,7 @@ func (c *browserConnector) Get(parsedValue builder.Jsonable, index *uint32) ([]b
 	}
 
 	if c.cfg.Playwright != nil {
-		return getFromPlaywright(formattedURL, c.cfg.Playwright, parsedValue, index, c.logger.With("emulator", "playwright"))
+		return getFromPlaywright(formattedURL, c.cfg.Playwright, parsedValue, index, input, c.logger.With("emulator", "playwright"))
 	}
 
 	return nil, nil

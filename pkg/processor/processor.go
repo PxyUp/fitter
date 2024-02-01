@@ -16,7 +16,7 @@ var (
 )
 
 type Processor interface {
-	Process() (*parser.ParseResult, error)
+	Process(input builder.Jsonable) (*parser.ParseResult, error)
 }
 
 type processor struct {
@@ -41,7 +41,7 @@ func Null(errs ...error) *nullProcessor {
 	}
 }
 
-func (n *nullProcessor) Process() (*parser.ParseResult, error) {
+func (n *nullProcessor) Process(input builder.Jsonable) (*parser.ParseResult, error) {
 	return nil, n.err
 }
 
@@ -60,8 +60,8 @@ func (p *processor) WithLogger(logger logger.Logger) *processor {
 	return p
 }
 
-func (p *processor) Process() (*parser.ParseResult, error) {
-	result, err := p.engine.Get(p.model, nil, nil)
+func (p *processor) Process(input builder.Jsonable) (*parser.ParseResult, error) {
+	result, err := p.engine.Get(p.model, nil, nil, input)
 	if p.notifier != nil {
 		isArray := false
 		if p.model.ArrayConfig != nil {
@@ -92,11 +92,11 @@ func (p *processor) Process() (*parser.ParseResult, error) {
 
 func CreateProcessor(item *config.Item, refMap config.RefMap, logger logger.Logger) Processor {
 	if item.Name == "" {
-		return Null(errMissingName)
+		return Null(errMissingName, nil)
 	}
 
 	references.SetReference(refMap, func(refName string, model *config.ModelField) (builder.Jsonable, error) {
-		return parser.NewEngine(model.ConnectorConfig, logger.With("reference_name", refName)).Get(model.Model, nil, nil)
+		return parser.NewEngine(model.ConnectorConfig, logger.With("reference_name", refName)).Get(model.Model, nil, nil, nil)
 	})
 
 	var notifierInstance notifier.Notifier

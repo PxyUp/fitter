@@ -36,7 +36,7 @@ var (
 )
 
 func NewTelegramBot(name string, cfg *config.TelegramBotConfig) (*telegramBot, error) {
-	botApi, err := tgbotapi.NewBotAPI(utils.Format(cfg.Token, nil, nil))
+	botApi, err := tgbotapi.NewBotAPI(utils.Format(cfg.Token, nil, nil, nil))
 	if err != nil {
 		return nil, err
 	}

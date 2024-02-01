@@ -26,14 +26,14 @@ func (h *httpNotifier) notify(record *singleRecord) error {
 		return err
 	}
 
-	req, err := http.NewRequest(h.cfg.Method, utils.Format(h.cfg.Url, nil, nil), bytes.NewReader(bb))
+	req, err := http.NewRequest(h.cfg.Method, utils.Format(h.cfg.Url, nil, nil, nil), bytes.NewReader(bb))
 	if err != nil {
 		h.logger.Errorw("cant create request", "error", err.Error())
 		return err
 	}
 
 	for k, v := range h.cfg.Headers {
-		req.Header.Add(k, utils.Format(v, nil, nil))
+		req.Header.Add(k, utils.Format(v, nil, nil, nil))
 	}
 
 	if h.cfg.Timeout > 0 {

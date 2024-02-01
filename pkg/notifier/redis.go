@@ -31,7 +31,7 @@ func (r *redisNotifier) notify(record *singleRecord) error {
 		r.logger.Errorw("cant marshal message", "error", errMars.Error())
 		return errMars
 	}
-	errSend := r.redisClient.Publish(ctx, utils.Format(r.cfg.Channel, nil, nil), msg).Err()
+	errSend := r.redisClient.Publish(ctx, utils.Format(r.cfg.Channel, nil, nil, nil), msg).Err()
 	if errSend != nil {
 		r.logger.Errorw("cant send message", "error", errSend.Error())
 		return errSend
@@ -54,8 +54,8 @@ func NewRedis(name string, cfg *config.RedisNotifierConfig) *redisNotifier {
 		name:   name,
 		cfg:    cfg,
 		redisClient: redis.NewClient(&redis.Options{
-			Addr:     utils.Format(cfg.Addr, nil, nil),
-			Password: utils.Format(cfg.Password, nil, nil),
+			Addr:     utils.Format(cfg.Addr, nil, nil, nil),
+			Password: utils.Format(cfg.Password, nil, nil, nil),
 			DB:       cfg.DB,
 		}),
 	}
