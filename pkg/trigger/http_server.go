@@ -17,8 +17,9 @@ type httpServer struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	serverCfg *config.HttpServerCfg
-	logger    logger.Logger
+	serverCfg     *config.HttpServerCfg
+	logger        logger.Logger
+	ignoreTrigger []string
 }
 
 func (s *httpServer) WithLogger(logger logger.Logger) *httpServer {
@@ -26,13 +27,14 @@ func (s *httpServer) WithLogger(logger logger.Logger) *httpServer {
 	return s
 }
 
-func HttpServer(parentCtx context.Context, serverCfg *config.HttpServerCfg) *httpServer {
+func HttpServer(parentCtx context.Context, serverCfg *config.HttpServerCfg, ignoreTrigger []string) *httpServer {
 	ctx, cancel := context.WithCancel(parentCtx)
 	return &httpServer{
-		serverCfg: serverCfg,
-		ctx:       ctx,
-		cancel:    cancel,
-		logger:    logger.Null,
+		serverCfg:     serverCfg,
+		ctx:           ctx,
+		cancel:        cancel,
+		logger:        logger.Null,
+		ignoreTrigger: ignoreTrigger,
 	}
 }
 
@@ -58,6 +60,13 @@ func (s *httpServer) Run(updates chan<- *Message) {
 
 		n := c.Param("name")
 		go func(name string, value json.RawMessage) {
+			for _, v := range s.ignoreTrigger {
+				if v == name {
+					s.logger.Debugw("ignoring trigger", "name", v)
+					return
+				}
+			}
+
 			updates <- &Message{
 				Name:  name,
 				Value: builder.PureString(string(value)),

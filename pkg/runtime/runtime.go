@@ -52,10 +52,12 @@ func (r *runtime) createRunTime(updates <-chan *trigger.Message) {
 
 func (r *runtime) runHTTPServer(updates chan<- *trigger.Message) {
 	needRun := false
+	forIgnore := []string{}
 	for _, item := range r.cfg.Items {
 		if item.TriggerConfig != nil && item.TriggerConfig.HTTPTrigger != nil {
 			needRun = true
-			break
+		} else {
+			forIgnore = append(forIgnore, item.Name)
 		}
 	}
 
@@ -63,7 +65,7 @@ func (r *runtime) runHTTPServer(updates chan<- *trigger.Message) {
 		return
 	}
 
-	serverRun := trigger.HttpServer(r.ctx, r.cfg.HttpServer).WithLogger(r.logger.With("scheduler_type", "http_server"))
+	serverRun := trigger.HttpServer(r.ctx, r.cfg.HttpServer, forIgnore).WithLogger(r.logger.With("scheduler_type", "http_server"))
 	serverRun.Run(updates)
 	go func() {
 		<-r.ctx.Done()
