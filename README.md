@@ -612,6 +612,8 @@ Configuration of the array and fields
 ```go
 type ArrayConfig struct {
     RootPath    string        `json:"root_path" yaml:"root_path"`
+    Reverse     bool          `yaml:"reverse" json:"reverse"`
+    
     ItemConfig  *ObjectConfig `json:"item_config" yaml:"item_config"`
     LengthLimit uint32        `json:"length_limit" yaml:"length_limit"`
     
@@ -620,6 +622,7 @@ type ArrayConfig struct {
 ```
 
 - RootPath - selector for find root element of the array or repeated element in case of html parsing, size of array will be amount of children element under the root
+- Reverse - bool[false] - indicate that need use reverse iteration(n to 1)
 - LengthLimit - for define size of array only for generated(not working for static)
 
 Config can be one of:

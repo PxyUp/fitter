@@ -156,3 +156,36 @@ func (s *NewXMLSuite) Test_ReturnSimpleArrayOfArray_Index() {
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "{\"menu\": [[\"1 0\",\"4 1\"],[\"1 0\",\"3 1\"],[\"1 0\",\"5 1\"],[\"1 0\",\"6 1\"],[\"1 0\",\"7 1\"]]}\n", res.ToJson())
 }
+
+func (s *NewXMLSuite) Test_ReturnSimpleArrayOfArray_Index_Reverse() {
+	res, err := s.parser.Parse(&config.Model{
+		ObjectConfig: &config.ObjectConfig{
+			Fields: map[string]*config.Field{
+				"menu": {
+					ArrayConfig: &config.ArrayConfig{
+						RootPath: "/breakfast_menu/food",
+						Reverse:  true,
+						ItemConfig: &config.ObjectConfig{
+							ArrayConfig: &config.ArrayConfig{
+								RootPath: "/cla/name",
+								Reverse:  true,
+								ItemConfig: &config.ObjectConfig{
+									Field: &config.BaseField{
+										Type: config.String,
+										Generated: &config.GeneratedFieldConfig{
+											Formatted: &config.FormattedFieldConfig{
+												Template: "{PL} {INDEX}",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}, nil)
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "{\"menu\": [[\"7 0\",\"1 1\"],[\"6 0\",\"1 1\"],[\"5 0\",\"1 1\"],[\"3 0\",\"1 1\"],[\"4 0\",\"1 1\"]]}\n", res.ToJson())
+}

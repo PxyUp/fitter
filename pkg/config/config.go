@@ -62,6 +62,7 @@ type ObjectConfig struct {
 
 type ArrayConfig struct {
 	RootPath    string        `json:"root_path" yaml:"root_path"`
+	Reverse     bool          `yaml:"reverse" json:"reverse"`
 	ItemConfig  *ObjectConfig `json:"item_config" yaml:"item_config"`
 	LengthLimit uint32        `json:"length_limit" yaml:"length_limit"`
 

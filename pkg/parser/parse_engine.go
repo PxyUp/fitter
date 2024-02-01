@@ -4,6 +4,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"slices"
 	"strconv"
 	"sync"
 )
@@ -234,6 +235,10 @@ func (e *engineParser[T]) Parse(model *config.Model, input builder.Jsonable) (*P
 func (e *engineParser[T]) buildArrayField(parent []T, cfg *config.ArrayConfig, input builder.Jsonable) builder.Jsonable {
 	if cfg.StaticConfig != nil {
 		return e.buildStaticArray(cfg.StaticConfig, input)
+	}
+
+	if cfg.Reverse {
+		slices.Reverse(parent)
 	}
 
 	size := len(parent)

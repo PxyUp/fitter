@@ -127,6 +127,23 @@ func (s *JsonV2ArraySuite) Test_ReturnSimpleArray() {
 	assert.JSONEq(s.T(), "[\"nolanlester@qimonk.com\",\"hendersongonzales@megall.com\"]", res.ToJson())
 }
 
+func (s *JsonV2ArraySuite) Test_ReturnSimpleArrayReverse() {
+	res, err := s.parser.Parse(&config.Model{
+		ArrayConfig: &config.ArrayConfig{
+			RootPath: "",
+			Reverse:  true,
+			ItemConfig: &config.ObjectConfig{
+				Field: &config.BaseField{
+					Type: config.String,
+					Path: "email",
+				},
+			},
+		},
+	}, nil)
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), "[\"hendersongonzales@megall.com\",\"nolanlester@qimonk.com\"]", res.ToJson())
+}
+
 func (s *JsonV2ArraySuite) Test_ReturnSimpleArray_Index() {
 	res, err := s.parser.Parse(&config.Model{
 		ArrayConfig: &config.ArrayConfig{
