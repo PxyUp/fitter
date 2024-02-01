@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	fitterResultRef = "fRes"
-	fitterIndexRef  = "fIndex"
+	fitterResultJsonRef = "fResJson"
+	fitterResultRef     = "fRes"
+	fitterIndexRef      = "fIndex"
 )
 
 var (
@@ -23,6 +24,7 @@ func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint3
 
 	if result != nil {
 		kv[fitterResultRef] = result.Raw()
+		kv[fitterResultJsonRef] = result.ToJson()
 	}
 	if index != nil {
 		kv[fitterIndexRef] = *index

@@ -896,6 +896,8 @@ type CalculatedConfig struct {
 
 **fIndex** - it is index in parent array(only if parent was array field)
 
+**fResJson** - it is JSON string representation of the raw result
+
 ```json
 {
   "type": "bool",
