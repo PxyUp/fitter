@@ -41,7 +41,7 @@ func resultToSingleRecord(name string, result *parser.ParseResult, errResult err
 func resultToSingleArray(name string, result *parser.ParseResult, errResult error, logger logger.Logger) ([]*singleRecord, error) {
 	var arr []interface{}
 
-	err := json.Unmarshal([]byte(result.ToJson()), &arr)
+	err := json.Unmarshal(result.RawResult, &arr)
 	if err != nil {
 		logger.Errorw("unable to unmarshal result like array", "error", err.Error())
 		return nil, err

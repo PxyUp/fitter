@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/expr-lang/expr"
 )
@@ -23,13 +24,12 @@ func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint3
 	}
 
 	if result != nil {
-		res, err := expr.Eval("fromJSON(val)", map[string]interface{}{
-			"val": string(result.Raw()),
-		})
+		var v any
+		err := json.Unmarshal(result.Raw(), &v)
 		if err != nil {
-			res = builder.NullValue.Raw()
+			v = nil
 		}
-		kv[fitterResultRef] = res
+		kv[fitterResultRef] = v
 		kv[fitterResultJsonRef] = result.ToJson()
 	}
 	if index != nil {
