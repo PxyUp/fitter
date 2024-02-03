@@ -1,5 +1,7 @@
 package builder
 
+import "encoding/json"
+
 type null struct {
 }
 
@@ -19,6 +21,6 @@ func (n *null) ToJson() string {
 	return `null`
 }
 
-func (s *null) Raw() interface{} {
-	return nil
+func (s *null) Raw() json.RawMessage {
+	return json.RawMessage(nil)
 }

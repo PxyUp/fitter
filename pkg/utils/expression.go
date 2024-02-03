@@ -23,7 +23,13 @@ func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint3
 	}
 
 	if result != nil {
-		kv[fitterResultRef] = result.Raw()
+		res, err := expr.Eval("fromJSON(val)", map[string]interface{}{
+			"val": string(result.Raw()),
+		})
+		if err != nil {
+			res = builder.NullValue.Raw()
+		}
+		kv[fitterResultRef] = res
 		kv[fitterResultJsonRef] = result.ToJson()
 	}
 	if index != nil {

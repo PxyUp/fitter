@@ -10,6 +10,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/PxyUp/fitter/pkg/references"
 	"github.com/PxyUp/fitter/pkg/utils"
+	"html"
 )
 
 var (
@@ -80,8 +81,8 @@ func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {
 		}
 		if cfg.ResponseType == config.XPath || cfg.ResponseType == config.HTML {
 			var htmlValue string
-			rawValue, ok := references.Get(cfg.ReferenceConfig.Name).Raw().(string)
-			if ok {
+			rawValue := html.UnescapeString(references.Get(cfg.ReferenceConfig.Name).ToJson())
+			if rawValue != "" {
 				htmlValue = rawValue
 			} else {
 				htmlValue = "<html></html>"

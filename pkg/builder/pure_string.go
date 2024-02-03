@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"encoding/json"
 	"strings"
 )
 
@@ -37,6 +38,6 @@ func (s *pureStringField) ToJson() string {
 	return s.value
 }
 
-func (s *pureStringField) Raw() interface{} {
-	return s.value
+func (s *pureStringField) Raw() json.RawMessage {
+	return toRaw(s.value)
 }

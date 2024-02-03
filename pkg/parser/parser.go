@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
@@ -40,10 +41,10 @@ var (
 
 type ParseResult struct {
 	Json      string `json:"raw"`
-	RawResult interface{}
+	RawResult json.RawMessage
 }
 
-func (p *ParseResult) Raw() interface{} {
+func (p *ParseResult) Raw() json.RawMessage {
 	return p.RawResult
 }
 

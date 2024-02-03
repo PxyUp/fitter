@@ -1,6 +1,9 @@
 package builder
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type objectField struct {
 	kv map[string]Jsonable
@@ -43,10 +46,10 @@ func (o *objectField) ToJson() string {
 	return str + "}"
 }
 
-func (o *objectField) Raw() interface{} {
+func (o *objectField) Raw() json.RawMessage {
 	kv := make(map[string]interface{})
 	for k, v := range o.kv {
 		kv[k] = v.Raw()
 	}
-	return kv
+	return toRaw(kv)
 }

@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"encoding/json"
 	"github.com/PxyUp/fitter/pkg/config"
 	"strconv"
 )
@@ -68,7 +69,7 @@ func (s *static) ToJson() string {
 	return NullValue.ToJson()
 }
 
-func (s *static) Raw() interface{} {
+func (s *static) Raw() json.RawMessage {
 	switch s.fieldType {
 	case config.Null:
 		return NullValue.Raw()
@@ -103,7 +104,7 @@ func (s *static) Raw() interface{} {
 	case config.Int64:
 		int64Value, err := strconv.ParseInt(s.stringValue, 10, 64)
 		if err != nil {
-			return NullValue.ToJson()
+			return NullValue.Raw()
 		}
 		return Int64(int64Value).Raw()
 	}

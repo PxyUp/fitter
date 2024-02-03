@@ -1,6 +1,9 @@
 package builder
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type floatField struct {
 	value float32
@@ -29,8 +32,8 @@ func (s *floatField) ToJson() string {
 	return fmt.Sprintf(`%f`, s.value)
 }
 
-func (s *floatField) Raw() interface{} {
-	return s.value
+func (s *floatField) Raw() json.RawMessage {
+	return toRaw(s)
 }
 
 func Float64(value float64) *float64Field {
@@ -47,6 +50,6 @@ func (s *float64Field) ToJson() string {
 	return fmt.Sprintf(`%f`, s.value)
 }
 
-func (s *float64Field) Raw() interface{} {
-	return s.value
+func (s *float64Field) Raw() json.RawMessage {
+	return toRaw(s.value)
 }

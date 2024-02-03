@@ -32,17 +32,9 @@ func resultToSingleRecord(name string, result *parser.ParseResult, errResult err
 		}
 	}
 
-	body, errMarshal := json.Marshal(result.ToJson())
-	if errMarshal != nil {
-		logger.Errorw("cant unmarshal body", "error", errMarshal.Error())
-		return &singleRecord{
-			Name:  name,
-			Error: &errMarshal,
-		}
-	}
 	return &singleRecord{
 		Name: name,
-		Body: body,
+		Body: result.Raw(),
 	}
 }
 

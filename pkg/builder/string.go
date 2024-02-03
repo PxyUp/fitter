@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"encoding/json"
 	"golang.org/x/net/html"
 	"strconv"
 	"strings"
@@ -37,6 +38,6 @@ func (s *stringField) ToJson() string {
 	return strconv.Quote(html.EscapeString(s.value))
 }
 
-func (s *stringField) Raw() interface{} {
-	return s.value
+func (s *stringField) Raw() json.RawMessage {
+	return toRaw(s.value)
 }

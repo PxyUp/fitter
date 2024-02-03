@@ -1,5 +1,7 @@
 package builder
 
+import "encoding/json"
+
 type arrayField struct {
 	values []Jsonable
 }
@@ -46,7 +48,7 @@ func (s *arrayField) ToJson() string {
 	return str + "]"
 }
 
-func (s *arrayField) Raw() interface{} {
+func (s *arrayField) Raw() json.RawMessage {
 	res := make([]interface{}, len(s.values))
 
 	for i, item := range s.values {
@@ -57,5 +59,5 @@ func (s *arrayField) Raw() interface{} {
 		}
 	}
 
-	return res
+	return toRaw(res)
 }
