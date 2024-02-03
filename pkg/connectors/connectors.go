@@ -11,7 +11,7 @@ var (
 )
 
 type Connector interface {
-	Get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) ([]byte, error)
+	Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error)
 }
 
 type attemptsConnector struct {
@@ -19,7 +19,7 @@ type attemptsConnector struct {
 	attempts uint32
 }
 
-func (r *attemptsConnector) Get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) ([]byte, error) {
+func (r *attemptsConnector) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	if r.attempts <= 0 {
 		return r.original.Get(parsedValue, index, input)
 	}

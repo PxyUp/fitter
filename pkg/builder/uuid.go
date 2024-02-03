@@ -6,7 +6,7 @@ import (
 	"regexp"
 )
 
-func UUID(cfg *config.UUIDGeneratedFieldConfig) Jsonable {
+func UUID(cfg *config.UUIDGeneratedFieldConfig) Interfacable {
 	uuidStr := uuid.New().String()
 	if cfg.Regexp != "" {
 		re, err := regexp.Compile(cfg.Regexp)

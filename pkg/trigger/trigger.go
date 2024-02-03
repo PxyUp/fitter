@@ -4,7 +4,7 @@ import "github.com/PxyUp/fitter/pkg/builder"
 
 type Message struct {
 	Name  string
-	Value builder.Jsonable
+	Value builder.Interfacable
 }
 
 type Trigger interface {

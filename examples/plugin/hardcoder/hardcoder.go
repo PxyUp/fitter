@@ -19,7 +19,7 @@ type plugin struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func (pl *plugin) Format(parsedValue builder.Jsonable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32, input builder.Jsonable) builder.Jsonable {
+func (pl *plugin) Format(parsedValue builder.Interfacable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32, input builder.Interfacable) builder.Interfacable {
 	if field.Config != nil {
 		err := json.Unmarshal(field.Config, pl)
 		if err != nil {

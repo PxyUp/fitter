@@ -6,14 +6,23 @@ import (
 )
 
 type objectField struct {
-	kv map[string]Jsonable
+	kv map[string]Interfacable
+}
+
+func (s *objectField) ToInterface() interface{} {
+	kv := make(map[string]interface{})
+	for k, v := range s.kv {
+		kv[k] = v.ToInterface()
+	}
+
+	return kv
 }
 
 var (
-	_ Jsonable = &objectField{}
+	_ Interfacable = &objectField{}
 )
 
-func Object(values map[string]Jsonable) *objectField {
+func Object(values map[string]Interfacable) *objectField {
 	return &objectField{
 		kv: values,
 	}
@@ -49,7 +58,7 @@ func (o *objectField) ToJson() string {
 func (o *objectField) Raw() json.RawMessage {
 	kv := make(map[string]interface{})
 	for k, v := range o.kv {
-		kv[k] = v.Raw()
+		kv[k] = v.ToInterface()
 	}
 	return toRaw(kv)
 }

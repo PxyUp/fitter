@@ -41,7 +41,7 @@ func (r *runtime) createRunTime(updates <-chan *trigger.Message) {
 				return
 			case n := <-updates:
 				lName := n
-				go func(name string, value builder.Jsonable) {
+				go func(name string, value builder.Interfacable) {
 					r.logger.Infow("new trigger comes", "name", name)
 					_, _ = reg.Get(name).Process(value)
 				}(lName.Name, lName.Value)

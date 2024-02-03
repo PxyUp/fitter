@@ -34,8 +34,8 @@ func (s *TestFormatterSuite) TestDeepFormatter() {
 }
 
 func (s *TestFormatterSuite) TestInputWithPath() {
-	assert.Equal(s.T(), "3", utils.Format("{{{FromInput=index}}}", nil, nil, builder.Object(map[string]builder.Jsonable{
-		"index": builder.Int(3),
+	assert.Equal(s.T(), "3", utils.Format("{{{FromInput=index}}}", nil, nil, builder.Object(map[string]builder.Interfacable{
+		"index": builder.Number(3),
 	})))
 }
 
@@ -43,14 +43,14 @@ func (s *TestFormatterSuite) TestFormatter() {
 	assert.Equal(s.T(), "", utils.Format("", nil, nil, nil))
 
 	index := uint32(8)
-	assert.Equal(s.T(), "TokenRef=my_token and TokenObjectRef=my_token Object=value kek {\"value\": \"value kek\"} Env=test 8 9 5", utils.Format("TokenRef={{{RefName=TokenRef}}} and TokenObjectRef={{{RefName=TokenObjectRef token}}} Object={{{value}}} {PL} Env={{{FromEnv=TEST_VAL}}} {INDEX} {HUMAN_INDEX} {{{FromInput=.}}}", builder.Object(map[string]builder.Jsonable{
+	assert.Equal(s.T(), "TokenRef=my_token and TokenObjectRef=my_token Object=value kek {\"value\": \"value kek\"} Env=test 8 9 5", utils.Format("TokenRef={{{RefName=TokenRef}}} and TokenObjectRef={{{RefName=TokenObjectRef token}}} Object={{{value}}} {PL} Env={{{FromEnv=TEST_VAL}}} {INDEX} {HUMAN_INDEX} {{{FromInput=.}}}", builder.Object(map[string]builder.Interfacable{
 		"value": builder.String("value kek"),
-	}), &index, builder.Int(5)))
+	}), &index, builder.Number(5)))
 }
 
 func (s *TestFormatterSuite) TestExpr() {
 	index := uint32(1)
-	assert.Equal(s.T(), "8", utils.Format("{{{FromExp=fRes + 5 + fIndex}}}", builder.Int(2), &index, nil))
+	assert.Equal(s.T(), "8", utils.Format("{{{FromExp=fRes + 5 + fIndex}}}", builder.Number(2), &index, nil))
 }
 
 func (s *TestFormatterSuite) TearDownSuite() {
@@ -63,7 +63,7 @@ func (s *TestFormatterSuite) SetupSuite() {
 				ConnectorConfig: &config.ConnectorConfig{
 					ResponseType: config.Json,
 					StaticConfig: &config.StaticConnectorConfig{
-						Value: builder.Object(map[string]builder.Jsonable{
+						Value: builder.Object(map[string]builder.Interfacable{
 							"token": builder.String("my_token"),
 						}).ToJson(),
 					},
@@ -81,7 +81,7 @@ func (s *TestFormatterSuite) SetupSuite() {
 				ConnectorConfig: &config.ConnectorConfig{
 					ResponseType: config.Json,
 					StaticConfig: &config.StaticConnectorConfig{
-						Value: builder.Object(map[string]builder.Jsonable{
+						Value: builder.Object(map[string]builder.Interfacable{
 							"token": builder.String("my_token"),
 						}).ToJson(),
 					},

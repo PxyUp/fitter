@@ -1,6 +1,14 @@
 package builder
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
+
+type Interfacable interface {
+	Jsonable
+
+	ToInterface() interface{}
+}
 
 type Jsonable interface {
 	ToJson() string
@@ -15,6 +23,7 @@ var (
 )
 
 func toRaw(vv any) json.RawMessage {
+	var bb json.RawMessage
 	bb, err := json.Marshal(vv)
 	if err != nil {
 		return NullValue.Raw()

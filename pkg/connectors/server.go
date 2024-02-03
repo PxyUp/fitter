@@ -61,11 +61,11 @@ func (api *apiConnector) WithLogger(logger logger.Logger) *apiConnector {
 	return api
 }
 
-func (api *apiConnector) GetWithHeaders(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) (http.Header, []byte, error) {
+func (api *apiConnector) GetWithHeaders(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (http.Header, []byte, error) {
 	return api.get(parsedValue, index, input)
 }
 
-func (api *apiConnector) get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) (http.Header, []byte, error) {
+func (api *apiConnector) get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (http.Header, []byte, error) {
 	formattedBody := utils.Format(api.cfg.Body, parsedValue, index, input)
 	formattedURL := utils.Format(api.url, parsedValue, index, input)
 
@@ -150,7 +150,7 @@ func (api *apiConnector) get(parsedValue builder.Jsonable, index *uint32, input 
 	return resp.Header, bytes, nil
 }
 
-func (api *apiConnector) Get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) ([]byte, error) {
+func (api *apiConnector) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	_, body, err := api.get(parsedValue, index, input)
 	return body, err
 }

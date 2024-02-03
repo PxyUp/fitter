@@ -19,11 +19,11 @@ type engineParser[T comparable] struct {
 	getOne     func(T, string) T
 	getText    func(T) string
 
-	customFillUpBaseField func(T, *config.BaseField) builder.Jsonable
+	customFillUpBaseField func(T, *config.BaseField) builder.Interfacable
 	logger                logger.Logger
 }
 
-func (e *engineParser[T]) fillUpBaseField(source T, field *config.BaseField) builder.Jsonable {
+func (e *engineParser[T]) fillUpBaseField(source T, field *config.BaseField) builder.Interfacable {
 	if IsZero(source) {
 		return builder.NullValue
 	}
@@ -42,30 +42,12 @@ func (e *engineParser[T]) fillUpBaseField(source T, field *config.BaseField) bui
 			return builder.NullValue
 		}
 		return builder.Bool(boolValue)
-	case config.Float:
-		float32Value, err := strconv.ParseFloat(text, 32)
+	case config.Float, config.Float64, config.Int, config.Int64:
+		float32Value, err := strconv.ParseFloat(text, 64)
 		if err != nil {
 			return builder.NullValue
 		}
-		return builder.Float(float32(float32Value))
-	case config.Float64:
-		float64Value, err := strconv.ParseFloat(text, 64)
-		if err != nil {
-			return builder.NullValue
-		}
-		return builder.Float64(float64Value)
-	case config.Int:
-		intValue, err := strconv.ParseInt(text, 10, 32)
-		if err != nil {
-			return builder.NullValue
-		}
-		return builder.Int(int(intValue))
-	case config.Int64:
-		int64Value, err := strconv.ParseInt(text, 10, 64)
-		if err != nil {
-			return builder.NullValue
-		}
-		return builder.Int64(int64Value)
+		return builder.Number(float32Value)
 	case config.Array:
 		return builder.PureString(text)
 	case config.Object:
@@ -75,8 +57,8 @@ func (e *engineParser[T]) fillUpBaseField(source T, field *config.BaseField) bui
 	return builder.NullValue
 }
 
-func (e *engineParser[T]) buildObjectField(source T, objectConfig *config.ObjectConfig, input builder.Jsonable) builder.Jsonable {
-	kv := make(map[string]builder.Jsonable)
+func (e *engineParser[T]) buildObjectField(source T, objectConfig *config.ObjectConfig, input builder.Interfacable) builder.Interfacable {
+	kv := make(map[string]builder.Interfacable)
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
@@ -100,7 +82,7 @@ func (e *engineParser[T]) buildObjectField(source T, objectConfig *config.Object
 	return builder.Object(kv)
 }
 
-func (e *engineParser[T]) buildFirstOfBaseField(source T, fields []*config.BaseField, index *uint32, input builder.Jsonable) builder.Jsonable {
+func (e *engineParser[T]) buildFirstOfBaseField(source T, fields []*config.BaseField, index *uint32, input builder.Interfacable) builder.Interfacable {
 	for _, value := range fields {
 		tempValue := e.buildBaseField(source, value, index, input)
 		if !tempValue.IsEmpty() {
@@ -111,7 +93,7 @@ func (e *engineParser[T]) buildFirstOfBaseField(source T, fields []*config.BaseF
 	return builder.NullValue
 }
 
-func (e *engineParser[T]) buildFirstOfField(parent T, fields []*config.Field, index *uint32, input builder.Jsonable) builder.Jsonable {
+func (e *engineParser[T]) buildFirstOfField(parent T, fields []*config.Field, index *uint32, input builder.Interfacable) builder.Interfacable {
 	for _, value := range fields {
 		tempValue := e.resolveField(parent, value, index, input)
 		if !tempValue.IsEmpty() {
@@ -122,7 +104,7 @@ func (e *engineParser[T]) buildFirstOfField(parent T, fields []*config.Field, in
 	return builder.NullValue
 }
 
-func (e *engineParser[T]) buildBaseField(source T, field *config.BaseField, index *uint32, input builder.Jsonable) builder.Jsonable {
+func (e *engineParser[T]) buildBaseField(source T, field *config.BaseField, index *uint32, input builder.Interfacable) builder.Interfacable {
 	if len(field.FirstOf) != 0 {
 		return e.buildFirstOfBaseField(source, field.FirstOf, index, input)
 	}
@@ -131,7 +113,7 @@ func (e *engineParser[T]) buildBaseField(source T, field *config.BaseField, inde
 		source = e.getOne(source, field.Path)
 	}
 
-	var tempValue builder.Jsonable
+	var tempValue builder.Interfacable
 	if e.customFillUpBaseField != nil {
 		tempValue = e.customFillUpBaseField(source, field)
 	} else {
@@ -145,7 +127,7 @@ func (e *engineParser[T]) buildBaseField(source T, field *config.BaseField, inde
 	return tempValue
 }
 
-func (e *engineParser[T]) resolveField(parent T, field *config.Field, index *uint32, input builder.Jsonable) builder.Jsonable {
+func (e *engineParser[T]) resolveField(parent T, field *config.Field, index *uint32, input builder.Interfacable) builder.Interfacable {
 	if len(field.FirstOf) != 0 {
 		return e.buildFirstOfField(parent, field.FirstOf, index, input)
 	}
@@ -165,12 +147,12 @@ func (e *engineParser[T]) resolveField(parent T, field *config.Field, index *uin
 	return builder.NullValue
 }
 
-func (e *engineParser[T]) buildStaticArray(cfg *config.StaticArrayConfig, input builder.Jsonable) builder.Jsonable {
+func (e *engineParser[T]) buildStaticArray(cfg *config.StaticArrayConfig, input builder.Interfacable) builder.Interfacable {
 	length := len(cfg.Items)
 	if cfg.Length > 0 {
 		length = int(cfg.Length)
 	}
-	values := make([]builder.Jsonable, length)
+	values := make([]builder.Interfacable, length)
 
 	var wg sync.WaitGroup
 
@@ -193,15 +175,15 @@ func (e *engineParser[T]) buildStaticArray(cfg *config.StaticArrayConfig, input 
 	return builder.Array(values)
 }
 
-func (e *engineParser[T]) buildArray(array *config.ArrayConfig, input builder.Jsonable) builder.Jsonable {
+func (e *engineParser[T]) buildArray(array *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
 	return e.buildArrayField(e.getAll(e.parserBody, array.RootPath), array, input)
 }
 
-func (e *engineParser[T]) buildObject(object *config.ObjectConfig, input builder.Jsonable) builder.Jsonable {
+func (e *engineParser[T]) buildObject(object *config.ObjectConfig, input builder.Interfacable) builder.Interfacable {
 	return e.buildObjectField(e.parserBody, object, input)
 }
 
-func (e *engineParser[T]) Parse(model *config.Model, input builder.Jsonable) (*ParseResult, error) {
+func (e *engineParser[T]) Parse(model *config.Model, input builder.Interfacable) (*ParseResult, error) {
 	if IsZero(e.parserBody) {
 		return &ParseResult{
 			RawResult: builder.NullValue.Raw(),
@@ -232,7 +214,7 @@ func (e *engineParser[T]) Parse(model *config.Model, input builder.Jsonable) (*P
 	}, nil
 }
 
-func (e *engineParser[T]) buildArrayField(parent []T, cfg *config.ArrayConfig, input builder.Jsonable) builder.Jsonable {
+func (e *engineParser[T]) buildArrayField(parent []T, cfg *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
 	if cfg.StaticConfig != nil {
 		return e.buildStaticArray(cfg.StaticConfig, input)
 	}
@@ -257,8 +239,8 @@ func (e *engineParser[T]) buildArrayField(parent []T, cfg *config.ArrayConfig, i
 	return FillArrayObjectField(e, parent, size, cfg.ItemConfig, input)
 }
 
-func FillArrayBaseField[T comparable](engine *engineParser[T], parent []T, size int, cfg *config.BaseField, input builder.Jsonable) builder.Jsonable {
-	values := make([]builder.Jsonable, size)
+func FillArrayBaseField[T comparable](engine *engineParser[T], parent []T, size int, cfg *config.BaseField, input builder.Interfacable) builder.Interfacable {
+	values := make([]builder.Interfacable, size)
 
 	var wg sync.WaitGroup
 	for iL, sL := range parent {
@@ -283,8 +265,8 @@ func FillArrayBaseField[T comparable](engine *engineParser[T], parent []T, size 
 	return builder.Array(values)
 }
 
-func FillArrayArrayField[T comparable](engine *engineParser[T], parent []T, size int, fn func(T, string) []T, cfg *config.ArrayConfig, input builder.Jsonable) builder.Jsonable {
-	values := make([]builder.Jsonable, size)
+func FillArrayArrayField[T comparable](engine *engineParser[T], parent []T, size int, fn func(T, string) []T, cfg *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
+	values := make([]builder.Interfacable, size)
 
 	var wg sync.WaitGroup
 	for iL, iS := range parent {
@@ -306,8 +288,8 @@ func FillArrayArrayField[T comparable](engine *engineParser[T], parent []T, size
 	return builder.Array(values)
 }
 
-func FillArrayObjectField[T comparable](engine *engineParser[T], parent []T, size int, cfg *config.ObjectConfig, input builder.Jsonable) builder.Jsonable {
-	values := make([]builder.Jsonable, size)
+func FillArrayObjectField[T comparable](engine *engineParser[T], parent []T, size int, cfg *config.ObjectConfig, input builder.Interfacable) builder.Interfacable {
+	values := make([]builder.Interfacable, size)
 
 	var wg sync.WaitGroup
 	for iL, iS := range parent {

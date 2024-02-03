@@ -13,8 +13,12 @@ type pureStringField struct {
 	value string
 }
 
+func (s *pureStringField) ToInterface() interface{} {
+	return s.value
+}
+
 var (
-	_ Jsonable = &pureStringField{}
+	_ Interfacable = &pureStringField{}
 )
 
 func (s *pureStringField) IsEmpty() bool {

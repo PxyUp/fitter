@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"encoding/json"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/expr-lang/expr"
 )
@@ -16,7 +15,7 @@ var (
 	defEnv = map[string]interface{}{}
 )
 
-func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint32) map[string]interface{} {
+func extendEnv(env map[string]interface{}, result builder.Interfacable, index *uint32) map[string]interface{} {
 	kv := make(map[string]interface{})
 
 	for k, v := range env {
@@ -24,12 +23,7 @@ func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint3
 	}
 
 	if result != nil {
-		var v any
-		err := json.Unmarshal(result.Raw(), &v)
-		if err != nil {
-			v = nil
-		}
-		kv[fitterResultRef] = v
+		kv[fitterResultRef] = result.ToInterface()
 		kv[fitterResultJsonRef] = result.ToJson()
 	}
 	if index != nil {
@@ -39,7 +33,7 @@ func extendEnv(env map[string]interface{}, result builder.Jsonable, index *uint3
 	return kv
 }
 
-func ProcessExpression(expression string, result builder.Jsonable, index *uint32, input builder.Jsonable) (interface{}, error) {
+func ProcessExpression(expression string, result builder.Interfacable, index *uint32, input builder.Interfacable) (interface{}, error) {
 	env := extendEnv(defEnv, result, index)
 
 	program, err := expr.Compile(Format(expression, result, index, input), expr.Env(env))

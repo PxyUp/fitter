@@ -5,8 +5,12 @@ import "encoding/json"
 type null struct {
 }
 
+func (s *null) ToInterface() interface{} {
+	return nil
+}
+
 var (
-	_ Jsonable = &null{}
+	_ Interfacable = &null{}
 )
 
 func Null() *null {
@@ -22,5 +26,5 @@ func (n *null) ToJson() string {
 }
 
 func (s *null) Raw() json.RawMessage {
-	return json.RawMessage(nil)
+	return json.RawMessage{0x00}
 }

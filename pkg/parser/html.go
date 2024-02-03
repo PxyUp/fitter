@@ -19,7 +19,7 @@ func selectionToArray(parent *goquery.Selection) []*goquery.Selection {
 	return tmp
 }
 
-func htmlFillUpBaseField(source *goquery.Selection, field *config.BaseField) builder.Jsonable {
+func htmlFillUpBaseField(source *goquery.Selection, field *config.BaseField) builder.Interfacable {
 	if source.Length() <= 0 {
 		return builder.NullValue
 	}
@@ -57,30 +57,12 @@ func htmlFillUpBaseField(source *goquery.Selection, field *config.BaseField) bui
 			return builder.NullValue
 		}
 		return builder.Bool(boolValue)
-	case config.Float:
-		float32Value, err := strconv.ParseFloat(text, 32)
+	case config.Float, config.Float64, config.Int, config.Int64:
+		float32Value, err := strconv.ParseFloat(text, 64)
 		if err != nil {
 			return builder.NullValue
 		}
-		return builder.Float(float32(float32Value))
-	case config.Float64:
-		float64Value, err := strconv.ParseFloat(text, 64)
-		if err != nil {
-			return builder.NullValue
-		}
-		return builder.Float64(float64Value)
-	case config.Int:
-		intValue, err := strconv.ParseInt(text, 10, 32)
-		if err != nil {
-			return builder.NullValue
-		}
-		return builder.Int(int(intValue))
-	case config.Int64:
-		int64Value, err := strconv.ParseInt(text, 10, 64)
-		if err != nil {
-			return builder.NullValue
-		}
-		return builder.Int64(int64Value)
+		return builder.Number(float32Value)
 	}
 
 	return builder.NullValue

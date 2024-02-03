@@ -52,7 +52,7 @@ func (s *scheduler) Run(updates chan<- *Message) {
 
 		updates <- &Message{
 			Name:  s.name,
-			Value: builder.Int(int(time.Since(startTime).Seconds())),
+			Value: builder.Number(time.Since(startTime).Seconds()),
 		}
 
 		for {
@@ -63,7 +63,7 @@ func (s *scheduler) Run(updates chan<- *Message) {
 			case val := <-time.After(time.Duration(s.cfg.Interval) * time.Second):
 				updates <- &Message{
 					Name:  s.name,
-					Value: builder.Int(int(val.Sub(startTime).Seconds())),
+					Value: builder.Number(val.Sub(startTime).Seconds()),
 				}
 				s.logger.Infof("send scheduled trigger for %s", s.name)
 			}

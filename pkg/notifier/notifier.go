@@ -40,8 +40,7 @@ func resultToSingleRecord(name string, result *parser.ParseResult, errResult err
 
 func resultToSingleArray(name string, result *parser.ParseResult, errResult error, logger logger.Logger) ([]*singleRecord, error) {
 	var arr []interface{}
-
-	err := json.Unmarshal(result.RawResult, &arr)
+	err := json.Unmarshal(result.Raw(), &arr)
 	if err != nil {
 		logger.Errorw("unable to unmarshal result like array", "error", err.Error())
 		return nil, err
@@ -74,7 +73,7 @@ func resultToSingleArray(name string, result *parser.ParseResult, errResult erro
 	return records, nil
 }
 
-func ShouldInform(cfg *config.NotifierConfig, result builder.Jsonable) (bool, error) {
+func ShouldInform(cfg *config.NotifierConfig, result builder.Interfacable) (bool, error) {
 	if cfg.Force || cfg.Expression == "" {
 		return true, nil
 	}

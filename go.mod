@@ -1,6 +1,8 @@
 module github.com/PxyUp/fitter
 
-go 1.18
+go 1.21
+
+toolchain go1.21.5
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
@@ -54,6 +56,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
+	github.com/ohler55/ojg v1.21.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.1 // indirect

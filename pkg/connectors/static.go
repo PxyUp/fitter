@@ -12,7 +12,7 @@ type staticConnector struct {
 	logger logger.Logger
 }
 
-func (j *staticConnector) Get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) ([]byte, error) {
+func (j *staticConnector) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	if len(j.cfg.Raw) != 0 {
 		return []byte(utils.Format(string(j.cfg.Raw), parsedValue, index, input)), nil
 	}

@@ -11,8 +11,33 @@ type static struct {
 	stringValue string
 }
 
+func (s *static) ToInterface() interface{} {
+	switch s.fieldType {
+	case config.Null:
+		return NullValue.ToInterface()
+	case config.RawString:
+		return String(s.stringValue, false).ToInterface()
+	case config.String:
+		return String(s.stringValue).ToInterface()
+	case config.Bool:
+		boolValue, err := strconv.ParseBool(s.stringValue)
+		if err != nil {
+			return NullValue.ToInterface()
+		}
+		return Bool(boolValue).ToInterface()
+	case config.Float, config.Float64, config.Int, config.Int64:
+		float32Value, err := strconv.ParseFloat(s.stringValue, 64)
+		if err != nil {
+			return NullValue.ToInterface()
+		}
+		return Number(float32Value).ToInterface()
+	}
+
+	return NullValue.ToInterface()
+}
+
 var (
-	_ Jsonable = &static{}
+	_ Interfacable = &static{}
 )
 
 func Static(cfg *config.StaticGeneratedFieldConfig) *static {
@@ -40,30 +65,12 @@ func (s *static) ToJson() string {
 			return NullValue.ToJson()
 		}
 		return Bool(boolValue).ToJson()
-	case config.Float:
-		float32Value, err := strconv.ParseFloat(s.stringValue, 32)
+	case config.Float, config.Int, config.Float64, config.Int64:
+		float32Value, err := strconv.ParseFloat(s.stringValue, 64)
 		if err != nil {
 			return NullValue.ToJson()
 		}
-		return Float(float32(float32Value)).ToJson()
-	case config.Float64:
-		float64Value, err := strconv.ParseFloat(s.stringValue, 64)
-		if err != nil {
-			return NullValue.ToJson()
-		}
-		return Float64(float64Value).ToJson()
-	case config.Int:
-		int32Value, err := strconv.ParseInt(s.stringValue, 10, 32)
-		if err != nil {
-			return NullValue.ToJson()
-		}
-		return Int(int(int32Value)).ToJson()
-	case config.Int64:
-		int64Value, err := strconv.ParseInt(s.stringValue, 10, 64)
-		if err != nil {
-			return NullValue.ToJson()
-		}
-		return Int64(int64Value).ToJson()
+		return Number(float32Value).ToJson()
 	}
 
 	return NullValue.ToJson()
@@ -83,30 +90,12 @@ func (s *static) Raw() json.RawMessage {
 			return NullValue.Raw()
 		}
 		return Bool(boolValue).Raw()
-	case config.Float:
-		float32Value, err := strconv.ParseFloat(s.stringValue, 32)
+	case config.Float, config.Float64, config.Int, config.Int64:
+		float32Value, err := strconv.ParseFloat(s.stringValue, 64)
 		if err != nil {
 			return NullValue.Raw()
 		}
-		return Float(float32(float32Value)).Raw()
-	case config.Float64:
-		float64Value, err := strconv.ParseFloat(s.stringValue, 64)
-		if err != nil {
-			return NullValue.Raw()
-		}
-		return Float64(float64Value).Raw()
-	case config.Int:
-		int32Value, err := strconv.ParseInt(s.stringValue, 10, 32)
-		if err != nil {
-			return NullValue.Raw()
-		}
-		return Int(int(int32Value)).Raw()
-	case config.Int64:
-		int64Value, err := strconv.ParseInt(s.stringValue, 10, 64)
-		if err != nil {
-			return NullValue.Raw()
-		}
-		return Int64(int64Value).Raw()
+		return Number(float32Value).Raw()
 	}
 
 	return NullValue.Raw()

@@ -22,7 +22,7 @@ var (
 )
 
 type Engine interface {
-	Get(model *config.Model, parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) (*ParseResult, error)
+	Get(model *config.Model, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (*ParseResult, error)
 }
 
 type engine struct {
@@ -34,11 +34,11 @@ type engine struct {
 type null struct {
 }
 
-func (n *null) Get(model *config.Model, parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) (*ParseResult, error) {
+func (n *null) Get(model *config.Model, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (*ParseResult, error) {
 	return nil, errInvalid
 }
 
-func (e *engine) Get(model *config.Model, parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) (*ParseResult, error) {
+func (e *engine) Get(model *config.Model, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (*ParseResult, error) {
 	if model == nil {
 		return nil, errMissingModelConfig
 	}
@@ -96,9 +96,9 @@ func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {
 	if cfg.IntSequenceConfig != nil {
 		genSlice := utils.SafeNewSliceGenerator(cfg.IntSequenceConfig.Start, cfg.IntSequenceConfig.End, cfg.IntSequenceConfig.Step)
 		logger.Debugw("generated slice", "length", fmt.Sprintf("%d", len(genSlice)), "start", fmt.Sprintf("%d", cfg.IntSequenceConfig.Start), "end", fmt.Sprintf("%d", cfg.IntSequenceConfig.End), "step", fmt.Sprintf("%d", cfg.IntSequenceConfig.Step))
-		jsonArr := make([]builder.Jsonable, len(genSlice))
+		jsonArr := make([]builder.Interfacable, len(genSlice))
 		for i, v := range genSlice {
-			jsonArr[i] = builder.Int(v)
+			jsonArr[i] = builder.Number(float64(v))
 		}
 		connector = connectors.NewStatic(&config.StaticConnectorConfig{
 			Value: builder.Array(jsonArr).ToJson(),

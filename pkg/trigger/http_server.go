@@ -69,7 +69,7 @@ func (s *httpServer) Run(updates chan<- *Message) {
 
 			updates <- &Message{
 				Name:  name,
-				Value: builder.PureString(string(value)),
+				Value: builder.ToJsonable(value),
 			}
 		}(n, msg)
 		c.Status(http.StatusOK)

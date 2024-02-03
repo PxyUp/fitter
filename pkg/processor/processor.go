@@ -16,7 +16,7 @@ var (
 )
 
 type Processor interface {
-	Process(input builder.Jsonable) (*parser.ParseResult, error)
+	Process(input builder.Interfacable) (*parser.ParseResult, error)
 }
 
 type processor struct {
@@ -41,7 +41,7 @@ func Null(errs ...error) *nullProcessor {
 	}
 }
 
-func (n *nullProcessor) Process(input builder.Jsonable) (*parser.ParseResult, error) {
+func (n *nullProcessor) Process(input builder.Interfacable) (*parser.ParseResult, error) {
 	return nil, n.err
 }
 
@@ -60,7 +60,7 @@ func (p *processor) WithLogger(logger logger.Logger) *processor {
 	return p
 }
 
-func (p *processor) Process(input builder.Jsonable) (*parser.ParseResult, error) {
+func (p *processor) Process(input builder.Interfacable) (*parser.ParseResult, error) {
 	result, err := p.engine.Get(p.model, nil, nil, input)
 	if p.notifier != nil {
 		isArray := false

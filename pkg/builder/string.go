@@ -11,9 +11,13 @@ type stringField struct {
 	value string
 }
 
+func (s *stringField) ToInterface() interface{} {
+	return s.value
+}
+
 var (
-	_ Jsonable = &stringField{}
-	r          = strings.NewReplacer("\n", "", "\r", "", "\t", "")
+	_ Interfacable = &stringField{}
+	r              = strings.NewReplacer("\n", "", "\r", "", "\t", "")
 )
 
 func String(value string, trim ...bool) *stringField {

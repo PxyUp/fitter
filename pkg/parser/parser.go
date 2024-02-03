@@ -32,16 +32,25 @@ var (
 type Factory func([]byte, logger.Logger) Parser
 
 type Parser interface {
-	Parse(model *config.Model, input builder.Jsonable) (*ParseResult, error)
+	Parse(model *config.Model, input builder.Interfacable) (*ParseResult, error)
 }
 
 var (
-	_ builder.Jsonable = &ParseResult{}
+	_ builder.Interfacable = &ParseResult{}
 )
 
 type ParseResult struct {
 	Json      string `json:"raw"`
 	RawResult json.RawMessage
+}
+
+func (p *ParseResult) ToInterface() interface{} {
+	var t interface{}
+	err := json.Unmarshal(p.RawResult, &t)
+	if err != nil {
+		return nil
+	}
+	return t
 }
 
 func (p *ParseResult) Raw() json.RawMessage {
@@ -56,7 +65,7 @@ func (p *ParseResult) ToJson() string {
 	return p.Json
 }
 
-func getExpressionResult(expr string, fieldType config.FieldType, value builder.Jsonable, index *uint32, input builder.Jsonable, logger logger.Logger) builder.Jsonable {
+func getExpressionResult(expr string, fieldType config.FieldType, value builder.Interfacable, index *uint32, input builder.Interfacable, logger logger.Logger) builder.Interfacable {
 	res, err := utils.ProcessExpression(expr, value, index, input)
 	if err != nil {
 		logger.Errorw("error during process calculated field", "error", err.Error())
@@ -69,7 +78,7 @@ func getExpressionResult(expr string, fieldType config.FieldType, value builder.
 	})
 }
 
-func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldType, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32, input builder.Jsonable) builder.Jsonable {
+func buildGeneratedField(parsedValue builder.Interfacable, fieldType config.FieldType, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32, input builder.Interfacable) builder.Interfacable {
 	if fieldType == config.String {
 		parsedValue = builder.PureString(parsedValue.ToJson())
 	}
@@ -118,7 +127,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 
 		if field.Model.Type == config.Array || field.Model.Type == config.Object {
 			if field.Model.Path != "" {
-				return builder.PureString(gjson.Parse(result.ToJson()).Get(field.Model.Path).Raw)
+				return builder.ToJsonable([]byte(gjson.Parse(result.ToJson()).Get(field.Model.Path).Raw))
 			}
 			return result
 		}
@@ -134,7 +143,7 @@ func buildGeneratedField(parsedValue builder.Jsonable, fieldType config.FieldTyp
 	return builder.NullValue
 }
 
-func fillUpBaseField(source gjson.Result, field *config.BaseField) builder.Jsonable {
+func fillUpBaseField(source gjson.Result, field *config.BaseField) builder.Interfacable {
 	if !source.Exists() {
 		return builder.NullValue
 	}
@@ -150,18 +159,12 @@ func fillUpBaseField(source gjson.Result, field *config.BaseField) builder.Jsona
 			return builder.NullValue
 		}
 		return builder.Bool(source.Bool())
-	case config.Float:
-		return builder.Float(float32(source.Float()))
-	case config.Float64:
-		return builder.Float64(source.Float())
-	case config.Int:
-		return builder.Int(int(source.Int()))
-	case config.Int64:
-		return builder.Int64(source.Int())
+	case config.Float, config.Float64, config.Int, config.Int64:
+		return builder.Number(source.Float())
 	case config.Array:
-		return builder.PureString(source.String())
+		return builder.ToJsonable([]byte(source.String()))
 	case config.Object:
-		return builder.PureString(source.String())
+		return builder.ToJsonable([]byte(source.String()))
 	}
 
 	return builder.EMPTY
