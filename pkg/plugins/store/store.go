@@ -16,7 +16,7 @@ import (
 type nullFieldPlugin struct {
 }
 
-func (n *nullFieldPlugin) Format(parsedValue builder.Jsonable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32, input builder.Jsonable) builder.Jsonable {
+func (n *nullFieldPlugin) Format(parsedValue builder.Interfacable, field *config.PluginFieldConfig, logger logger.Logger, index *uint32, input builder.Interfacable) builder.Interfacable {
 	return builder.NullValue
 }
 
@@ -26,7 +26,7 @@ type nullConnectorPlugin struct {
 func (n *nullConnectorPlugin) SetConfig(cfg *config.PluginConnectorConfig, _ logger.Logger) {
 }
 
-func (n *nullConnectorPlugin) Get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) ([]byte, error) {
+func (n *nullConnectorPlugin) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	return []byte{}, nil
 }
 

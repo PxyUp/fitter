@@ -20,7 +20,7 @@ type plugin struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func (pl *plugin) Get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) ([]byte, error) {
+func (pl *plugin) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	return []byte(fmt.Sprintf(`{"name": "%s"}`, pl.Name)), nil
 }
 

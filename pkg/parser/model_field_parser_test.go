@@ -125,7 +125,7 @@ func (s *ModelFieldParserSuite) SetupSuite() {
 				ConnectorConfig: &config.ConnectorConfig{
 					ResponseType: config.Json,
 					StaticConfig: &config.StaticConnectorConfig{
-						Value: builder.Object(map[string]builder.Jsonable{
+						Value: builder.Object(map[string]builder.Interfacable{
 							"token": builder.String("my_token"),
 						}).ToJson(),
 					},
@@ -143,7 +143,7 @@ func (s *ModelFieldParserSuite) SetupSuite() {
 				ConnectorConfig: &config.ConnectorConfig{
 					ResponseType: config.Json,
 					StaticConfig: &config.StaticConnectorConfig{
-						Value: builder.Object(map[string]builder.Jsonable{
+						Value: builder.Object(map[string]builder.Interfacable{
 							"token": builder.String("my_token"),
 						}).ToJson(),
 					},

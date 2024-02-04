@@ -20,7 +20,7 @@ var (
 	errNoDriver          = errors.New("empty playwright driver")
 )
 
-func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue builder.Jsonable, index *uint32, input builder.Jsonable, logger logger.Logger) ([]byte, error) {
+func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable, logger logger.Logger) ([]byte, error) {
 	if instanceLimit := limitter.PlaywrightLimiter(); instanceLimit != nil {
 		errInstance := instanceLimit.Acquire(ctx, 1)
 		if errInstance != nil {

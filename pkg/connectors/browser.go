@@ -26,7 +26,7 @@ func (c *browserConnector) WithLogger(logger logger.Logger) *browserConnector {
 	return c
 }
 
-func (c *browserConnector) Get(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable) ([]byte, error) {
+func (c *browserConnector) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	formattedURL := utils.Format(c.url, parsedValue, index, input)
 
 	if formattedURL == "" {

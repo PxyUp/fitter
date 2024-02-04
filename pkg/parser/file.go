@@ -31,7 +31,7 @@ func filenameFromUrl(urlstr string) (string, error) {
 	return filepath.Base(x), nil
 }
 
-func ProcessFileField(parsedValue builder.Jsonable, index *uint32, input builder.Jsonable, field *config.FileFieldConfig, logger logger.Logger) (string, error) {
+func ProcessFileField(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable, field *config.FileFieldConfig, logger logger.Logger) (string, error) {
 	destinationFileName := utils.Format(field.FileName, parsedValue, index, input)
 	destinationPath := utils.Format(field.Path, parsedValue, index, input)
 	destinationURL := utils.Format(field.Url, parsedValue, index, input)

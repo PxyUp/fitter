@@ -73,7 +73,7 @@ func (s *JsonV2ArraySuite) Test_ParseSimpleObject() {
 				},
 			},
 		},
-	}, builder.Int(55))
+	}, builder.Number(55))
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), "{\"address_1\": \"433 Bennet Court, Manchester, Rhode Island, 6346\",\"address_2\": \"472 Cheever Place, Spelter, New Jersey, 5250\", \"address_3\": \"55\"}\n", res.ToJson())
 }

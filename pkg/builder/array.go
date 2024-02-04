@@ -3,14 +3,28 @@ package builder
 import "encoding/json"
 
 type arrayField struct {
-	values []Jsonable
+	values []Interfacable
+}
+
+func (s *arrayField) ToInterface() interface{} {
+	res := make([]interface{}, len(s.values))
+
+	for i, item := range s.values {
+		if item == nil {
+			res[i] = NullValue.ToInterface()
+		} else {
+			res[i] = item.ToInterface()
+		}
+	}
+
+	return res
 }
 
 var (
-	_ Jsonable = &arrayField{}
+	_ Interfacable = &arrayField{}
 )
 
-func Array(items []Jsonable) *arrayField {
+func Array(items []Interfacable) *arrayField {
 	return &arrayField{
 		values: items,
 	}
@@ -53,9 +67,9 @@ func (s *arrayField) Raw() json.RawMessage {
 
 	for i, item := range s.values {
 		if item == nil {
-			res[i] = NullValue.Raw()
+			res[i] = NullValue.ToInterface()
 		} else {
-			res[i] = item.Raw()
+			res[i] = item.ToInterface()
 		}
 	}
 

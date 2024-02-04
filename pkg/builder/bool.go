@@ -9,8 +9,12 @@ type boolField struct {
 	value bool
 }
 
+func (s *boolField) ToInterface() interface{} {
+	return s.value
+}
+
 var (
-	_ Jsonable = &boolField{}
+	_ Interfacable = &boolField{}
 )
 
 func Bool(value bool) *boolField {

@@ -22,7 +22,7 @@ const (
 	inputNamePrefix       = "FromInput="
 )
 
-func Format(str string, value builder.Jsonable, index *uint32, input builder.Jsonable) string {
+func Format(str string, value builder.Interfacable, index *uint32, input builder.Interfacable) string {
 	if len(str) == 0 {
 		return str
 	}
@@ -42,7 +42,7 @@ func Format(str string, value builder.Jsonable, index *uint32, input builder.Jso
 	return formatJsonPathString(str, value, index, input)
 }
 
-func processPrefix(prefix string, value builder.Jsonable, index *uint32, input builder.Jsonable) string {
+func processPrefix(prefix string, value builder.Interfacable, index *uint32, input builder.Interfacable) string {
 	if strings.HasPrefix(prefix, inputNamePrefix) {
 		path := strings.TrimPrefix(prefix, inputNamePrefix)
 		tmp := ""
@@ -92,7 +92,7 @@ func processPrefix(prefix string, value builder.Jsonable, index *uint32, input b
 	return gjson.Parse(value.ToJson()).Get(prefix).String()
 }
 
-func formatJsonPathString(str string, value builder.Jsonable, index *uint32, input builder.Jsonable) string {
+func formatJsonPathString(str string, value builder.Interfacable, index *uint32, input builder.Interfacable) string {
 	runes := []rune(str)
 	stack := []string{
 		"",
