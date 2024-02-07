@@ -926,6 +926,12 @@ type CalculatedConfig struct {
 
 ##### Predefined values
 
+**FNull** - alias for builder.Nullvalue
+
+**FNil** - alias for nil
+
+**isNull(value T)** - function for check is value is FNull
+
 **fRes** - it is raw(with proper type) result from the parsing [base field](#basefield)
 
 **fIndex** - it is index in parent array(only if parent was array field)

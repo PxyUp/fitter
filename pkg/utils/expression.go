@@ -13,7 +13,8 @@ const (
 
 var (
 	defEnv = map[string]interface{}{
-		"FNull": nil,
+		"FNull": builder.NullValue,
+		"FNil":  nil,
 		"isNull": func(value interface{}) bool {
 			return builder.NullValue == value
 		},
