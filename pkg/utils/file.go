@@ -19,7 +19,7 @@ func CreateFileWithContent(content []byte, destinationFileName string, destinati
 	localDest := path.Join(destinationPath, destinationFileName)
 	logger.Debugw("storing file", "path", localDest)
 	if _, errDir := os.Stat(destinationPath); os.IsNotExist(errDir) {
-		errCreationOfDir := os.Mkdir(destinationPath, os.ModePerm)
+		errCreationOfDir := os.MkdirAll(destinationPath, os.ModePerm)
 		if errCreationOfDir != nil {
 			logger.Errorw("unable to create directory", "path", destinationPath, "error", errCreationOfDir.Error())
 			return "", errCreationOfDir
