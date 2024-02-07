@@ -156,7 +156,7 @@ type ConnectorConfig struct {
     ResponseType ParserType `json:"response_type" yaml:"response_type"`
     Url          string     `json:"url" yaml:"url"`
     Attempts     uint32     `json:"attempts" yaml:"attempts"`
-
+    
     StaticConfig          *StaticConnectorConfig      `json:"static_config" yaml:"static_config"`
     IntSequenceConfig     *IntSequenceConnectorConfig `json:"int_sequence_config" yaml:"int_sequence_config"`
     ServerConfig          *ServerConnectorConfig      `json:"server_config" yaml:"server_config"`
@@ -718,13 +718,14 @@ Provide functionality of generating field on the flight
 
 ```go
 type GeneratedFieldConfig struct {
-	UUID       *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
-	Static     *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
-	Formatted  *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
-	Plugin     *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
-	Calculated *CalculatedConfig           `yaml:"calculated" json:"calculated"`
-	File       *FileFieldConfig            `yaml:"file" json:"file"`
-	Model      *ModelField                 `yaml:"model" json:"model"`
+    UUID             *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
+    Static           *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
+    Formatted        *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
+    Plugin           *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
+    Calculated       *CalculatedConfig           `yaml:"calculated" json:"calculated"`
+    File             *FileFieldConfig            `yaml:"file" json:"file"`
+    Model            *ModelField                 `yaml:"model" json:"model"`
+    FileStorageField *FileStorageField           `json:"file_storage" yaml:"file_storage"`
 }
 ```
 
@@ -736,6 +737,7 @@ Config can be one of:
 - [Plugin](#plugin-field) - plugin field
 - [Calculated](#calculated-field) - calculated field
 - [File](#file-field) - file field (for download file from server)
+- [FileStorage](#file-storage-field) - file field which can be saved to local file
 
 Examples:
 ```json
@@ -824,6 +826,28 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json#L98
   "template": "https://news.ycombinator.com/item?id={PL}"
 }
 ```
+
+#### File Storage Field
+
+Field can be used for store field result as local file
+
+```go
+type FileStorageField struct {
+    Content string          `json:"content" yaml:"content"`
+    Raw     json.RawMessage `yaml:"raw" yaml:"raw"`
+    
+    FileName string `json:"file_name" yaml:"file_name"`
+    Path     string `json:"path" yaml:"path"`
+    Append   bool   `json:"append" yaml:"append"`
+}
+```
+
+- Content - template string for content. Important: can be with [inject of the parent value as a string](#placeholder-list)
+- Raw - raw json content of field. Important: can be with [inject of the parent value as a string](#placeholder-list)
+- FileName - local file name for storing file. By default, it is try get FileName from header, after that from url. Important: can be with [inject of the parent value as a string](#placeholder-list).
+- Path - local file parent directory for storing file. Default path it is process directory. Important: can be with [inject of the parent value as a string](#placeholder-list)
+- Append[false] - append to file or not
+
 
 #### File Field
 

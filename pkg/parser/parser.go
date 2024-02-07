@@ -96,6 +96,15 @@ func buildGeneratedField(parsedValue builder.Interfacable, fieldType config.Fiel
 		return builder.String(filePath)
 	}
 
+	if field.FileStorageField != nil {
+		filePath, err := CreateFileStorageField(parsedValue, index, input, field.FileStorageField, logger)
+		if err != nil {
+			logger.Errorw("error during process file storage field", "error", err.Error())
+			return builder.NullValue
+		}
+		return builder.String(filePath)
+	}
+
 	if field.Calculated != nil && field.Calculated.Expression != "" {
 		return getExpressionResult(field.Calculated.Expression, field.Calculated.Type, parsedValue, index, input, logger)
 	}

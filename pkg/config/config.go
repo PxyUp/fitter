@@ -205,6 +205,7 @@ type NotifierConfig struct {
 	TelegramBot *TelegramBotConfig   `yaml:"telegram_bot" json:"telegram_bot"`
 	Http        *HttpConfig          `yaml:"http" json:"http"`
 	Redis       *RedisNotifierConfig `json:"redis" yaml:"redis"`
+	File        *FileStorageField    `json:"file" yaml:"file"`
 }
 
 type HttpConfig struct {

@@ -49,8 +49,9 @@ type testHandler struct {
 }
 
 var (
-	fileName   = "foo.pdf"
-	fileBuffer = []byte{1, 2, 3, 4}
+	storageFileName = "test.json"
+	fileName        = "foo.pdf"
+	fileBuffer      = []byte{1, 2, 3, 4}
 )
 
 func (t *testHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -185,6 +186,8 @@ func (s *ModelFieldParserSuite) TearDownSuite() {
 	err := os.Remove(path.Join(s.tmpFilePath, fileName))
 	require.NoError(s.T(), err)
 	err = os.Remove(path.Join(s.notExistingTempDir, fileName))
+	require.NoError(s.T(), err)
+	err = os.Remove(path.Join(s.tmpFilePath, storageFileName))
 	require.NoError(s.T(), err)
 }
 
@@ -352,6 +355,79 @@ func (s *ModelFieldParserSuite) TestReferenceConnector() {
 	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), `"My token my_token"`, res.ToJson())
+}
+
+func (s *ModelFieldParserSuite) TestFileStorageField_Append() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.String,
+			Path: "",
+			Generated: &config.GeneratedFieldConfig{
+				FileStorageField: &config.FileStorageField{
+					Path:     s.tmpFilePath,
+					FileName: storageFileName,
+					Content:  "{{{RefName=TokenObjectRef token}}}\n",
+				},
+			},
+		},
+	}, nil)
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`"%s"`, path.Join(s.tmpFilePath, storageFileName)), res.ToJson())
+	assert.FileExists(s.T(), path.Join(s.tmpFilePath, storageFileName))
+	file, err := os.OpenFile(path.Join(s.tmpFilePath, storageFileName), os.O_RDWR, 0755)
+	require.NoError(s.T(), err)
+	resp, err := io.ReadAll(file)
+	require.NoError(s.T(), err)
+	assert.True(s.T(), bytes.Equal([]byte("my_token\n"), resp))
+	require.NoError(s.T(), file.Close())
+	res, err = s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.String,
+			Path: "",
+			Generated: &config.GeneratedFieldConfig{
+				FileStorageField: &config.FileStorageField{
+					Path:     s.tmpFilePath,
+					FileName: storageFileName,
+					Content:  "{{{RefName=TokenObjectRef token}}}",
+					Append:   true,
+				},
+			},
+		},
+	}, nil)
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`"%s"`, path.Join(s.tmpFilePath, storageFileName)), res.ToJson())
+	assert.FileExists(s.T(), path.Join(s.tmpFilePath, storageFileName))
+	file, err = os.OpenFile(path.Join(s.tmpFilePath, storageFileName), os.O_RDWR, 0755)
+	require.NoError(s.T(), err)
+	resp, err = io.ReadAll(file)
+	require.NoError(s.T(), err)
+	require.NoError(s.T(), file.Close())
+	assert.True(s.T(), bytes.Compare([]byte(`my_token
+my_token`), resp) == 0)
+}
+
+func (s *ModelFieldParserSuite) TestFileStorageField() {
+	res, err := s.jsonDatesParser.Parse(&config.Model{
+		BaseField: &config.BaseField{
+			Type: config.String,
+			Path: "",
+			Generated: &config.GeneratedFieldConfig{
+				FileStorageField: &config.FileStorageField{
+					Path:     s.tmpFilePath,
+					FileName: fileName,
+					Content:  "{{{RefName=TokenObjectRef token}}}",
+				},
+			},
+		},
+	}, nil)
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), fmt.Sprintf(`"%s"`, path.Join(s.tmpFilePath, fileName)), res.ToJson())
+	assert.FileExists(s.T(), path.Join(s.tmpFilePath, fileName))
+	file, err := os.OpenFile(path.Join(s.tmpFilePath, fileName), os.O_RDWR, 0755)
+	require.NoError(s.T(), err)
+	resp, err := io.ReadAll(file)
+	require.NoError(s.T(), err)
+	assert.True(s.T(), bytes.Equal([]byte("my_token"), resp))
 }
 
 func (s *ModelFieldParserSuite) TestFile() {

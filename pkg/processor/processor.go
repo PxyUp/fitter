@@ -122,6 +122,10 @@ func CreateProcessor(item *config.Item, refMap config.RefMap, logger logger.Logg
 		if item.NotifierConfig.Redis != nil {
 			notifierInstance = notifier.NewRedis(item.Name, item.NotifierConfig.Redis).WithLogger(logger.With("notifier", "redis"))
 		}
+
+		if item.NotifierConfig.File != nil {
+			notifierInstance = notifier.NewFile(item.Name, item.NotifierConfig.File).WithLogger(logger.With("notifier", "file"))
+		}
 	}
 
 	logger = logger.With("name", item.Name)

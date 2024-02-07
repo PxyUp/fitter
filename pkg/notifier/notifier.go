@@ -14,7 +14,7 @@ import (
 type singleRecord struct {
 	Name  string          `json:"name,omitempty"`
 	Body  json.RawMessage `json:"body,omitempty"`
-	Index *int            `json:"index,omitempty"`
+	Index *uint32         `json:"index,omitempty"`
 	Error *error          `json:"error,omitempty"`
 }
 
@@ -49,7 +49,7 @@ func resultToSingleArray(name string, result *parser.ParseResult, errResult erro
 	records := make([]*singleRecord, len(arr))
 
 	for i, v := range arr {
-		index := i
+		index := uint32(i)
 		lv := v
 
 		body, errMarshal := json.Marshal(lv)

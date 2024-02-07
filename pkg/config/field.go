@@ -43,13 +43,23 @@ type FormattedFieldConfig struct {
 }
 
 type GeneratedFieldConfig struct {
-	UUID       *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
-	Static     *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
-	Formatted  *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
-	Plugin     *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
-	Calculated *CalculatedConfig           `yaml:"calculated" json:"calculated"`
-	File       *FileFieldConfig            `yaml:"file" json:"file"`
-	Model      *ModelField                 `yaml:"model" json:"model"`
+	UUID             *UUIDGeneratedFieldConfig   `yaml:"uuid" json:"uuid"`
+	Static           *StaticGeneratedFieldConfig `yaml:"static" json:"static"`
+	Formatted        *FormattedFieldConfig       `json:"formatted" yaml:"formatted"`
+	Plugin           *PluginFieldConfig          `yaml:"plugin" json:"plugin"`
+	Calculated       *CalculatedConfig           `yaml:"calculated" json:"calculated"`
+	File             *FileFieldConfig            `yaml:"file" json:"file"`
+	Model            *ModelField                 `yaml:"model" json:"model"`
+	FileStorageField *FileStorageField           `json:"file_storage" yaml:"file_storage"`
+}
+
+type FileStorageField struct {
+	Content string          `json:"content" yaml:"content"`
+	Raw     json.RawMessage `yaml:"raw" yaml:"raw"`
+
+	FileName string `json:"file_name" yaml:"file_name"`
+	Path     string `json:"path" yaml:"path"`
+	Append   bool   `json:"append" yaml:"append"`
 }
 
 type FileFieldConfig struct {
