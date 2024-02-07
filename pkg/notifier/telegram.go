@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/parser"
 	"github.com/PxyUp/fitter/pkg/utils"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -19,7 +18,16 @@ type telegramBot struct {
 }
 
 func (t *telegramBot) notify(record *singleRecord) error {
-	msg, err := json.Marshal(record)
+	var forUnmarshal any
+	forUnmarshal = record
+	if t.cfg.OnlyMsg {
+		if record.Error != nil {
+			forUnmarshal = (*record.Error).Error()
+		} else {
+			forUnmarshal = record.Body
+		}
+	}
+	msg, err := json.Marshal(forUnmarshal)
 	if err != nil {
 		return err
 	}
@@ -65,6 +73,10 @@ func (t *telegramBot) sendMessage(msg string) error {
 	return nil
 }
 
+func (o *telegramBot) GetLogger() logger.Logger {
+	return o.logger
+}
+
 func (t *telegramBot) prettyMsg(msg string) string {
 	if !t.cfg.Pretty {
 		return msg
@@ -76,8 +88,4 @@ func (t *telegramBot) prettyMsg(msg string) string {
 		return msg
 	}
 	return prettyJSON.String()
-}
-
-func (t *telegramBot) Inform(result *parser.ParseResult, errResult error, asArray bool) error {
-	return inform(t, t.name, result, errResult, asArray, t.logger)
 }

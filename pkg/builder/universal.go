@@ -45,3 +45,7 @@ func toJson(result gjson.Result) Interfacable {
 func ToJsonable(raw json.RawMessage) Interfacable {
 	return toJson(gjson.ParseBytes(raw))
 }
+
+func ToJsonableFromString(str string) Interfacable {
+	return ToJsonable([]byte(str))
+}

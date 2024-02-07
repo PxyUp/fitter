@@ -4,7 +4,6 @@ import (
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/parser"
 	"github.com/PxyUp/fitter/pkg/utils"
 	"os"
 )
@@ -42,8 +41,8 @@ func (f *fileNotifier) notify(record *singleRecord) error {
 	return nil
 }
 
-func (f *fileNotifier) Inform(result *parser.ParseResult, err error, asArray bool) error {
-	return inform(f, f.name, result, err, asArray, f.logger)
+func (o *fileNotifier) GetLogger() logger.Logger {
+	return o.logger
 }
 
 func NewFile(name string, cfg *config.FileStorageField) *fileNotifier {

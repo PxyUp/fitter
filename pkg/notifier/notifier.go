@@ -20,8 +20,7 @@ type singleRecord struct {
 
 type Notifier interface {
 	notify(*singleRecord) error
-
-	Inform(result *parser.ParseResult, err error, asArray bool) error
+	GetLogger() logger.Logger
 }
 
 func resultToSingleRecord(name string, result *parser.ParseResult, errResult error, logger logger.Logger) *singleRecord {
@@ -91,7 +90,7 @@ func ShouldInform(cfg *config.NotifierConfig, result builder.Interfacable) (bool
 	return value, nil
 }
 
-func inform(notifier Notifier, name string, result *parser.ParseResult, errResult error, asArray bool, logger logger.Logger) error {
+func Inform(notifier Notifier, name string, result *parser.ParseResult, errResult error, asArray bool, logger logger.Logger) error {
 	if errResult != nil {
 		return notifier.notify(resultToSingleRecord(name, nil, errResult, logger))
 	}

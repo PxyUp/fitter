@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/parser"
 	"github.com/PxyUp/fitter/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"time"
@@ -39,8 +38,8 @@ func (r *redisNotifier) notify(record *singleRecord) error {
 	return nil
 }
 
-func (r *redisNotifier) Inform(result *parser.ParseResult, err error, asArray bool) error {
-	return inform(r, r.name, result, err, asArray, r.logger)
+func (o *redisNotifier) GetLogger() logger.Logger {
+	return o.logger
 }
 
 func (r *redisNotifier) WithLogger(logger logger.Logger) *redisNotifier {

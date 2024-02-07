@@ -200,6 +200,7 @@ type NotifierConfig struct {
 	Expression      string `yaml:"expression" json:"expression"`
 	Force           bool   `json:"force" yaml:"force"`
 	SendArrayByItem bool   `yaml:"send_array_by_item" json:"send_array_by_item"`
+	Template        string `yaml:"template" json:"template"`
 
 	Console     *ConsoleConfig       `yaml:"console" json:"console"`
 	TelegramBot *TelegramBotConfig   `yaml:"telegram_bot" json:"telegram_bot"`
@@ -230,6 +231,7 @@ type TelegramBotConfig struct {
 	Token   string  `json:"token" yaml:"token"`
 	UsersId []int64 `json:"users_id" yaml:"users_id"`
 	Pretty  bool    `json:"pretty" yaml:"pretty"`
+	OnlyMsg bool    `json:"only_msg" yaml:"only_msg"`
 }
 
 type Item struct {

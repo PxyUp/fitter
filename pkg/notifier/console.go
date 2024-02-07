@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/parser"
 	"os"
 )
 
@@ -13,6 +12,10 @@ type console struct {
 	logger logger.Logger
 	name   string
 	cfg    *config.ConsoleConfig
+}
+
+func (o *console) GetLogger() logger.Logger {
+	return o.logger
 }
 
 func (o *console) notify(record *singleRecord) error {
@@ -55,8 +58,4 @@ func NewConsole(name string, cfg *config.ConsoleConfig) *console {
 func (o *console) WithLogger(logger logger.Logger) *console {
 	o.logger = logger
 	return o
-}
-
-func (o *console) Inform(result *parser.ParseResult, errResult error, asArray bool) error {
-	return inform(o, o.name, result, errResult, asArray, o.logger)
 }

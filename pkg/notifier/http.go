@@ -7,7 +7,6 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/http_client"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/parser"
 	"github.com/PxyUp/fitter/pkg/utils"
 	"net/http"
 	"time"
@@ -54,8 +53,8 @@ func (h *httpNotifier) notify(record *singleRecord) error {
 	return nil
 }
 
-func (h *httpNotifier) Inform(result *parser.ParseResult, err error, asArray bool) error {
-	return inform(h, h.name, result, err, asArray, h.logger)
+func (o *httpNotifier) GetLogger() logger.Logger {
+	return o.logger
 }
 
 func (h *httpNotifier) WithLogger(logger logger.Logger) *httpNotifier {

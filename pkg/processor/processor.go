@@ -8,6 +8,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/notifier"
 	"github.com/PxyUp/fitter/pkg/parser"
 	"github.com/PxyUp/fitter/pkg/references"
+	"github.com/PxyUp/fitter/pkg/utils"
 )
 
 var (
@@ -25,6 +26,7 @@ type processor struct {
 	notifier    notifier.Notifier
 	notifierCfg *config.NotifierConfig
 	engine      parser.Engine
+	name        string
 }
 
 type nullProcessor struct {
@@ -45,8 +47,9 @@ func (n *nullProcessor) Process(input builder.Interfacable) (*parser.ParseResult
 	return nil, n.err
 }
 
-func New(engine parser.Engine, model *config.Model, notifier notifier.Notifier, notifierCfg *config.NotifierConfig) *processor {
+func New(name string, engine parser.Engine, model *config.Model, notifier notifier.Notifier, notifierCfg *config.NotifierConfig) *processor {
 	return &processor{
+		name:        name,
 		engine:      engine,
 		logger:      logger.Null,
 		notifierCfg: notifierCfg,
@@ -67,7 +70,15 @@ func (p *processor) Process(input builder.Interfacable) (*parser.ParseResult, er
 		if p.model.ArrayConfig != nil || p.model.IsArray {
 			isArray = true
 		}
+
 		if p.notifierCfg != nil {
+			if p.notifierCfg.Template != "" {
+				strValue := builder.ToJsonableFromString(utils.Format(p.notifierCfg.Template, result, nil, nil))
+				result = &parser.ParseResult{
+					RawResult: strValue.Raw(),
+					Json:      strValue.ToJson(),
+				}
+			}
 			need, errShInform := notifier.ShouldInform(p.notifierCfg, result)
 			if errShInform != nil {
 				p.logger.Errorw("cannot calculate notification setting", "error", errShInform.Error())
@@ -77,7 +88,7 @@ func (p *processor) Process(input builder.Interfacable) (*parser.ParseResult, er
 				return result, nil
 			}
 		}
-		errNot := p.notifier.Inform(result, err, isArray && p.notifierCfg.SendArrayByItem)
+		errNot := notifier.Inform(p.notifier, p.name, result, err, isArray && p.notifierCfg.SendArrayByItem, p.notifier.GetLogger())
 		if errNot != nil {
 			p.logger.Errorw("cannot notify about result", "error", errNot.Error())
 		}
@@ -130,5 +141,5 @@ func CreateProcessor(item *config.Item, refMap config.RefMap, logger logger.Logg
 
 	logger = logger.With("name", item.Name)
 
-	return New(parser.NewEngine(item.ConnectorConfig, logger.With("component", "processor_engine")), item.Model, notifierInstance, item.NotifierConfig).WithLogger(logger)
+	return New(item.Name, parser.NewEngine(item.ConnectorConfig, logger.With("component", "processor_engine")), item.Model, notifierInstance, item.NotifierConfig).WithLogger(logger)
 }
