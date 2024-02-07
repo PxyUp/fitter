@@ -30,8 +30,8 @@ func (f *fileNotifier) notify(record *singleRecord) error {
 		content = utils.Format(content, builder.ToJsonable(record.Body), record.Index, nil)
 	}
 
-	destinationFileName := utils.Format(f.cfg.FileName, nil, nil, nil)
-	destinationPath := utils.Format(f.cfg.Path, nil, nil, nil)
+	destinationFileName := utils.Format(f.cfg.FileName, builder.ToJsonable(record.Body), record.Index, nil)
+	destinationPath := utils.Format(f.cfg.Path, builder.ToJsonable(record.Body), record.Index, nil)
 
 	_, err := utils.CreateFileWithContent([]byte(content), destinationFileName, destinationPath, os.ModePerm, f.cfg.Append, f.logger)
 	if err != nil {
