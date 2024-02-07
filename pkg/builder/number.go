@@ -32,5 +32,5 @@ func (s *number) ToJson() string {
 }
 
 func (s *number) Raw() json.RawMessage {
-	return toRaw(s)
+	return toRaw(s.value)
 }
