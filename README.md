@@ -849,6 +849,16 @@ type FileStorageField struct {
 - Append[false] - append to file or not
 
 
+```json
+{
+  "content": "{{{id}}}, {{{message}}}\n",
+  "append": true,
+  "file_name": "{{{id}}}.csv",
+  "path": "/Users/pxyup/fitter/examples/cli/test/csv"
+}
+```
+
+
 #### File Field
 
 Field can be used for download file from server locally

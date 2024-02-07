@@ -55,7 +55,7 @@ type GeneratedFieldConfig struct {
 
 type FileStorageField struct {
 	Content string          `json:"content" yaml:"content"`
-	Raw     json.RawMessage `yaml:"raw" yaml:"raw"`
+	Raw     json.RawMessage `json:"raw" yaml:"raw"`
 
 	FileName string `json:"file_name" yaml:"file_name"`
 	Path     string `json:"path" yaml:"path"`
