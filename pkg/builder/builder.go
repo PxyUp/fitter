@@ -19,7 +19,7 @@ type Jsonable interface {
 var (
 	EMPTY = PureString("")
 
-	NullValue = Null()
+	NullValue = null()
 )
 
 func toRaw(vv any) json.RawMessage {

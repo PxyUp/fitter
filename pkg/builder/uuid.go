@@ -11,7 +11,7 @@ func UUID(cfg *config.UUIDGeneratedFieldConfig) Interfacable {
 	if cfg.Regexp != "" {
 		re, err := regexp.Compile(cfg.Regexp)
 		if err != nil {
-			return Null()
+			return NullValue
 		}
 		return String(re.FindString(uuidStr))
 	}

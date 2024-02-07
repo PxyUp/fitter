@@ -12,7 +12,12 @@ const (
 )
 
 var (
-	defEnv = map[string]interface{}{}
+	defEnv = map[string]interface{}{
+		"FNull": nil,
+		"isNull": func(value interface{}) bool {
+			return builder.NullValue == value
+		},
+	}
 )
 
 func extendEnv(env map[string]interface{}, result builder.Interfacable, index *uint32) map[string]interface{} {

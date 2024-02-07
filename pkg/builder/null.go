@@ -2,29 +2,29 @@ package builder
 
 import "encoding/json"
 
-type null struct {
+type nn struct {
 }
 
-func (s *null) ToInterface() interface{} {
+func (s *nn) ToInterface() interface{} {
 	return nil
 }
 
 var (
-	_ Interfacable = &null{}
+	_ Interfacable = &nn{}
 )
 
-func Null() *null {
-	return &null{}
+func null() *nn {
+	return &nn{}
 }
 
-func (s *null) IsEmpty() bool {
+func (s *nn) IsEmpty() bool {
 	return true
 }
 
-func (n *null) ToJson() string {
+func (n *nn) ToJson() string {
 	return `null`
 }
 
-func (s *null) Raw() json.RawMessage {
+func (s *nn) Raw() json.RawMessage {
 	return json.RawMessage{0x00}
 }
