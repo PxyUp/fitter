@@ -27,7 +27,7 @@ func TestBool(t *testing.T) {
 }
 
 func TestNull(t *testing.T) {
-	nn := builder.Null()
+	nn := builder.NullValue
 	assert.Equal(t, nn.Raw(), builder.ToJsonable(nn.Raw()).Raw())
 }
 
