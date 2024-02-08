@@ -101,7 +101,18 @@ func buildGeneratedField(parsedValue builder.Interfacable, fieldType config.Fiel
 	}
 
 	if field.Static != nil {
-		return builder.Static(field.Static)
+		if len(field.Static.Raw) > 0 {
+			return builder.Static(&builder.StaticCfg{
+				Type:  field.Static.Type,
+				Value: utils.Format(string(field.Static.Raw), parsedValue, index, input),
+			})
+		}
+
+		return builder.Static(&builder.StaticCfg{
+			Type:  field.Static.Type,
+			Value: utils.Format(field.Static.Value, parsedValue, index, input),
+		})
+
 	}
 
 	if field.Formatted != nil {

@@ -92,8 +92,9 @@ type ModelField struct {
 }
 
 type StaticGeneratedFieldConfig struct {
-	Type  FieldType `yaml:"type" json:"type"`
-	Value string    `json:"value" yaml:"value"`
+	Type  FieldType       `yaml:"type" json:"type"`
+	Value string          `json:"value" yaml:"value"`
+	Raw   json.RawMessage `json:"raw" yaml:"raw"`
 }
 
 type UUIDGeneratedFieldConfig struct {

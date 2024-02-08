@@ -195,6 +195,7 @@ func (s *JsonV2ObjectSuite) Test_ParseSimpleObject() {
 }
 
 func (s *JsonV2ObjectSuite) TestGeneratedField() {
+	require.NoError(s.T(), os.Setenv("T_NUMBER", "99"))
 	res, err := s.parser.Parse(&config.Model{
 		ObjectConfig: &config.ObjectConfig{
 			Fields: map[string]*config.Field{
@@ -215,6 +216,26 @@ func (s *JsonV2ObjectSuite) TestGeneratedField() {
 						},
 					},
 				},
+				"array": {
+					BaseField: &config.BaseField{
+						Generated: &config.GeneratedFieldConfig{
+							Static: &config.StaticGeneratedFieldConfig{
+								Type:  config.Array,
+								Value: "[1,2,4, {{{FromExp=int({{{FromEnv=T_NUMBER}}})}}}]",
+							},
+						},
+					},
+				},
+				"string": {
+					BaseField: &config.BaseField{
+						Generated: &config.GeneratedFieldConfig{
+							Static: &config.StaticGeneratedFieldConfig{
+								Type: config.Array,
+								Raw:  []byte("\"{{{FromEnv=T_NUMBER}}}\""),
+							},
+						},
+					},
+				},
 			},
 		},
 	}, nil)
@@ -224,6 +245,9 @@ func (s *JsonV2ObjectSuite) TestGeneratedField() {
 	assert.NoError(s.T(), err)
 	assert.True(s.T(), len(jsonMap["uuid"].(string)) > 0)
 	assert.Equal(s.T(), float64(5), jsonMap["name"])
+	assert.Equal(s.T(), "99", jsonMap["string"])
+	assert.Equal(s.T(), []any{float64(1), float64(2), float64(4), float64(99)}, jsonMap["array"])
+	require.NoError(s.T(), os.Unsetenv("T_NUMBER"))
 }
 
 func (s *JsonV2ObjectSuite) Test_ReturnSimpleArray_Concat() {

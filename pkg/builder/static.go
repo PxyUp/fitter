@@ -42,7 +42,12 @@ var (
 	_ Interfacable = &static{}
 )
 
-func Static(cfg *config.StaticGeneratedFieldConfig) *static {
+type StaticCfg struct {
+	Type  config.FieldType `yaml:"type" json:"type"`
+	Value string           `json:"value" yaml:"value"`
+}
+
+func Static(cfg *StaticCfg) *static {
 	return &static{
 		fieldType:   cfg.Type,
 		stringValue: cfg.Value,

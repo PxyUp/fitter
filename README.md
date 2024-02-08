@@ -793,13 +793,15 @@ Generate static field
 
 ```go
 type StaticGeneratedFieldConfig struct {
-	Type  FieldType `yaml:"type" json:"type"`
-	Value string    `json:"value" yaml:"value"`
+    Type  FieldType       `yaml:"type" json:"type"`
+    Value string          `json:"value" yaml:"value"`
+    Raw   json.RawMessage `json:"raw" yaml:"raw"`
 }
 ```
 
 - Type - enum["null", "boolean", "string", "int","int64","float","float64", "array", "object"] - type of the field
 - Value - string value of the field
+- Raw - pure json value of the field
 
 Example
 ```json
@@ -813,6 +815,13 @@ Example
 {
   "type": "array",
   "value": "[65,45]"
+}
+```
+
+```json
+{
+  "type": "array",
+  "raw": [65,45]
 }
 ```
 
