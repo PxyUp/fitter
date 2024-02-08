@@ -41,3 +41,22 @@ func WithAttempts(original Connector, attempts uint32) Connector {
 		attempts: attempts,
 	}
 }
+
+type nullSafe struct {
+	original Connector
+}
+
+func (n *nullSafe) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
+	resp, err := n.original.Get(parsedValue, index, input)
+	if err != nil {
+		return builder.NullValue.Raw(), nil
+	}
+
+	return resp, nil
+}
+
+func NullSafe(original Connector) Connector {
+	return &nullSafe{
+		original: original,
+	}
+}

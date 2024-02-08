@@ -17,7 +17,7 @@ type singleRecord struct {
 }
 
 type Notifier interface {
-	notify(*singleRecord) error
+	notify(*singleRecord, builder.Interfacable) error
 	GetLogger() logger.Logger
 }
 
@@ -83,12 +83,12 @@ func ShouldInform(cfg *config.NotifierConfig, result builder.Interfacable) (bool
 	return out.ToInterface() == true, nil
 }
 
-func Inform(notifier Notifier, name string, result *parser.ParseResult, errResult error, asArray bool, logger logger.Logger) error {
+func Inform(notifier Notifier, name string, result *parser.ParseResult, errResult error, asArray bool, logger logger.Logger, input builder.Interfacable) error {
 	if errResult != nil {
-		return notifier.notify(resultToSingleRecord(name, nil, errResult, logger))
+		return notifier.notify(resultToSingleRecord(name, nil, errResult, logger), input)
 	}
 	if !asArray {
-		return notifier.notify(resultToSingleRecord(name, result, nil, logger))
+		return notifier.notify(resultToSingleRecord(name, result, nil, logger), input)
 	}
 
 	records, err := resultToSingleArray(name, result, errResult, logger)
@@ -97,7 +97,7 @@ func Inform(notifier Notifier, name string, result *parser.ParseResult, errResul
 	}
 
 	for _, rec := range records {
-		errNotify := notifier.notify(rec)
+		errNotify := notifier.notify(rec, input)
 		if errNotify != nil {
 			return errNotify
 		}

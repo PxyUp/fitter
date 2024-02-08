@@ -18,7 +18,7 @@ type telegramBot struct {
 	botApi *tgbotapi.BotAPI
 }
 
-func (t *telegramBot) notify(record *singleRecord) error {
+func (t *telegramBot) notify(record *singleRecord, input builder.Interfacable) error {
 	var msg []byte
 
 	if t.cfg.OnlyMsg {

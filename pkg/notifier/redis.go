@@ -3,6 +3,7 @@ package notifier
 import (
 	"context"
 	"encoding/json"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/utils"
@@ -21,7 +22,7 @@ type redisNotifier struct {
 	redisClient *redis.Client
 }
 
-func (r *redisNotifier) notify(record *singleRecord) error {
+func (r *redisNotifier) notify(record *singleRecord, input builder.Interfacable) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -30,7 +31,15 @@ func (r *redisNotifier) notify(record *singleRecord) error {
 		r.logger.Errorw("cant marshal message", "error", errMars.Error())
 		return errMars
 	}
-	errSend := r.redisClient.Publish(ctx, utils.Format(r.cfg.Channel, nil, nil, nil), msg).Err()
+
+	var channel string
+	if record.Error != nil {
+		channel = utils.Format(r.cfg.Channel, builder.String((*record.Error).Error()), record.Index, input)
+	} else {
+		channel = utils.Format(r.cfg.Channel, builder.ToJsonable(record.Body), record.Index, input)
+	}
+
+	errSend := r.redisClient.Publish(ctx, channel, msg).Err()
 	if errSend != nil {
 		r.logger.Errorw("cant send message", "error", errSend.Error())
 		return errSend

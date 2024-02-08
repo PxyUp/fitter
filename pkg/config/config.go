@@ -86,6 +86,8 @@ type ConnectorConfig struct {
 	Url          string     `json:"url" yaml:"url"`
 	Attempts     uint32     `json:"attempts" yaml:"attempts"`
 
+	NullOnError bool `yaml:"null_on_error" json:"null_on_error"`
+
 	StaticConfig          *StaticConnectorConfig      `json:"static_config" yaml:"static_config"`
 	IntSequenceConfig     *IntSequenceConnectorConfig `json:"int_sequence_config" yaml:"int_sequence_config"`
 	ServerConfig          *ServerConnectorConfig      `json:"server_config" yaml:"server_config"`

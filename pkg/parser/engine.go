@@ -125,6 +125,10 @@ func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {
 
 	connector = connectors.WithAttempts(connector, cfg.Attempts)
 
+	if cfg.NullOnError {
+		connector = connectors.NullSafe(connector)
+	}
+
 	return &engine{
 		connector: connector,
 		parser:    parserFactory,

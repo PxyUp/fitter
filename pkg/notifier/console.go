@@ -3,6 +3,7 @@ package notifier
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"os"
@@ -18,7 +19,7 @@ func (o *console) GetLogger() logger.Logger {
 	return o.logger
 }
 
-func (o *console) notify(record *singleRecord) error {
+func (o *console) notify(record *singleRecord, input builder.Interfacable) error {
 	if o.cfg.OnlyResult {
 		_, errOut := fmt.Fprintln(os.Stdout, string(record.Body))
 		if errOut != nil {

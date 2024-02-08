@@ -157,6 +157,8 @@ type ConnectorConfig struct {
     Url          string     `json:"url" yaml:"url"`
     Attempts     uint32     `json:"attempts" yaml:"attempts"`
     
+    NullOnError bool `yaml:"null_on_error" json:"null_on_error"`
+    
     StaticConfig          *StaticConnectorConfig      `json:"static_config" yaml:"static_config"`
     IntSequenceConfig     *IntSequenceConnectorConfig `json:"int_sequence_config" yaml:"int_sequence_config"`
     ServerConfig          *ServerConnectorConfig      `json:"server_config" yaml:"server_config"`
@@ -167,6 +169,7 @@ type ConnectorConfig struct {
 }
 ```
 
+- NullOnError[false] - if set to true then all errors a ignored
 - ResponseType - enum["HTML", "json","xpath"] - in which format data comes from the connector
 - Attempts - how many attempts to use for fetch data by connector
 - Url - define which address to request. Important: can be with [inject of the parent value as a string](#placeholder-list)

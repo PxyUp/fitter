@@ -89,7 +89,7 @@ func (p *processor) Process(input builder.Interfacable) (*parser.ParseResult, er
 				return result, nil
 			}
 		}
-		errNot := notifier.Inform(p.notifier, p.name, result, err, isArray && p.notifierCfg.SendArrayByItem && !result.IsEmpty(), p.notifier.GetLogger())
+		errNot := notifier.Inform(p.notifier, p.name, result, err, isArray && p.notifierCfg.SendArrayByItem && !result.IsEmpty(), p.notifier.GetLogger(), input)
 		if errNot != nil {
 			p.logger.Errorw("cannot notify about result", "error", errNot.Error())
 		}

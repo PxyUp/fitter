@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/http_client"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -18,21 +19,34 @@ type httpNotifier struct {
 	cfg    *config.HttpConfig
 }
 
-func (h *httpNotifier) notify(record *singleRecord) error {
+func (h *httpNotifier) notify(record *singleRecord, input builder.Interfacable) error {
 	bb, err := json.Marshal(record)
 	if err != nil {
 		h.logger.Errorw("cant unmarshal request body", "error", err.Error())
 		return err
 	}
 
-	req, err := http.NewRequest(h.cfg.Method, utils.Format(h.cfg.Url, nil, nil, nil), bytes.NewReader(bb))
+	var url string
+	if record.Error != nil {
+		url = utils.Format(h.cfg.Url, builder.String((*record.Error).Error()), record.Index, input)
+	} else {
+		url = utils.Format(h.cfg.Url, builder.ToJsonable(record.Body), record.Index, input)
+	}
+
+	req, err := http.NewRequest(h.cfg.Method, url, bytes.NewReader(bb))
 	if err != nil {
 		h.logger.Errorw("cant create request", "error", err.Error())
 		return err
 	}
 
 	for k, v := range h.cfg.Headers {
-		req.Header.Add(k, utils.Format(v, nil, nil, nil))
+		var headerValue string
+		if record.Error != nil {
+			headerValue = utils.Format(v, builder.String((*record.Error).Error()), record.Index, input)
+		} else {
+			headerValue = utils.Format(v, builder.ToJsonable(record.Body), record.Index, input)
+		}
+		req.Header.Add(k, headerValue)
 	}
 
 	if h.cfg.Timeout > 0 {
