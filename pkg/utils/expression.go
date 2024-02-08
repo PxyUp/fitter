@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/expr-lang/expr"
 )
@@ -9,10 +10,22 @@ const (
 	fitterResultJsonRef = "fResJson"
 	fitterResultRef     = "fRes"
 	fitterIndexRef      = "fIndex"
+	fitterResultRaw     = "fResRaw"
 )
 
 var (
 	defEnv = map[string]interface{}{
+		"reverse": func(s []interface{}) []interface{} {
+			a := make([]interface{}, len(s))
+			copy(a, s)
+
+			for i := len(a)/2 - 1; i >= 0; i-- {
+				opp := len(a) - 1 - i
+				a[i], a[opp] = a[opp], a[i]
+			}
+
+			return a
+		},
 		"FNull": builder.NullValue,
 		"FNil":  nil,
 		"isNull": func(value interface{}) bool {
@@ -29,6 +42,7 @@ func extendEnv(env map[string]interface{}, result builder.Interfacable, index *u
 	}
 
 	if result != nil {
+		kv[fitterResultRaw] = result.Raw()
 		kv[fitterResultRef] = result.ToInterface()
 		kv[fitterResultJsonRef] = result.ToJson()
 	}
@@ -39,18 +53,23 @@ func extendEnv(env map[string]interface{}, result builder.Interfacable, index *u
 	return kv
 }
 
-func ProcessExpression(expression string, result builder.Interfacable, index *uint32, input builder.Interfacable) (interface{}, error) {
+func ProcessExpression(expression string, result builder.Interfacable, index *uint32, input builder.Interfacable) (builder.Interfacable, error) {
 	env := extendEnv(defEnv, result, index)
 
 	program, err := expr.Compile(Format(expression, result, index, input), expr.Env(env))
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	out, err := expr.Run(program, env)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return out, nil
+	bb, err := json.Marshal(out)
+	if err != nil {
+		return nil, err
+	}
+
+	return builder.ToJsonable(bb), nil
 }

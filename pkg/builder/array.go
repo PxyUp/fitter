@@ -1,6 +1,8 @@
 package builder
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type arrayField struct {
 	values []Interfacable
@@ -10,11 +12,7 @@ func (s *arrayField) ToInterface() interface{} {
 	res := make([]interface{}, len(s.values))
 
 	for i, item := range s.values {
-		if item == nil {
-			res[i] = NullValue.ToInterface()
-		} else {
-			res[i] = item.ToInterface()
-		}
+		res[i] = item.ToInterface()
 	}
 
 	return res
@@ -67,9 +65,9 @@ func (s *arrayField) Raw() json.RawMessage {
 
 	for i, item := range s.values {
 		if item == nil {
-			res[i] = NullValue.ToInterface()
+			res[i] = NullValue.Raw()
 		} else {
-			res[i] = item.ToInterface()
+			res[i] = item.Raw()
 		}
 	}
 

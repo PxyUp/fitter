@@ -85,10 +85,11 @@ func (p *processor) Process(input builder.Interfacable) (*parser.ParseResult, er
 				return nil, errShInform
 			}
 			if !need {
+				p.logger.Debug("skip notification because not match expression")
 				return result, nil
 			}
 		}
-		errNot := notifier.Inform(p.notifier, p.name, result, err, isArray && p.notifierCfg.SendArrayByItem, p.notifier.GetLogger())
+		errNot := notifier.Inform(p.notifier, p.name, result, err, isArray && p.notifierCfg.SendArrayByItem && !result.IsEmpty(), p.notifier.GetLogger())
 		if errNot != nil {
 			p.logger.Errorw("cannot notify about result", "error", errNot.Error())
 		}

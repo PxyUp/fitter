@@ -72,12 +72,11 @@ func processPrefix(prefix string, value builder.Interfacable, index *uint32, inp
 
 	if strings.HasPrefix(prefix, exprNamePrefix) {
 		raw, err := ProcessExpression(strings.TrimPrefix(prefix, exprNamePrefix), value, index, input)
-		tmp := ""
-		if err == nil {
-			tmp = fmt.Sprintf("%v", raw)
+		if err != nil {
+			return builder.EMPTY.ToJson()
 		}
 
-		return builder.PureString(tmp).ToJson()
+		return builder.PureString(raw.ToJson()).ToJson()
 	}
 
 	if strings.HasPrefix(prefix, envNamePrefix) {

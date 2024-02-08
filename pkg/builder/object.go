@@ -58,7 +58,7 @@ func (o *objectField) ToJson() string {
 func (o *objectField) Raw() json.RawMessage {
 	kv := make(map[string]interface{})
 	for k, v := range o.kv {
-		kv[k] = v.ToInterface()
+		kv[k] = v.Raw()
 	}
 	return toRaw(kv)
 }

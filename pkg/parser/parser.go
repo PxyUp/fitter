@@ -2,7 +2,6 @@ package parser
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -45,12 +44,7 @@ type ParseResult struct {
 }
 
 func (p *ParseResult) ToInterface() interface{} {
-	var t interface{}
-	err := json.Unmarshal(p.RawResult, &t)
-	if err != nil {
-		return nil
-	}
-	return t
+	return builder.ToJsonable(p.RawResult).ToInterface()
 }
 
 func (p *ParseResult) Raw() json.RawMessage {
@@ -58,7 +52,7 @@ func (p *ParseResult) Raw() json.RawMessage {
 }
 
 func (p *ParseResult) IsEmpty() bool {
-	return len(p.Json) == 0
+	return builder.ToJsonable(p.RawResult).IsEmpty()
 }
 
 func (p *ParseResult) ToJson() string {
@@ -72,10 +66,7 @@ func getExpressionResult(expr string, fieldType config.FieldType, value builder.
 		return builder.NullValue
 	}
 
-	return builder.Static(&config.StaticGeneratedFieldConfig{
-		Type:  fieldType,
-		Value: fmt.Sprintf("%v", res),
-	})
+	return res
 }
 
 func buildGeneratedField(parsedValue builder.Interfacable, fieldType config.FieldType, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32, input builder.Interfacable) builder.Interfacable {
@@ -170,9 +161,7 @@ func fillUpBaseField(source gjson.Result, field *config.BaseField) builder.Inter
 		return builder.Bool(source.Bool())
 	case config.Float, config.Float64, config.Int, config.Int64:
 		return builder.Number(source.Float())
-	case config.Array:
-		return builder.ToJsonable([]byte(source.String()))
-	case config.Object:
+	case config.Array, config.Object:
 		return builder.ToJsonable([]byte(source.String()))
 	}
 

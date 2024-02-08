@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/utils"
@@ -18,18 +19,21 @@ type telegramBot struct {
 }
 
 func (t *telegramBot) notify(record *singleRecord) error {
-	var forUnmarshal any
-	forUnmarshal = record
+	var msg []byte
+
 	if t.cfg.OnlyMsg {
 		if record.Error != nil {
-			forUnmarshal = (*record.Error).Error()
+			msg = builder.String((*record.Error).Error()).Raw()
 		} else {
-			forUnmarshal = record.Body
+			msg = record.Body
 		}
-	}
-	msg, err := json.Marshal(forUnmarshal)
-	if err != nil {
-		return err
+	} else {
+		body, err := json.Marshal(record)
+		if err != nil {
+			return err
+		}
+
+		msg = body
 	}
 
 	if t.cfg.Pretty {

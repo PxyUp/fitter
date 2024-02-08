@@ -31,6 +31,8 @@ func (s *static) ToInterface() interface{} {
 			return NullValue.ToInterface()
 		}
 		return Number(float32Value).ToInterface()
+	case config.Object, config.Array:
+		return ToJsonableFromString(s.stringValue).ToInterface()
 	}
 
 	return NullValue.ToInterface()
@@ -71,6 +73,8 @@ func (s *static) ToJson() string {
 			return NullValue.ToJson()
 		}
 		return Number(float32Value).ToJson()
+	case config.Object, config.Array:
+		return ToJsonableFromString(s.stringValue).ToJson()
 	}
 
 	return NullValue.ToJson()
@@ -96,6 +100,8 @@ func (s *static) Raw() json.RawMessage {
 			return NullValue.Raw()
 		}
 		return Number(float32Value).Raw()
+	case config.Object, config.Array:
+		return ToJsonableFromString(s.stringValue).Raw()
 	}
 
 	return NullValue.Raw()

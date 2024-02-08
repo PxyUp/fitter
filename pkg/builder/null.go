@@ -26,5 +26,5 @@ func (n *nn) ToJson() string {
 }
 
 func (s *nn) Raw() json.RawMessage {
-	return json.RawMessage{0x00}
+	return json.RawMessage{0x6e, 0x75, 0x6c, 0x6c}
 }

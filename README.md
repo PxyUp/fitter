@@ -798,7 +798,7 @@ type StaticGeneratedFieldConfig struct {
 }
 ```
 
-- Type - enum["null", "boolean", "string", "int","int64","float","float64"] - type of the field
+- Type - enum["null", "boolean", "string", "int","int64","float","float64", "array", "object"] - type of the field
 - Value - string value of the field
 
 Example
@@ -806,6 +806,13 @@ Example
 {
   "type": "int",
   "value": "65"
+}
+```
+
+```json
+{
+  "type": "array",
+  "value": "[65,45]"
 }
 ```
 
@@ -938,6 +945,10 @@ type CalculatedConfig struct {
 **fIndex** - it is index in parent array(only if parent was array field)
 
 **fResJson** - it is JSON string representation of the raw result
+
+**fResRaw** - result in bytes format
+
+**reverse([]T)** - return reverse array
 
 ```json
 {
