@@ -169,7 +169,8 @@ type ConnectorConfig struct {
 
 - ResponseType - enum["HTML", "json","xpath"] - in which format data comes from the connector
 - Attempts - how many attempts to use for fetch data by connector
-- Url - define which address to request
+- Url - define which address to request. Important: can be with [inject of the parent value as a string](#placeholder-list)
+`https://api.open-meteo.com/v1/forecast?latitude={{{latitude}}}&longitude={{{longitude}}}&hourly=temperature_2m&forecast_days=1`
 
 Config can be one of:
 - [ServerConfig](#serverconnectorconfig)
