@@ -402,8 +402,8 @@ func (s *ModelFieldParserSuite) TestFileStorageField_Append() {
 	resp, err = io.ReadAll(file)
 	require.NoError(s.T(), err)
 	require.NoError(s.T(), file.Close())
-	assert.True(s.T(), bytes.Compare([]byte(`my_token
-my_token`), resp) == 0)
+	assert.True(s.T(), bytes.Equal([]byte(`my_token
+my_token`), resp))
 }
 
 func (s *ModelFieldParserSuite) TestFileStorageField() {

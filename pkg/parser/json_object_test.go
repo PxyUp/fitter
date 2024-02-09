@@ -8,7 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"io/ioutil"
+	"io"
+
 	"os"
 	"testing"
 )
@@ -28,7 +29,7 @@ func (s *JsonV2ObjectSuite) SetupTest() {
 	require.NoError(s.T(), err)
 	defer jsonFile.Close()
 
-	jsonBody, err := ioutil.ReadAll(jsonFile)
+	jsonBody, err := io.ReadAll(jsonFile)
 	if err != nil {
 		require.NoError(s.T(), err)
 	}

@@ -15,7 +15,6 @@ type telegramBot struct {
 	logger logger.Logger
 	name   string
 	cfg    *config.TelegramBotConfig
-	token  string
 }
 
 func (t *telegramBot) notify(record *singleRecord, input builder.Interfacable) error {
