@@ -8,6 +8,6 @@ type Message struct {
 }
 
 type Trigger interface {
-	Run(chan<- Message)
+	Run(chan<- *Message)
 	Stop()
 }

@@ -13,6 +13,8 @@ type runtime struct {
 	ctx    context.Context
 	cfg    *config.Config
 	logger logger.Logger
+
+	triggers []trigger.Trigger
 }
 
 func New(ctx context.Context, cfg *config.Config, logger logger.Logger) *runtime {
@@ -29,6 +31,9 @@ func (r *runtime) Start() {
 	r.runScheduler(updates)
 	r.runHTTPServer(updates)
 	<-r.ctx.Done()
+	for _, t := range r.triggers {
+		t.Stop()
+	}
 	close(updates)
 }
 
@@ -67,22 +72,15 @@ func (r *runtime) runHTTPServer(updates chan<- *trigger.Message) {
 
 	serverRun := trigger.HttpServer(r.ctx, r.cfg.HttpServer, forIgnore).WithLogger(r.logger.With("scheduler_type", "http_server"))
 	serverRun.Run(updates)
-	go func() {
-		<-r.ctx.Done()
-		serverRun.Stop()
-	}()
-
+	r.triggers = append(r.triggers, serverRun)
 }
 
 func (r *runtime) runScheduler(updates chan<- *trigger.Message) {
 	for _, item := range r.cfg.Items {
 		if item.TriggerConfig != nil && item.TriggerConfig.SchedulerTrigger != nil {
-			localTrigger := trigger.Scheduler(r.ctx, item.Name, item.TriggerConfig.SchedulerTrigger).WithLogger(r.logger.With("scheduler_name", item.Name))
-			localTrigger.Run(updates)
-			go func() {
-				<-r.ctx.Done()
-				localTrigger.Stop()
-			}()
+			scheduler := trigger.Scheduler(r.ctx, item.Name, item.TriggerConfig.SchedulerTrigger).WithLogger(r.logger.With("scheduler_name", item.Name))
+			scheduler.Run(updates)
+			r.triggers = append(r.triggers, scheduler)
 		}
 	}
 }
