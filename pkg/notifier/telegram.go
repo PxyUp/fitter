@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/http_client"
 	"github.com/PxyUp/fitter/pkg/logger"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -64,6 +65,8 @@ func (t *telegramBot) sendMessage(msg string, record *singleRecord, input builde
 	if err != nil {
 		return err
 	}
+	botApi.Client = http_client.GetDefaultClient()
+
 	for _, id := range t.cfg.UsersId {
 		msgForSend := tgbotapi.NewMessage(id, msg)
 		_, errSend := botApi.Send(msgForSend)
