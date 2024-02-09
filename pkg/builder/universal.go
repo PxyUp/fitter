@@ -18,7 +18,7 @@ func toJson(result gjson.Result) Interfacable {
 	}
 
 	if result.IsArray() {
-		tmp := []Interfacable{}
+		var tmp []Interfacable
 		result.ForEach(func(key, value gjson.Result) bool {
 			tmp = append(tmp, toJson(value))
 			return true

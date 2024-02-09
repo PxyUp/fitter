@@ -63,6 +63,8 @@ func htmlFillUpBaseField(source *goquery.Selection, field *config.BaseField) bui
 			return builder.NullValue
 		}
 		return builder.Number(float32Value)
+	case config.Array, config.Object:
+		return builder.ToJsonableFromString(text)
 	}
 
 	return builder.NullValue

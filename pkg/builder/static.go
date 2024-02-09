@@ -7,35 +7,11 @@ import (
 )
 
 type static struct {
-	fieldType   config.FieldType
-	stringValue string
+	value Interfacable
 }
 
 func (s *static) ToInterface() interface{} {
-	switch s.fieldType {
-	case config.Null:
-		return NullValue.ToInterface()
-	case config.RawString:
-		return String(s.stringValue, false).ToInterface()
-	case config.String:
-		return String(s.stringValue).ToInterface()
-	case config.Bool:
-		boolValue, err := strconv.ParseBool(s.stringValue)
-		if err != nil {
-			return NullValue.ToInterface()
-		}
-		return Bool(boolValue).ToInterface()
-	case config.Float, config.Float64, config.Int, config.Int64:
-		float32Value, err := strconv.ParseFloat(s.stringValue, 64)
-		if err != nil {
-			return NullValue.ToInterface()
-		}
-		return Number(float32Value).ToInterface()
-	case config.Object, config.Array:
-		return ToJsonableFromString(s.stringValue).ToInterface()
-	}
-
-	return NullValue.ToInterface()
+	return s.value.ToInterface()
 }
 
 var (
@@ -48,66 +24,58 @@ type StaticCfg struct {
 }
 
 func Static(cfg *StaticCfg) *static {
+	switch cfg.Type {
+	case config.Null:
+		return &static{
+			value: NullValue,
+		}
+	case config.RawString:
+		return &static{
+			value: String(cfg.Value, false),
+		}
+	case config.String:
+		return &static{
+			value: String(cfg.Value, false),
+		}
+	case config.Bool:
+		boolValue, err := strconv.ParseBool(cfg.Value)
+		if err != nil {
+			return &static{
+				value: NullValue,
+			}
+		}
+		return &static{
+			value: Bool(boolValue),
+		}
+	case config.Float, config.Int, config.Float64, config.Int64:
+		float32Value, err := strconv.ParseFloat(cfg.Value, 64)
+		if err != nil {
+			return &static{
+				value: NullValue,
+			}
+		}
+		return &static{
+			value: Number(float32Value),
+		}
+	case config.Object, config.Array:
+		return &static{
+			value: ToJsonableFromString(cfg.Value),
+		}
+	}
+
 	return &static{
-		fieldType:   cfg.Type,
-		stringValue: cfg.Value,
+		value: NullValue,
 	}
 }
 
 func (s *static) IsEmpty() bool {
-	return false
+	return s.value.IsEmpty()
 }
 
 func (s *static) ToJson() string {
-	switch s.fieldType {
-	case config.Null:
-		return NullValue.ToJson()
-	case config.RawString:
-		return String(s.stringValue, false).ToJson()
-	case config.String:
-		return String(s.stringValue).ToJson()
-	case config.Bool:
-		boolValue, err := strconv.ParseBool(s.stringValue)
-		if err != nil {
-			return NullValue.ToJson()
-		}
-		return Bool(boolValue).ToJson()
-	case config.Float, config.Int, config.Float64, config.Int64:
-		float32Value, err := strconv.ParseFloat(s.stringValue, 64)
-		if err != nil {
-			return NullValue.ToJson()
-		}
-		return Number(float32Value).ToJson()
-	case config.Object, config.Array:
-		return ToJsonableFromString(s.stringValue).ToJson()
-	}
-
-	return NullValue.ToJson()
+	return s.value.ToJson()
 }
 
 func (s *static) Raw() json.RawMessage {
-	switch s.fieldType {
-	case config.Null:
-		return NullValue.Raw()
-	case config.RawString:
-		return String(s.stringValue, false).Raw()
-	case config.String:
-		return String(s.stringValue).Raw()
-	case config.Bool:
-		boolValue, err := strconv.ParseBool(s.stringValue)
-		if err != nil {
-			return NullValue.Raw()
-		}
-		return Bool(boolValue).Raw()
-	case config.Float, config.Float64, config.Int, config.Int64:
-		float32Value, err := strconv.ParseFloat(s.stringValue, 64)
-		if err != nil {
-			return NullValue.Raw()
-		}
-		return Number(float32Value).Raw()
-	case config.Object, config.Array:
-		return ToJsonableFromString(s.stringValue).Raw()
-	}
-
-	return NullValue.Raw()
+	return s.value.Raw()
 }
