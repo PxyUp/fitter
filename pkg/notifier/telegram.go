@@ -7,7 +7,6 @@ import (
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/utils"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -15,15 +14,15 @@ type telegramBot struct {
 	logger logger.Logger
 	name   string
 	cfg    *config.TelegramBotConfig
-	botApi *tgbotapi.BotAPI
+	token  string
 }
 
 func (t *telegramBot) notify(record *singleRecord, input builder.Interfacable) error {
 	var msg []byte
-
+	value := recordToInterfacable(record)
 	if t.cfg.OnlyMsg {
 		if record.Error != nil {
-			msg = builder.String((*record.Error).Error()).Raw()
+			msg = value.Raw()
 		} else {
 			msg = record.Body
 		}
@@ -37,27 +36,22 @@ func (t *telegramBot) notify(record *singleRecord, input builder.Interfacable) e
 	}
 
 	if t.cfg.Pretty {
-		return t.sendMessage(t.prettyMsg(string(msg)))
+		return t.sendMessage(t.prettyMsg(string(msg)), record, input)
 	}
 
-	return t.sendMessage(string(msg))
+	return t.sendMessage(string(msg), record, input)
 }
 
 var (
 	_ Notifier = &telegramBot{}
 )
 
-func NewTelegramBot(name string, cfg *config.TelegramBotConfig) (*telegramBot, error) {
-	botApi, err := tgbotapi.NewBotAPI(utils.Format(cfg.Token, nil, nil, nil))
-	if err != nil {
-		return nil, err
-	}
+func NewTelegramBot(name string, cfg *config.TelegramBotConfig) *telegramBot {
 	return &telegramBot{
-		botApi: botApi,
 		cfg:    cfg,
 		name:   name,
 		logger: logger.Null,
-	}, nil
+	}
 }
 
 func (o *telegramBot) WithLogger(logger logger.Logger) *telegramBot {
@@ -65,10 +59,14 @@ func (o *telegramBot) WithLogger(logger logger.Logger) *telegramBot {
 	return o
 }
 
-func (t *telegramBot) sendMessage(msg string) error {
+func (t *telegramBot) sendMessage(msg string, record *singleRecord, input builder.Interfacable) error {
+	botApi, err := tgbotapi.NewBotAPI(formatWithRecord(t.cfg.Token, record, input))
+	if err != nil {
+		return err
+	}
 	for _, id := range t.cfg.UsersId {
 		msgForSend := tgbotapi.NewMessage(id, msg)
-		_, errSend := t.botApi.Send(msgForSend)
+		_, errSend := botApi.Send(msgForSend)
 		if errSend != nil {
 			t.logger.Errorw("unable to send result", "error", errSend.Error(), "userId", fmt.Sprintf("%d", id))
 		}

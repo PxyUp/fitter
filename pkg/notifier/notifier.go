@@ -21,6 +21,17 @@ type Notifier interface {
 	GetLogger() logger.Logger
 }
 
+func recordToInterfacable(record *singleRecord) builder.Interfacable {
+	if record.Error != nil {
+		return builder.String((*record.Error).Error())
+	}
+	return builder.ToJsonable(record.Body)
+}
+
+func formatWithRecord(text string, record *singleRecord, input builder.Interfacable) string {
+	return utils.Format(text, recordToInterfacable(record), record.Index, input)
+}
+
 func resultToSingleRecord(name string, result *parser.ParseResult, errResult error, logger logger.Logger) *singleRecord {
 	if errResult != nil {
 		return &singleRecord{

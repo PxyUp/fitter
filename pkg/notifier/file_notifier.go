@@ -20,14 +20,8 @@ type fileNotifier struct {
 }
 
 func (f *fileNotifier) notify(record *singleRecord, input builder.Interfacable) error {
-	var destinationFileName, destinationPath string
-	if record.Error != nil {
-		destinationFileName = utils.Format(f.cfg.FileName, builder.String((*record.Error).Error()), record.Index, input)
-		destinationPath = utils.Format(f.cfg.Path, builder.String((*record.Error).Error()), record.Index, input)
-	} else {
-		destinationFileName = utils.Format(f.cfg.FileName, builder.ToJsonable(record.Body), record.Index, input)
-		destinationPath = utils.Format(f.cfg.Path, builder.ToJsonable(record.Body), record.Index, input)
-	}
+	destinationFileName := formatWithRecord(f.cfg.FileName, record, input)
+	destinationPath := formatWithRecord(f.cfg.Path, record, input)
 
 	if f.cfg.Content == "" && len(f.cfg.Raw) == 0 {
 		bb, err := json.Marshal(record)
@@ -48,12 +42,8 @@ func (f *fileNotifier) notify(record *singleRecord, input builder.Interfacable) 
 	if len(f.cfg.Raw) > 0 {
 		content = string(f.cfg.Raw)
 	}
-	if record.Error != nil {
-		content = utils.Format(content, builder.String((*record.Error).Error()), record.Index, input)
-	} else {
-		content = utils.Format(content, builder.ToJsonable(record.Body), record.Index, input)
-	}
 
+	content = formatWithRecord(content, record, input)
 	_, err := utils.CreateFileWithContent([]byte(content), destinationFileName, destinationPath, os.ModePerm, f.cfg.Append, f.logger)
 	if err != nil {
 		f.logger.Errorw("cannot save result to file", "path", destinationPath, "file_name", destinationFileName, "error", err.Error())

@@ -115,12 +115,7 @@ func CreateProcessor(item *config.Item, refMap config.RefMap, logger logger.Logg
 
 	if item.NotifierConfig != nil {
 		if item.NotifierConfig.TelegramBot != nil {
-			tgBot, errBot := notifier.NewTelegramBot(item.Name, item.NotifierConfig.TelegramBot)
-			if errBot != nil {
-				logger.Infow("cant setup telegram bot notifier", "error", errBot.Error())
-			} else {
-				notifierInstance = tgBot.WithLogger(logger.With("notifier", "telegram_bot"))
-			}
+			notifierInstance = notifier.NewTelegramBot(item.Name, item.NotifierConfig.TelegramBot).WithLogger(logger.With("notifier", "telegram_bot"))
 		}
 
 		if item.NotifierConfig.Console != nil {

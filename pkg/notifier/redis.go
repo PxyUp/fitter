@@ -6,7 +6,6 @@ import (
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"time"
 )
@@ -16,13 +15,18 @@ var (
 )
 
 type redisNotifier struct {
-	logger      logger.Logger
-	name        string
-	cfg         *config.RedisNotifierConfig
-	redisClient *redis.Client
+	logger logger.Logger
+	name   string
+	cfg    *config.RedisNotifierConfig
 }
 
 func (r *redisNotifier) notify(record *singleRecord, input builder.Interfacable) error {
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     formatWithRecord(r.cfg.Addr, record, input),
+		Password: formatWithRecord(r.cfg.Password, record, input),
+		DB:       r.cfg.DB,
+	})
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -32,19 +36,13 @@ func (r *redisNotifier) notify(record *singleRecord, input builder.Interfacable)
 		return errMars
 	}
 
-	var channel string
-	if record.Error != nil {
-		channel = utils.Format(r.cfg.Channel, builder.String((*record.Error).Error()), record.Index, input)
-	} else {
-		channel = utils.Format(r.cfg.Channel, builder.ToJsonable(record.Body), record.Index, input)
-	}
-
-	errSend := r.redisClient.Publish(ctx, channel, msg).Err()
+	errSend := redisClient.Publish(ctx, formatWithRecord(r.cfg.Channel, record, input), msg).Err()
 	if errSend != nil {
 		r.logger.Errorw("cant send message", "error", errSend.Error())
 		return errSend
 	}
-	return nil
+
+	return redisClient.Close()
 }
 
 func (o *redisNotifier) GetLogger() logger.Logger {
@@ -61,10 +59,5 @@ func NewRedis(name string, cfg *config.RedisNotifierConfig) *redisNotifier {
 		logger: logger.Null,
 		name:   name,
 		cfg:    cfg,
-		redisClient: redis.NewClient(&redis.Options{
-			Addr:     utils.Format(cfg.Addr, nil, nil, nil),
-			Password: utils.Format(cfg.Password, nil, nil, nil),
-			DB:       cfg.DB,
-		}),
 	}
 }

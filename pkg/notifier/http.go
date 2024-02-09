@@ -8,7 +8,6 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/http_client"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/PxyUp/fitter/pkg/utils"
 	"net/http"
 	"time"
 )
@@ -26,13 +25,7 @@ func (h *httpNotifier) notify(record *singleRecord, input builder.Interfacable) 
 		return err
 	}
 
-	var url string
-	if record.Error != nil {
-		url = utils.Format(h.cfg.Url, builder.String((*record.Error).Error()), record.Index, input)
-	} else {
-		url = utils.Format(h.cfg.Url, builder.ToJsonable(record.Body), record.Index, input)
-	}
-
+	url := formatWithRecord(h.cfg.Url, record, input)
 	req, err := http.NewRequest(h.cfg.Method, url, bytes.NewReader(bb))
 	if err != nil {
 		h.logger.Errorw("cant create request", "error", err.Error())
@@ -40,13 +33,7 @@ func (h *httpNotifier) notify(record *singleRecord, input builder.Interfacable) 
 	}
 
 	for k, v := range h.cfg.Headers {
-		var headerValue string
-		if record.Error != nil {
-			headerValue = utils.Format(v, builder.String((*record.Error).Error()), record.Index, input)
-		} else {
-			headerValue = utils.Format(v, builder.ToJsonable(record.Body), record.Index, input)
-		}
-		req.Header.Add(k, headerValue)
+		req.Header.Add(k, formatWithRecord(v, record, input))
 	}
 
 	if h.cfg.Timeout > 0 {
