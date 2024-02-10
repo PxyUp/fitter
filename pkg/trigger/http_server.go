@@ -51,7 +51,7 @@ func (s *httpServer) Run(updates chan<- *Message) {
 	engine.POST(path, func(c *gin.Context) {
 		msg := json.RawMessage{}
 
-		errBind := c.Bind(&msg)
+		errBind := c.BindJSON(&msg)
 		if errBind != nil {
 			s.logger.Errorw("cant bind request data", "error", errBind.Error())
 			c.Status(http.StatusBadRequest)
