@@ -130,7 +130,8 @@ func (api *apiConnector) get(parsedValue builder.Interfacable, index *uint32, in
 	}
 	reqCtx, cancel := context.WithTimeout(ctx, tt)
 	defer cancel()
-	api.logger.Infof("send request to url: %s", formattedURL)
+
+	api.logger.Infow("sending request to url", "url", formattedURL, "body", formattedBody)
 	resp, err := client.Do(req.WithContext(reqCtx))
 	if err != nil {
 		api.logger.Errorw("unable to send http request", "method", api.cfg.Method, "url", formattedURL, "error", err.Error())
