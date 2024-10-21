@@ -1,4 +1,4 @@
-FROM arm64v8/golang:1.23
+FROM --platform=linux/arm64 arm64v8/golang:1.23
 
 RUN go install github.com/playwright-community/playwright-go/cmd/playwright@latest \
       && playwright install --with-deps
