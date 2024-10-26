@@ -8,6 +8,8 @@ import (
 	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/utils"
+	stealth "github.com/go-rod/stealth"
+	stealth2 "github.com/jonfriesen/playwright-go-stealth"
 	"github.com/playwright-community/playwright-go"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/semaphore"
@@ -89,9 +91,9 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue bui
 		var opts []playwright.BrowserTypeLaunchOptions
 
 		if cfg.Proxy != nil {
-			proxy := &playwright.BrowserTypeLaunchOptionsProxy{}
+			proxy := &playwright.Proxy{}
 			if cfg.Proxy.Server != "" {
-				proxy.Server = utils.String(utils.Format(cfg.Proxy.Server, parsedValue, index, input))
+				proxy.Server = utils.Format(cfg.Proxy.Server, parsedValue, index, input)
 			}
 			if cfg.Proxy.Username != "" {
 				proxy.Username = utils.String(utils.Format(cfg.Proxy.Username, parsedValue, index, input))
@@ -145,6 +147,22 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue bui
 		if err != nil {
 			logger.Errorw("could not create page: %v", "error", err.Error())
 			return
+		}
+
+		if cfg.Stealth {
+			err = stealth2.Inject(page)
+			if err != nil {
+				logger.Errorw("could not inject stealth to page: %v", "error", err.Error())
+				return
+			}
+
+			err = page.AddInitScript(playwright.Script{
+				Content: playwright.String(stealth.JS),
+			})
+			if err != nil {
+				logger.Errorw("could not inject stealth to page: %v", "error", err.Error())
+				return
+			}
 		}
 
 		defer func() {

@@ -532,6 +532,7 @@ type PlaywrightConfig struct {
     Wait         uint32                     `yaml:"wait" json:"wait"`
     TypeOfWait   *playwright.WaitUntilState `json:"type_of_wait" yaml:"type_of_wait"`
     PreRunScript string                     `json:"pre_run_script" yaml:"pre_run_script"`
+    Stealth      bool                       `json:"stealth" yaml:"stealth"`
     
     Proxy *ProxyConfig `yaml:"proxy" json:"proxy"`
 }
@@ -543,6 +544,7 @@ type PlaywrightConfig struct {
 - Wait[sec] - timeout of page loading
 - TypeOfWait - enum["load", "domcontentloaded", "networkidle", "commit"] which state of page we waiting, default is "load"
 - PreRunScript[""] - script which will be executed before reading content of the page. Also support placeholder [{PL}](#placeholder-list)
+- Stealth[false] - add script for trying passing bot defends
 - Proxy - setup proxy for request [config](#proxy-config)
 
 Example
