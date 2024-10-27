@@ -48,6 +48,11 @@ func (s *TestFormatterSuite) TestFormatter() {
 	}), &index, builder.Number(5)))
 }
 
+func (s *TestFormatterSuite) TestFile() {
+	assert.Equal(s.T(), "hi test_content end", utils.Format("{{{FromExp='hi ' + '{{{FromFile=./test_file.log}}}' + ' end'}}}", nil, nil, nil))
+	assert.Equal(s.T(), "hi 14 test end", utils.Format("{{{FromExp='hi ' + '{{{FromFile=./test_formatted_file.log}}}' + ' end'}}}", nil, nil, nil))
+}
+
 func (s *TestFormatterSuite) TestExpr() {
 	index := uint32(1)
 	assert.Equal(s.T(), "8", utils.Format("{{{FromExp=fRes + 5 + fIndex}}}", builder.Number(2), &index, nil))

@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
+	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/references"
 	"github.com/tidwall/gjson"
 	"html"
@@ -20,7 +21,16 @@ const (
 	envNamePrefix         = "FromEnv="
 	exprNamePrefix        = "FromExp="
 	inputNamePrefix       = "FromInput="
+	inputFilePrefix       = "FromFile="
 )
+
+var (
+	formatterLogger = logger.Null
+)
+
+func SetLogger(lvl string) {
+	formatterLogger = logger.NewLogger(lvl)
+}
 
 func Format(str string, value builder.Interfacable, index *uint32, input builder.Interfacable) string {
 	if len(str) == 0 {
@@ -71,12 +81,25 @@ func processPrefix(prefix string, value builder.Interfacable, index *uint32, inp
 	}
 
 	if strings.HasPrefix(prefix, exprNamePrefix) {
-		raw, err := ProcessExpression(strings.TrimPrefix(prefix, exprNamePrefix), value, index, input)
+		expression := strings.TrimPrefix(prefix, exprNamePrefix)
+		raw, err := ProcessExpression(expression, value, index, input)
 		if err != nil {
+			formatterLogger.Errorw("cant process expression", "value", expression, "error", err.Error())
 			return builder.EMPTY.ToJson()
 		}
 
 		return builder.PureString(raw.ToJson()).ToJson()
+	}
+
+	if strings.HasPrefix(prefix, inputFilePrefix) {
+		filePath := strings.TrimPrefix(prefix, inputFilePrefix)
+		fileContent, err := os.ReadFile(filePath)
+		if err != nil {
+			formatterLogger.Errorw("cant file expression", "file_path", filePath, "error", err.Error())
+			return builder.EMPTY.ToJson()
+		}
+
+		return builder.PureString(string(fileContent)).ToJson()
 	}
 
 	if strings.HasPrefix(prefix, envNamePrefix) {

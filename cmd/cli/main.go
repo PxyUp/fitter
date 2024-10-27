@@ -10,6 +10,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/plugins/store"
+	"github.com/PxyUp/fitter/pkg/utils"
 	"github.com/atotto/clipboard"
 	"github.com/tidwall/gjson"
 	"gopkg.in/yaml.v3"
@@ -58,6 +59,7 @@ func main() {
 	log := logger.Null
 	if *verboseFlag {
 		log = logger.NewLogger(*logLevel)
+		utils.SetLogger(*logLevel)
 	}
 
 	if *pluginsFlag != "" {

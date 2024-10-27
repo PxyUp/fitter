@@ -1151,6 +1151,7 @@ Examples:
 7. {{{FromEnv=ENV_KEY}}} - get value from environment variable
 8. {{{FromExp=fRes + 5 + fIndex}}} - get value from the [expression](https://github.com/expr-lang/expr). [Predefined values](#predefined-values)  
 9. {{{FromInput=.}}} or {{{FromInput=json.path}}} - get value from input of trigger or library
+10. {{{FromFile=./test_file.log}}} - get value from file by path. Content of file also can contain placeholders
 
 Examples:
 ```text

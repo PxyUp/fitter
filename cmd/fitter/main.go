@@ -9,6 +9,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/PxyUp/fitter/pkg/runtime"
+	"github.com/PxyUp/fitter/pkg/utils"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
@@ -74,6 +75,7 @@ func main() {
 	lg := logger.Null
 	if *verboseFlag {
 		lg = logger.NewLogger(*logLevel)
+		utils.SetLogger(*logLevel)
 	}
 	done := make(chan struct{})
 	go func() {
