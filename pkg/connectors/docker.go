@@ -8,8 +8,8 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	imageTypes "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/google/uuid"
@@ -52,7 +52,7 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 	}
 
 	if !cfg.NoPull {
-		outPull, errPull := cli.ImagePull(ctxB, image, types.ImagePullOptions{})
+		outPull, errPull := cli.ImagePull(ctxB, image, imageTypes.PullOptions{})
 		if errPull != nil {
 			logger.Errorw("unable to pull docker container", "error", errPull.Error())
 			return nil, err
@@ -126,7 +126,7 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 		removeCtx, cancelRemoveFn := context.WithTimeout(context.Background(), timeout)
 		defer cancelRemoveFn()
 
-		errRemove := cli.ContainerRemove(removeCtx, resp.ID, types.ContainerRemoveOptions{
+		errRemove := cli.ContainerRemove(removeCtx, resp.ID, container.RemoveOptions{
 			Force: true,
 		})
 		if errRemove != nil {
@@ -145,7 +145,7 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 		defer instanceLimit.Release(1)
 	}
 
-	err = cli.ContainerStart(ctxT, resp.ID, types.ContainerStartOptions{})
+	err = cli.ContainerStart(ctxT, resp.ID, container.StartOptions{})
 	if err != nil {
 		logger.Errorw("unable to start docker container", "error", err.Error())
 		return nil, err
@@ -172,7 +172,7 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 	case <-statusCh:
 	}
 
-	data, err := cli.ContainerLogs(ctxT, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	data, err := cli.ContainerLogs(ctxT, resp.ID, container.LogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		logger.Errorw("unable to get docker container logs", "error", err.Error())
 		return nil, err
