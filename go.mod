@@ -10,7 +10,7 @@ require (
 	github.com/antchfx/xmlquery v1.3.18
 	github.com/atotto/clipboard v0.1.4
 	github.com/docker/docker v23.0.1+incompatible
-	github.com/expr-lang/expr v1.15.8
+	github.com/expr-lang/expr v1.16.9
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-rod/stealth v0.4.9
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1

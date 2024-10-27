@@ -148,6 +148,7 @@ func (api *apiConnector) get(parsedValue builder.Interfacable, index *uint32, in
 		return nil, nil, err
 	}
 
+	api.logger.Debugw("returned response", "status_code", resp.Status, "body", string(bytes))
 	return resp.Header, bytes, nil
 }
 

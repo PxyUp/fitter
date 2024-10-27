@@ -7,13 +7,12 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-
       - name: Set up Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.21.5
+          go-version: 1.23.0
         id: go
 
       - name: Check out code into the Go module directory
@@ -42,3 +41,14 @@ jobs:
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_cli_${{ steps.set_env.outputs.RELEASE_VERSION }}-darwin-amd64
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_cli_${{ steps.set_env.outputs.RELEASE_VERSION }}-windows-amd64.exe
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_cli_${{ steps.set_env.outputs.RELEASE_VERSION }}-linux-amd64
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+
+      - name: Release to Docker Linux-Arm64
+        run: |
+          DOCKER_TAG=ghcr.io/pxyup/fitter:${{ steps.set_env.outputs.RELEASE_VERSION }}-linux-arm64
+          docker buildx build --platform linux/arm64 -t ${DOCKER_TAG} --build-arg FITTER_CLI_VERSION=${{ steps.set_env.outputs.RELEASE_VERSION }} .
+          docker login ghcr.io --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.TOKEN }} && docker push ${DOCKER_TAG}

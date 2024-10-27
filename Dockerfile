@@ -1,13 +1,16 @@
 FROM --platform=linux/arm64 arm64v8/golang:1.23
 
-RUN go install github.com/playwright-community/playwright-go/cmd/playwright@latest \
-      && playwright install --with-deps
+ENV GOARCH=arm64
+ENV GOOS=linux
+
+RUN go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps
 
 WORKDIR /go/src/fitter_cli
 
-COPY . .
+ARG FITTER_CLI_VERSION
 
-RUN go mod download
-RUN env GOOS=linux GOARCH=arm64  go build -o fitter_cli cmd/cli/main.go
+RUN wget -O fitter_cli https://github.com/PxyUp/fitter/releases/download/${FITTER_CLI_VERSION}/fitter_cli_${FITTER_CLI_VERSION}-linux-arm64
 
-CMD ["/fitter_cli"]
+RUN chmod u+x fitter_cli
+
+ENTRYPOINT ["/go/src/fitter_cli/fitter_cli"]

@@ -15,17 +15,6 @@ const (
 
 var (
 	defEnv = map[string]interface{}{
-		"reverse": func(s []interface{}) []interface{} {
-			a := make([]interface{}, len(s))
-			copy(a, s)
-
-			for i := len(a)/2 - 1; i >= 0; i-- {
-				opp := len(a) - 1 - i
-				a[i], a[opp] = a[opp], a[i]
-			}
-
-			return a
-		},
 		"FNull": builder.NullValue,
 		"FNil":  nil,
 		"isNull": func(value interface{}) bool {
@@ -55,7 +44,6 @@ func extendEnv(env map[string]interface{}, result builder.Interfacable, index *u
 
 func ProcessExpression(expression string, result builder.Interfacable, index *uint32, input builder.Interfacable) (builder.Interfacable, error) {
 	env := extendEnv(defEnv, result, index)
-
 	program, err := expr.Compile(Format(expression, result, index, input), expr.Env(env))
 	if err != nil {
 		return nil, err
