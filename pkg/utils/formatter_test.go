@@ -53,6 +53,10 @@ func (s *TestFormatterSuite) TestFile() {
 	assert.Equal(s.T(), "hi 14 test end", utils.Format("{{{FromExp='hi ' + '{{{FromFile=./test_formatted_file.log}}}' + ' end'}}}", nil, nil, nil))
 }
 
+func (s *TestFormatterSuite) TestNewLineSeparator() {
+	assert.Equal(s.T(), "\n", utils.Format("$__FLINE__$", nil, nil, nil))
+}
+
 func (s *TestFormatterSuite) TestExpr() {
 	index := uint32(1)
 	assert.Equal(s.T(), "8", utils.Format("{{{FromExp=fRes + 5 + fIndex}}}", builder.Number(2), &index, nil))

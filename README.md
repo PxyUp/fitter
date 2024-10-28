@@ -962,7 +962,7 @@ type CalculatedConfig struct {
 
 **fResRaw** - result in bytes format
 
-**reverse([]T)** - return reverse array
+**FNewLine** - new line separator
 
 ```json
 {

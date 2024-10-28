@@ -49,7 +49,7 @@ func Format(str string, value builder.Interfacable, index *uint32, input builder
 		str = strings.ReplaceAll(str, humanIndexPlaceHolder, fmt.Sprintf("%d", *index+1))
 	}
 
-	return formatJsonPathString(str, value, index, input)
+	return strings.ReplaceAll(formatJsonPathString(str, value, index, input), fitterNewLinePlaceholderValue, "\n")
 }
 
 func processPrefix(prefix string, value builder.Interfacable, index *uint32, input builder.Interfacable) string {

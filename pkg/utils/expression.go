@@ -7,16 +7,19 @@ import (
 )
 
 const (
-	fitterResultJsonRef = "fResJson"
-	fitterResultRef     = "fRes"
-	fitterIndexRef      = "fIndex"
-	fitterResultRaw     = "fResRaw"
+	fitterResultJsonRef           = "fResJson"
+	fitterResultRef               = "fRes"
+	fitterIndexRef                = "fIndex"
+	fitterResultRaw               = "fResRaw"
+	fitterNewLinePlaceholderKey   = "FNewLine"
+	fitterNewLinePlaceholderValue = "$__FLINE__$"
 )
 
 var (
 	defEnv = map[string]interface{}{
-		"FNull": builder.NullValue,
-		"FNil":  nil,
+		fitterNewLinePlaceholderKey: fitterNewLinePlaceholderValue,
+		"FNull":                     builder.NullValue,
+		"FNil":                      nil,
 		"isNull": func(value interface{}) bool {
 			return builder.NullValue == value
 		},
