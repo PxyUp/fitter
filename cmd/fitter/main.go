@@ -6,11 +6,13 @@ import (
 	"flag"
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/http_client"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/PxyUp/fitter/pkg/runtime"
 	"github.com/PxyUp/fitter/pkg/utils"
 	"gopkg.in/yaml.v3"
+	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -18,15 +20,36 @@ import (
 	"time"
 )
 
-func getConfig(filePath string) *config.Config {
-	file, err := os.ReadFile(filePath)
-	if err != nil {
-		log.Fatalf("unable to read config file %s with error %s", filePath, err.Error())
-		return nil
+func getConfig(filePath string, urlPath string) *config.Config {
+	var content []byte
+
+	if filePath != "" {
+		file, err := os.ReadFile(filePath)
+		if err != nil {
+			log.Fatalf("unable to read config file %s with error %s", filePath, err.Error())
+			return nil
+		}
+
+		content = file
 	}
+
+	if urlPath != "" {
+		resp, err := http_client.GetDefaultClient().Get(urlPath)
+		if resp != nil && resp.Body != nil {
+			defer resp.Body.Close()
+		}
+
+		responseBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalf("unable to read config file %s with error %s", urlPath, err.Error())
+			return nil
+		}
+		content = responseBody
+	}
+
 	cfg := &config.Config{}
-	if path.Ext(filePath) == ".json" {
-		err = json.Unmarshal(file, &cfg)
+	if path.Ext(filePath) == ".json" || path.Ext(urlPath) == ".json" {
+		err := json.Unmarshal(content, &cfg)
 		if err != nil {
 			log.Fatalf("unable to json unmarshal config file %s with error %s", filePath, err.Error())
 			return nil
@@ -40,7 +63,7 @@ func getConfig(filePath string) *config.Config {
 		return cfg
 	}
 
-	err = yaml.Unmarshal(file, &cfg)
+	err := yaml.Unmarshal(content, &cfg)
 	if err != nil {
 		log.Fatalf("unable to yaml unmarshal config file %s with error %s", filePath, err.Error())
 		return nil
@@ -50,11 +73,17 @@ func getConfig(filePath string) *config.Config {
 }
 
 func main() {
-	filePath := flag.String("path", "config.yaml", "Path for config file yaml|json")
+	filePath := flag.String("path", "", "Path for config file yaml|json")
+	urlPath := flag.String("url", "", "URL for path for config")
 	verboseFlag := flag.Bool("verbose", false, "Provide logger")
 	pluginsFlag := flag.String("plugins", "", "Provide plugins folder")
 	logLevel := flag.String("log-level", "info", "Level for logger")
 	flag.Parse()
+
+	if *filePath == "" && *urlPath == "" {
+		log.Fatal("path or url flag is required")
+		return
+	}
 
 	if *pluginsFlag != "" {
 		err := store.PluginInitialize(*pluginsFlag)
@@ -64,9 +93,9 @@ func main() {
 		}
 	}
 
-	cfg := getConfig(*filePath)
+	cfg := getConfig(*filePath, *urlPath)
 	if cfg == nil {
-		log.Fatalf("empty config file %s", *filePath)
+		log.Fatalf("empty config file %s or url %s", *filePath, *urlPath)
 		return
 	}
 
