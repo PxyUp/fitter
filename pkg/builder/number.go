@@ -23,11 +23,18 @@ func Number(value float64) *number {
 	}
 }
 
+func isIntegral(val float64) bool {
+	return val == float64(int(val))
+}
+
 func (s *number) IsEmpty() bool {
 	return false
 }
 
 func (s *number) ToJson() string {
+	if isIntegral(s.value) {
+		return fmt.Sprintf("%d", int(s.value))
+	}
 	return fmt.Sprintf("%v", s.value)
 }
 

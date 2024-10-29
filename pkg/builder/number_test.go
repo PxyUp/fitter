@@ -15,3 +15,8 @@ func TestNumber(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, bytes.Equal(bb, num.Raw()))
 }
+
+func TestNumberFloat(t *testing.T) {
+	num := builder.Number(41987922)
+	assert.Equal(t, "41987922", num.ToJson())
+}
