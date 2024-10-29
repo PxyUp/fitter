@@ -2,7 +2,8 @@ name: Update docker base
 on:
   push:
     paths:
-      - docker_base/**
+      - 'docker_base/**'
+      - '.github/workflows/docker_base.yaml'
 
 jobs:
   build:
