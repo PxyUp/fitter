@@ -107,10 +107,11 @@ go run cmd/fitter/main.go --path=./examples/config_api.json
 ```
 
 ### Arguments
-1. **--path** - string[config.yaml] - path for the configuration of the Fitter
-2. **--verbose** - bool[false] - enable logging
-3. **--plugins** - string[""] - [path for plugins for Fitter](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md)
-4. **--log-level** - enum["info", "error", "debug", "fatal"] - set log level(only if verbose set to true)
+1. **--path** - string[""] - path for the configuration of the Fitter
+2. **--url** - string[""] - url for the configuration of the Fitter
+3. **--verbose** - bool[false] - enable logging
+4. **--plugins** - string[""] - [path for plugins for Fitter](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md)
+5. **--log-level** - enum["info", "error", "debug", "fatal"] - set log level(only if verbose set to true)
 
 # How to use Fitter_CLI
 
@@ -122,14 +123,15 @@ go run cmd/cli/main.go --path=./examples/cli/config_cli.json
 ```
 
 ### Arguments
-1. **--path** - string[config.yaml] - path for the configuration of the Fitter_CLI
-2. **--copy** - bool[false] - copy information into clipboard
-3. **--pretty** - bool[true] - make readable result(also affect on copy)
-4. **--verbose** - bool[false] - enable logging
-5. **--omit-error-pretty** - bool[false] -  Provide pure value if pretty is invalid
-6. **--plugins** - string[""] - [path for plugins for Fitter](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md)
-7. **--log-level** - enum["info", "error", "debug", "fatal"] - set log level(only if verbose set to true)
-8. **--input** - string[""] - specify input value for [formatting](#placeholder-list). Examples: `--input=\""124"\"` `--input=124` `--input='{"test": 5}'`
+1. **--path** - string[""] - path for the configuration of the Fitter_CLI
+2. **--url** - string[""] - url for the configuration of the Fitter_CLI
+3. **--copy** - bool[false] - copy information into clipboard
+4. **--pretty** - bool[true] - make readable result(also affect on copy)
+5. **--verbose** - bool[false] - enable logging
+6. **--omit-error-pretty** - bool[false] -  Provide pure value if pretty is invalid
+7. **--plugins** - string[""] - [path for plugins for Fitter](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md)
+8. **--log-level** - enum["info", "error", "debug", "fatal"] - set log level(only if verbose set to true)
+9. **--input** - string[""] - specify input value for [formatting](#placeholder-list). Examples: `--input=\""124"\"` `--input=124` `--input='{"test": 5}'`
 
 ```bash
 ./fitter_cli_${VERSION} --path=./examples/cli/config_cli.json --copy=true
@@ -1152,6 +1154,7 @@ Examples:
 8. {{{FromExp=fRes + 5 + fIndex}}} - get value from the [expression](https://github.com/expr-lang/expr). [Predefined values](#predefined-values)  
 9. {{{FromInput=.}}} or {{{FromInput=json.path}}} - get value from input of trigger or library
 10. {{{FromFile=./test_file.log}}} - get value from file by path. Content of file also can contain placeholders
+11. {{{FromURL=http://localhost:8081}}} - get response from url 
 
 Examples:
 ```text
