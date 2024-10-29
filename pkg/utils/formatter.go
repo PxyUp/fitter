@@ -3,10 +3,12 @@ package utils
 import (
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
+	"github.com/PxyUp/fitter/pkg/http_client"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/references"
 	"github.com/tidwall/gjson"
 	"html"
+	"io"
 	"os"
 	"strings"
 )
@@ -22,6 +24,7 @@ const (
 	exprNamePrefix        = "FromExp="
 	inputNamePrefix       = "FromInput="
 	inputFilePrefix       = "FromFile="
+	inputURLPrefix        = "FromURL="
 )
 
 var (
@@ -29,7 +32,7 @@ var (
 )
 
 func SetLogger(lvl string) {
-	formatterLogger = logger.NewLogger(lvl)
+	formatterLogger = logger.NewLogger(lvl).With("component", "formatter")
 }
 
 func Format(str string, value builder.Interfacable, index *uint32, input builder.Interfacable) string {
@@ -105,6 +108,28 @@ func processPrefix(prefix string, value builder.Interfacable, index *uint32, inp
 	if strings.HasPrefix(prefix, envNamePrefix) {
 		envValue := strings.TrimPrefix(prefix, envNamePrefix)
 		return builder.PureString(os.Getenv(envValue)).ToJson()
+	}
+
+	if strings.HasPrefix(prefix, inputURLPrefix) {
+		urlPath := strings.TrimPrefix(prefix, inputURLPrefix)
+
+		resp, err := http_client.GetDefaultClient().Get(urlPath)
+		if err != nil {
+			formatterLogger.Errorw("cant process url", "url_path", urlPath, "error", err.Error())
+			return builder.EMPTY.ToJson()
+		}
+
+		if resp != nil && resp.Body != nil {
+			defer resp.Body.Close()
+		}
+
+		content, err := io.ReadAll(resp.Body)
+		if err != nil {
+			formatterLogger.Errorw("cant read url response", "url_path", urlPath, "error", err.Error())
+			return builder.EMPTY.ToJson()
+		}
+
+		return builder.PureString(string(content)).ToJson()
 	}
 
 	if value == nil {

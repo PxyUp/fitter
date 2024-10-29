@@ -1,6 +1,7 @@
 package utils_test
 
 import (
+	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -9,6 +10,8 @@ import (
 	"github.com/PxyUp/fitter/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 )
@@ -60,6 +63,15 @@ func (s *TestFormatterSuite) TestNewLineSeparator() {
 func (s *TestFormatterSuite) TestExpr() {
 	index := uint32(1)
 	assert.Equal(s.T(), "8", utils.Format("{{{FromExp=fRes + 5 + fIndex}}}", builder.Number(2), &index, nil))
+}
+
+func (s *TestFormatterSuite) TestFromURL() {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.Write([]byte(`14`))
+	}))
+	defer server.Close()
+
+	assert.Equal(s.T(), "22", utils.Format(fmt.Sprintf("{{{FromExp=fRes + 5 + int('{{{FromURL=%s}}}')}}}", server.URL), builder.Number(3), nil, nil))
 }
 
 func (s *TestFormatterSuite) TearDownSuite() {
