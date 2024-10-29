@@ -1,6 +1,8 @@
 name: Update docker base
 on:
   push:
+    tags-ignore:
+      - 'v*.*.*'
     paths:
       - 'docker_base/**'
       - '.github/workflows/docker_base.yaml'
