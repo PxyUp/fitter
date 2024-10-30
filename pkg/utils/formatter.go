@@ -102,7 +102,7 @@ func processPrefix(prefix string, value builder.Interfacable, index *uint32, inp
 			return builder.EMPTY.ToJson()
 		}
 
-		return builder.PureString(string(fileContent)).ToJson()
+		return builder.PureString(Format(string(fileContent), value, index, input)).ToJson()
 	}
 
 	if strings.HasPrefix(prefix, envNamePrefix) {
@@ -129,7 +129,7 @@ func processPrefix(prefix string, value builder.Interfacable, index *uint32, inp
 			return builder.EMPTY.ToJson()
 		}
 
-		return builder.PureString(string(content)).ToJson()
+		return builder.PureString(Format(string(content), value, index, input)).ToJson()
 	}
 
 	if value == nil {

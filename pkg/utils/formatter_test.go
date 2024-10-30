@@ -66,6 +66,17 @@ func (s *TestFormatterSuite) TestExpr() {
 }
 
 func (s *TestFormatterSuite) TestFromURL() {
+	os.Setenv("CONFIG_URL", "http://google.ru")
+	defer os.Unsetenv("CONFIG_URL")
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.Write([]byte(`"Сделано с помощью [Fitter](https://github.com/PxyUp/fitter) и [конфига]({{{FromEnv=CONFIG_URL}}})"`))
+	}))
+	defer server.Close()
+
+	assert.Equal(s.T(), "Сделано с помощью [Fitter](https://github.com/PxyUp/fitter) и [конфига](http://google.ru)", utils.Format(fmt.Sprintf("{{{FromURL=%s}}}", server.URL), nil, nil, nil))
+}
+
+func (s *TestFormatterSuite) TestFromURLDeep() {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte(`14`))
 	}))
