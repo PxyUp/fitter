@@ -368,19 +368,21 @@ Connector type which fetch data using golang http.Client(server side request lik
 
 ```go
 type ServerConnectorConfig struct {
-    Method  string            `json:"method" yaml:"method"`
-    Headers map[string]string `yaml:"headers" json:"headers"`
-    Timeout uint32            `yaml:"timeout" json:"timeout"`
-    Body    string            `yaml:"body" json:"body"`
+    Method      string            `json:"method" yaml:"method"`
+    Headers     map[string]string `yaml:"headers" json:"headers"`
+    Timeout     uint32            `yaml:"timeout" json:"timeout"`
+    JsonRawBody json.RawMessage   `json:"json_raw_body" yaml:"json_raw_body"`
+    Body        string            `yaml:"body" json:"body"`
     
     Proxy *ProxyConfig `yaml:"proxy" json:"proxy"`
 }
 ```
 
 - Method - supported all http methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD
-- Headers - predefine headers for using during request [can be injected into value](#placeholder-list)
+- Headers - predefine headers for using during request [can be injected into key/value](#placeholder-list)
 - Timeout[sec] - default 60sec timeout or used provided
 - Body - body of the request, parsed value [can be injected](#placeholder-list)
+- JsonRawBody - body of the request in json format; value [can be injected](#placeholder-list)
 - Proxy - setup proxy for request [config](#proxy-config)
 
 Example:

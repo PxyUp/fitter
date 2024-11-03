@@ -67,6 +67,10 @@ func (api *apiConnector) GetWithHeaders(parsedValue builder.Interfacable, index 
 
 func (api *apiConnector) get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (http.Header, []byte, error) {
 	formattedBody := utils.Format(api.cfg.Body, parsedValue, index, input)
+	if api.cfg.JsonRawBody != nil && len(api.cfg.JsonRawBody) > 0 {
+		formattedBody = utils.Format(string(api.cfg.JsonRawBody), parsedValue, index, input)
+	}
+
 	formattedURL := utils.Format(api.url, parsedValue, index, input)
 
 	if formattedURL == "" {
@@ -89,7 +93,7 @@ func (api *apiConnector) get(parsedValue builder.Interfacable, index *uint32, in
 	}
 
 	for k, v := range api.cfg.Headers {
-		req.Header.Add(k, utils.Format(v, parsedValue, index, input))
+		req.Header.Add(utils.Format(k, parsedValue, index, input), utils.Format(v, parsedValue, index, input))
 	}
 
 	client := http_client.GetDefaultClient()

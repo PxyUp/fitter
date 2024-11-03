@@ -167,10 +167,11 @@ type ChromiumConfig struct {
 }
 
 type ServerConnectorConfig struct {
-	Method  string            `json:"method" yaml:"method"`
-	Headers map[string]string `yaml:"headers" json:"headers"`
-	Timeout uint32            `yaml:"timeout" json:"timeout"`
-	Body    string            `yaml:"body" json:"body"`
+	Method      string            `json:"method" yaml:"method"`
+	Headers     map[string]string `yaml:"headers" json:"headers"`
+	Timeout     uint32            `yaml:"timeout" json:"timeout"`
+	JsonRawBody json.RawMessage   `json:"json_raw_body" yaml:"json_raw_body"`
+	Body        string            `yaml:"body" json:"body"`
 
 	Proxy *ProxyConfig `yaml:"proxy" json:"proxy"`
 }
