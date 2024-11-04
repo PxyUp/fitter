@@ -33,12 +33,14 @@ jobs:
           ./scripts/build.bash fitter fitter_${{ steps.set_env.outputs.RELEASE_VERSION }}
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_${{ steps.set_env.outputs.RELEASE_VERSION }}-linux-arm64
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_${{ steps.set_env.outputs.RELEASE_VERSION }}-darwin-amd64
+          ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_${{ steps.set_env.outputs.RELEASE_VERSION }}-darwin-arm64
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_${{ steps.set_env.outputs.RELEASE_VERSION }}-windows-amd64.exe
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_${{ steps.set_env.outputs.RELEASE_VERSION }}-linux-amd64
           
           ./scripts/build.bash cli fitter_cli_${{ steps.set_env.outputs.RELEASE_VERSION }}
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_cli_${{ steps.set_env.outputs.RELEASE_VERSION }}-linux-arm64
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_cli_${{ steps.set_env.outputs.RELEASE_VERSION }}-darwin-amd64
+          ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_cli_${{ steps.set_env.outputs.RELEASE_VERSION }}-darwin-arm64        
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_cli_${{ steps.set_env.outputs.RELEASE_VERSION }}-windows-amd64.exe
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_cli_${{ steps.set_env.outputs.RELEASE_VERSION }}-linux-amd64
 

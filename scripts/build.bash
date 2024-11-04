@@ -10,7 +10,7 @@ if [[ -z "$package_path" ]]; then
   exit 1
 fi
 
-platforms=("windows/amd64" "windows/386" "darwin/amd64" "linux/arm64" "linux/amd64")
+platforms=("windows/amd64" "darwin/amd64" "darwin/arm64" "linux/arm64" "linux/amd64")
 
 for platform in "${platforms[@]}"
 do
@@ -20,9 +20,6 @@ do
     output_name=bin/$package_name'-'$GOOS'-'$GOARCH
     if [ $GOOS = "windows" ]; then
         output_name+='.exe'
-    fi
-    if [ $GOOS = "darwin" ] && [ $package_path = "agent_client" ]; then
-      continue
     fi
     env GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=0 go build -gcflags="all=-N -l" -o $output_name ./cmd/$package_path/main.go
     if [ $? -ne 0 ]; then
