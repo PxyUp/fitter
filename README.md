@@ -1,10 +1,12 @@
-# [Fitter + Fitter CLI](https://github.com/PxyUp/fitter)
+# [Fitter + Fitter CLI + Fitter Agent](https://github.com/PxyUp/fitter)
 
 Fitter - new way for collect information from the API's/Websites
 
 Fitter CLI - small cli command which provide result from Fitter for test/debug/home usage
 
 Fitter Lib - library which provide functional of fitter CLI as a library
+
+Fitter Agent - AI-powered CLI that converts natural language requests into Fitter configs and executes them
 
 ![](https://github.com/PxyUp/fitter/blob/master/demo.gif)
 
@@ -146,7 +148,151 @@ Examples:
 6. **JSON version** [Generate pagination](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_static_connector.json) - using static connector for generate pagination array
 7. **Server version** [Get current time](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_current_time.json) - get time from url and format it
 
+# How to use Fitter_Agent
 
+Fitter Agent is an AI-powered CLI that uses Claude to convert natural language requests into Fitter configurations and execute them automatically.
+
+[Download latest version from the release page](https://github.com/PxyUp/fitter/releases)
+
+or locally:
+```bash
+go run cmd/agent/main.go --api-key=<your-anthropic-api-key>
+```
+
+### Arguments
+1. **--api-key** - string (required) - Anthropic API key for Claude
+2. **--model** - string["claude-sonnet-4-20250514"] - Claude model to use
+3. **--verbose** - bool[false] - enable logging
+4. **--log-level** - enum["info", "error", "debug", "fatal"] - set log level
+5. **--plugins** - string[""] - path for plugins for Fitter
+6. **--chromium-limit** - uint[0] - limit concurrent Chromium instances
+7. **--docker-limit** - uint[0] - limit concurrent Docker containers
+8. **--playwright-limit** - uint[0] - limit concurrent Playwright instances
+
+### How it works
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  1. User enters natural language request                       │
+│     "Get top 5 HackerNews stories with titles and scores"      │
+│                              ↓                                  │
+│  2. Claude generates Fitter config JSON                        │
+│                              ↓                                  │
+│  3. Agent displays config and asks for confirmation            │
+│                              ↓                                  │
+│  4. On confirmation, executes via lib.Parse()                  │
+│                              ↓                                  │
+│  5. Returns structured JSON result                             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Interactive REPL Commands
+- **help** - show help message
+- **clear** - clear the screen
+- **exit/quit/q** - exit the agent
+
+### Example Session
+
+```bash
+$ ./fitter_agent --api-key=sk-ant-...
+
+╔══════════════════════════════════════════════════════════════╗
+║              Fitter Agent - AI-Powered Data Extraction       ║
+╚══════════════════════════════════════════════════════════════╝
+
+Enter your request in natural language. Type 'help' for commands.
+
+> Get top 3 HackerNews stories with titles and scores
+
+┌─ Generated Fitter Config ───────────────────────────────────────
+{
+  "item": {
+    "connector_config": {
+      "response_type": "json",
+      "url": "https://hacker-news.firebaseio.com/v0/topstories.json",
+      "server_config": { "method": "GET" }
+    },
+    "model": {
+      "array_config": {
+        "root_path": "@this",
+        "length_limit": 3,
+        "item_config": {
+          "fields": {
+            "id": { "base_field": { "type": "int" } },
+            "story": {
+              "base_field": {
+                "type": "int",
+                "generated": {
+                  "model": {
+                    "type": "object",
+                    "connector_config": {
+                      "response_type": "json",
+                      "url": "https://hacker-news.firebaseio.com/v0/item/{PL}.json",
+                      "server_config": { "method": "GET" }
+                    },
+                    "model": {
+                      "object_config": {
+                        "fields": {
+                          "title": { "base_field": { "type": "string", "path": "title" } },
+                          "score": { "base_field": { "type": "int", "path": "score" } }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+└──────────────────────────────────────────────────────────────────
+
+Execute this config? [y/n]: y
+
+┌─ Result ────────────────────────────────────────────────────────
+[
+  {
+    "id": 46740029,
+    "story": { "title": "Show HN: Open-source project", "score": 161 }
+  },
+  {
+    "id": 46737630,
+    "story": { "title": "Interesting article", "score": 237 }
+  },
+  {
+    "id": 46735644,
+    "story": { "title": "New technology release", "score": 192 }
+  }
+]
+└──────────────────────────────────────────────────────────────────
+
+> exit
+Goodbye!
+```
+
+### Example Requests
+
+| Request | What it does |
+|---------|--------------|
+| `Get Bitcoin price from CoinGecko API` | Fetches current BTC price |
+| `Scrape headlines from news.ycombinator.com with links` | HTML scraping with CSS selectors |
+| `Get top 5 stories from HackerNews with titles` | Nested API calls |
+| `Fetch weather data from wttr.in for London` | Simple API extraction |
+| `Scrape product names and prices from example.com` | Web scraping |
+
+### Supported Capabilities
+
+The agent can generate configs for:
+- **JSON APIs** - REST APIs with GET/POST methods
+- **HTML Scraping** - CSS selector-based extraction
+- **XPath Scraping** - XPath-based extraction
+- **Nested API Calls** - Fetch details for each item in a list
+- **Browser Emulation** - Playwright for JS-rendered pages
+- **Formatted Fields** - URL templates with placeholders
+- **Array Limiting** - Limit results to N items
 
 # Configuration
 
