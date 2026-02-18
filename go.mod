@@ -9,7 +9,7 @@ require (
 	github.com/anthropics/anthropic-sdk-go v1.19.0
 	github.com/atotto/clipboard v0.1.4
 	github.com/docker/docker v27.3.1+incompatible
-	github.com/expr-lang/expr v1.16.9
+	github.com/expr-lang/expr v1.17.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-rod/stealth v0.4.9
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
