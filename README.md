@@ -1,14 +1,32 @@
-# [Fitter + Fitter CLI + Fitter Agent](https://github.com/PxyUp/fitter)
+# Fitter — web data for AI agents
 
-Fitter - new way for collect information from the API's/Websites
+[![Release](https://img.shields.io/github/v/release/PxyUp/fitter)](https://github.com/PxyUp/fitter/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/PxyUp/fitter/blob/master/LICENSE)
+[![Go Reference](https://pkg.go.dev/badge/github.com/PxyUp/fitter.svg)](https://pkg.go.dev/github.com/PxyUp/fitter)
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-db61a2)](https://github.com/sponsors/PxyUp)
 
-Fitter CLI - small cli command which provide result from Fitter for test/debug/home usage
+**Fitter turns any website or API into structured JSON — declaratively.** One JSON/YAML config describes where the data lives (HTTP request, headless browser, file, static value) and what to extract (JSON paths, CSS selectors, XPath). No code, no brittle scraping scripts.
 
-Fitter Lib - library which provide functional of fitter CLI as a library
+Because configs are plain data, **LLMs can author them**. The built-in [MCP server](#how-to-use-fitter_mcp) lets Claude Code, Claude Desktop, or any MCP client write and run scraping pipelines on your machine, on demand:
 
-Fitter Agent - AI-powered CLI that converts natural language requests into Fitter configs and executes them
+> *"Get the top 5 HackerNews stories with titles and scores"* → the model authors a fitter config, validates it, runs it locally, and gets clean JSON back.
 
-Fitter MCP - MCP (Model Context Protocol) server which exposes Fitter to AI tools like Claude Code, Claude Desktop and any other MCP client
+**One engine, five ways to use it:**
+
+| | |
+|---|---|
+| 🤖 **Fitter MCP** | [MCP server](#how-to-use-fitter_mcp) exposing fitter to Claude Code, Claude Desktop and any MCP client |
+| 🧠 **Fitter Agent** | AI-powered CLI: natural language → config → executed result |
+| 🖥 **Fitter CLI** | run configs locally for test/debug/home usage |
+| 📦 **Fitter Lib** | embed the engine in your own Go program |
+| ⚙️ **Fitter** | long-running service mode with scheduling & notifications |
+
+**Why fitter for AI agents?**
+
+- **Declarative & auditable** — the agent produces a config you can read, save and re-run, not throwaway code
+- **Local-first** — all fetching happens on your machine; no third-party scraping API, no keys, no per-request billing
+- **Batteries included** — HTTP client, headless browser (Playwright/Chromium/Docker), JSON/HTML/XML/XPath parsing, pagination, cached references, host rate-limits — in a single static binary
+- **Reusable** — what the agent authored today becomes tomorrow's cron job or service config
 
 ![](https://github.com/PxyUp/fitter/blob/master/demo.gif)
 

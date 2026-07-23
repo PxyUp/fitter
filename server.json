@@ -1,0 +1,27 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.pxyup/fitter",
+  "description": "Turn any website or API into structured JSON with declarative scraping configs the LLM authors itself. HTTP, headless browser, JSON/HTML/XML/XPath — local-first, no scraping API keys.",
+  "repository": {
+    "url": "https://github.com/PxyUp/fitter",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "websiteUrl": "https://github.com/PxyUp/fitter",
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/PxyUp/fitter/releases",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "FITTER_PLUGINS",
+          "description": "Optional path to a fitter plugins folder",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}
