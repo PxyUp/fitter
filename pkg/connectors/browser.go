@@ -1,6 +1,7 @@
 package connectors
 
 import (
+	"context"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -26,7 +27,7 @@ func (c *browserConnector) WithLogger(logger logger.Logger) *browserConnector {
 	return c
 }
 
-func (c *browserConnector) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
+func (c *browserConnector) Get(ctx context.Context, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	formattedURL := utils.Format(c.url, parsedValue, index, input)
 
 	if formattedURL == "" {
@@ -34,15 +35,15 @@ func (c *browserConnector) Get(parsedValue builder.Interfacable, index *uint32, 
 	}
 
 	if c.cfg.Chromium != nil {
-		return getFromChromium(formattedURL, c.cfg.Chromium, c.logger.With("emulator", "chromium"))
+		return getFromChromium(ctx, formattedURL, c.cfg.Chromium, c.logger.With("emulator", "chromium"))
 	}
 
 	if c.cfg.Docker != nil {
-		return getFromDocker(formattedURL, c.cfg.Docker, c.logger.With("emulator", "docker"))
+		return getFromDocker(ctx, formattedURL, c.cfg.Docker, c.logger.With("emulator", "docker"))
 	}
 
 	if c.cfg.Playwright != nil {
-		return getFromPlaywright(formattedURL, c.cfg.Playwright, parsedValue, index, input, c.logger.With("emulator", "playwright"))
+		return getFromPlaywright(ctx, formattedURL, c.cfg.Playwright, parsedValue, index, input, c.logger.With("emulator", "playwright"))
 	}
 
 	return nil, nil

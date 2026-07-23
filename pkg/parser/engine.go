@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
@@ -22,7 +23,7 @@ var (
 )
 
 type Engine interface {
-	Get(model *config.Model, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (*ParseResult, error)
+	Get(ctx context.Context, model *config.Model, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (*ParseResult, error)
 }
 
 type engine struct {
@@ -34,21 +35,21 @@ type engine struct {
 type null struct {
 }
 
-func (n *null) Get(model *config.Model, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (*ParseResult, error) {
+func (n *null) Get(ctx context.Context, model *config.Model, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (*ParseResult, error) {
 	return nil, errInvalid
 }
 
-func (e *engine) Get(model *config.Model, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (*ParseResult, error) {
+func (e *engine) Get(ctx context.Context, model *config.Model, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (*ParseResult, error) {
 	if model == nil {
 		return nil, errMissingModelConfig
 	}
-	body, err := e.connector.Get(parsedValue, index, input)
+	body, err := e.connector.Get(ctx, parsedValue, index, input)
 	if err != nil {
 		e.logger.Errorw("connector return error during fetch data", "error", err.Error())
 		return nil, err
 	}
 	e.logger.Debugw("connector answer", "content", string(body))
-	return e.parser(body, e.logger).Parse(model, input)
+	return e.parser(ctx, body, e.logger).Parse(model, input)
 }
 
 func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {

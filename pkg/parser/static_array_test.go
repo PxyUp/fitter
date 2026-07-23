@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"context"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/parser"
@@ -21,9 +22,9 @@ func TestStaticArraySuite(t *testing.T) {
 }
 
 func (s *StaticArraySuite) SetupTest() {
-	s.jsonParser = parser.JsonFactory(jsonBodyObject, logger.Null)
-	s.xpathParser = parser.XPathFactory(htmlBody, logger.Null)
-	s.htmlParser = parser.HTMLFactory(htmlBody, logger.Null)
+	s.jsonParser = parser.JsonFactory(context.Background(), jsonBodyObject, logger.Null)
+	s.xpathParser = parser.XPathFactory(context.Background(), htmlBody, logger.Null)
+	s.htmlParser = parser.HTMLFactory(context.Background(), htmlBody, logger.Null)
 }
 
 func (s *StaticArraySuite) Test_JSON_Custom_Length() {

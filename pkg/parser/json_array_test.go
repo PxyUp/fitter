@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"context"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors"
@@ -40,7 +41,7 @@ func (s *JsonV2ArraySuite) SetupTest() {
 func (s *JsonV2ArraySuite) TestFileConnector() {
 	body, err := connectors.NewFile(&config.FileConnectorConfig{
 		Path: "json_example_array.json",
-	}).Get(nil, nil, nil)
+	}).Get(context.Background(), nil, nil, nil)
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), s.body, body)
 }

@@ -8,6 +8,9 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-22.04
+    permissions:
+      id-token: write # OIDC auth for the MCP registry
+      contents: read
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v5
@@ -51,20 +54,60 @@ jobs:
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_agent_${{ steps.set_env.outputs.RELEASE_VERSION }}-windows-amd64.exe
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_agent_${{ steps.set_env.outputs.RELEASE_VERSION }}-linux-amd64
 
-          ./scripts/build.bash mcp fitter_mcp_${{ steps.set_env.outputs.RELEASE_VERSION }}
+          ./scripts/build.bash mcp fitter_mcp_${{ steps.set_env.outputs.RELEASE_VERSION }} ${{ steps.set_env.outputs.RELEASE_VERSION }}
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_mcp_${{ steps.set_env.outputs.RELEASE_VERSION }}-linux-arm64
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_mcp_${{ steps.set_env.outputs.RELEASE_VERSION }}-darwin-amd64
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_mcp_${{ steps.set_env.outputs.RELEASE_VERSION }}-darwin-arm64
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_mcp_${{ steps.set_env.outputs.RELEASE_VERSION }}-windows-amd64.exe
           ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=./bin/fitter_mcp_${{ steps.set_env.outputs.RELEASE_VERSION }}-linux-amd64
 
+      - name: Build MCPB bundles
+        run: |
+          ./scripts/build_mcpb.bash ${{ steps.set_env.outputs.RELEASE_VERSION }}
+          for f in ./bin/fitter-mcp-*.mcpb; do
+            ./scripts/git_release.sh github_api_token=${{ secrets.RELEASE_TOKEN }} owner=PxyUp repo=fitter tag=${{ steps.set_env.outputs.RELEASE_VERSION }} filename=$f
+          done
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Release to Docker Linux-Arm64
         run: |
           DOCKER_TAG=ghcr.io/pxyup/fitter:${{ steps.set_env.outputs.RELEASE_VERSION }}-linux-arm64
-          docker buildx build --platform linux/arm64 -t ${DOCKER_TAG} --build-arg FITTER_CLI_VERSION=${{ steps.set_env.outputs.RELEASE_VERSION }} .
+          docker buildx build --load --platform linux/arm64 -t ${DOCKER_TAG} --build-arg FITTER_CLI_VERSION=${{ steps.set_env.outputs.RELEASE_VERSION }} .
           docker login ghcr.io --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.TOKEN }} && docker push ${DOCKER_TAG}
+
+      - name: Release MCP server to Docker
+        run: |
+          docker login ghcr.io --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.TOKEN }}
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -f Dockerfile.mcp \
+            --build-arg VERSION=${{ steps.set_env.outputs.RELEASE_VERSION }} \
+            -t ghcr.io/pxyup/fitter-mcp:${{ steps.set_env.outputs.RELEASE_VERSION }} \
+            -t ghcr.io/pxyup/fitter-mcp:latest \
+            --push .
+
+      # runs after the docker push: the registry verifies the oci package
+      # by reading the io.modelcontextprotocol.server.name label from ghcr
+      - name: Publish to MCP Registry
+        run: |
+          TAG=${{ steps.set_env.outputs.RELEASE_VERSION }}
+          sha() { openssl dgst -sha256 -r "$1" | cut -d' ' -f1; }
+          sed -i \
+            -e "s|__TAG__|${TAG}|g" \
+            -e "s|__VERSION__|${TAG#v}|g" \
+            -e "s|__SHA_DARWIN_ARM64__|$(sha ./bin/fitter-mcp-darwin-arm64.mcpb)|" \
+            -e "s|__SHA_DARWIN_AMD64__|$(sha ./bin/fitter-mcp-darwin-amd64.mcpb)|" \
+            -e "s|__SHA_LINUX_ARM64__|$(sha ./bin/fitter-mcp-linux-arm64.mcpb)|" \
+            -e "s|__SHA_LINUX_AMD64__|$(sha ./bin/fitter-mcp-linux-amd64.mcpb)|" \
+            -e "s|__SHA_WINDOWS_AMD64__|$(sha ./bin/fitter-mcp-windows-amd64.mcpb)|" \
+            server.json
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish

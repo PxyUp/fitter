@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"fmt"
 	builder "github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
@@ -26,7 +27,7 @@ type nullConnectorPlugin struct {
 func (n *nullConnectorPlugin) SetConfig(cfg *config.PluginConnectorConfig, _ logger.Logger) {
 }
 
-func (n *nullConnectorPlugin) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
+func (n *nullConnectorPlugin) Get(_ context.Context, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	return []byte{}, nil
 }
 

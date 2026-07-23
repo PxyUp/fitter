@@ -2,6 +2,7 @@ package parser_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
@@ -164,16 +165,16 @@ func (s *ModelFieldParserSuite) SetupSuite() {
 			},
 		},
 	}, func(_ string, model *config.ModelField) (builder.Jsonable, error) {
-		return parser.NewEngine(model.ConnectorConfig, logger.Null).Get(model.Model, nil, nil, nil)
+		return parser.NewEngine(model.ConnectorConfig, logger.Null).Get(context.Background(), model.Model, nil, nil, nil)
 	})
 }
 
 func (s *ModelFieldParserSuite) SetupTest() {
-	s.jsonParserObject = parser.JsonFactory(jsonBodyObject, logger.Null)
-	s.jsonParserArray = parser.JsonFactory(jsonBodyArray, logger.Null)
-	s.htmlParser = parser.HTMLFactory(htmlBody, logger.Null)
-	s.jsonDatesParser = parser.JsonFactory(jsonDatesObject, logger.Null)
-	s.xpathParser = parser.XPathFactory(htmlBody, logger.Null)
+	s.jsonParserObject = parser.JsonFactory(context.Background(), jsonBodyObject, logger.Null)
+	s.jsonParserArray = parser.JsonFactory(context.Background(), jsonBodyArray, logger.Null)
+	s.htmlParser = parser.HTMLFactory(context.Background(), htmlBody, logger.Null)
+	s.jsonDatesParser = parser.JsonFactory(context.Background(), jsonDatesObject, logger.Null)
+	s.xpathParser = parser.XPathFactory(context.Background(), htmlBody, logger.Null)
 	s.server = httptest.NewServer(&testHandler{})
 }
 

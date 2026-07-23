@@ -32,8 +32,6 @@ type apiConnector struct {
 
 var (
 	sem *semaphore.Weighted
-
-	ctx = context.Background()
 )
 
 func init() {
@@ -61,11 +59,11 @@ func (api *apiConnector) WithLogger(logger logger.Logger) *apiConnector {
 	return api
 }
 
-func (api *apiConnector) GetWithHeaders(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (http.Header, []byte, error) {
-	return api.get(parsedValue, index, input)
+func (api *apiConnector) GetWithHeaders(ctx context.Context, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (http.Header, []byte, error) {
+	return api.get(ctx, parsedValue, index, input)
 }
 
-func (api *apiConnector) get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (http.Header, []byte, error) {
+func (api *apiConnector) get(ctx context.Context, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) (http.Header, []byte, error) {
 	formattedBody := utils.Format(api.cfg.Body, parsedValue, index, input)
 	if api.cfg.JsonRawBody != nil && len(api.cfg.JsonRawBody) > 0 {
 		formattedBody = utils.Format(string(api.cfg.JsonRawBody), parsedValue, index, input)
@@ -156,7 +154,7 @@ func (api *apiConnector) get(parsedValue builder.Interfacable, index *uint32, in
 	return resp.Header, bytes, nil
 }
 
-func (api *apiConnector) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
-	_, body, err := api.get(parsedValue, index, input)
+func (api *apiConnector) Get(ctx context.Context, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
+	_, body, err := api.get(ctx, parsedValue, index, input)
 	return body, err
 }

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -21,6 +22,22 @@ type engineParser[T comparable] struct {
 
 	customFillUpBaseField func(T, *config.BaseField) builder.Interfacable
 	logger                logger.Logger
+	ctx                   context.Context
+}
+
+// WithContext attaches the request context so nested fetches (generated
+// model fields, file downloads) inherit cancellation. Parser instances are
+// short-lived (one per parsed body), so storing the context is safe.
+func (e *engineParser[T]) WithContext(ctx context.Context) *engineParser[T] {
+	e.ctx = ctx
+	return e
+}
+
+func (e *engineParser[T]) context() context.Context {
+	if e.ctx == nil {
+		return context.Background()
+	}
+	return e.ctx
 }
 
 func (e *engineParser[T]) fillUpBaseField(source T, field *config.BaseField) builder.Interfacable {
@@ -121,7 +138,7 @@ func (e *engineParser[T]) buildBaseField(source T, field *config.BaseField, inde
 	}
 
 	if field.Generated != nil {
-		return buildGeneratedField(tempValue, field.Type, field.Generated, e.logger, index, input)
+		return buildGeneratedField(e.context(), tempValue, field.Type, field.Generated, e.logger, index, input)
 	}
 
 	return tempValue

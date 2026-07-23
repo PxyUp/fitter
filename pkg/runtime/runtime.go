@@ -55,7 +55,7 @@ func (r *runtime) createRunTime(updates <-chan *trigger.Message) {
 						fields = append(fields, "input", value.ToJson())
 					}
 					r.logger.Infow("new trigger comes", fields...)
-					_, _ = reg.Get(name).Process(value)
+					_, _ = reg.Get(name).Process(r.ctx, value)
 				}(lName.Name, lName.Value)
 			}
 		}

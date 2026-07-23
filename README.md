@@ -35,6 +35,10 @@ Because configs are plain data, **LLMs can author them**. The built-in [MCP serv
 
 Fitter MCP is a [Model Context Protocol](https://modelcontextprotocol.io) server (stdio transport) which lets any MCP client — Claude Code, Claude Desktop, IDE assistants, custom agents — run Fitter configs and get structured JSON back.
 
+### Quick start (Claude Desktop — one click)
+
+Download `fitter-mcp-<os>-<arch>.mcpb` from the [release page](https://github.com/PxyUp/fitter/releases) and open it — Claude Desktop installs the server automatically.
+
 ### Quick start (Claude Code)
 
 ```bash
@@ -80,8 +84,46 @@ The reference is also exposed as MCP resource `fitter://config-reference` for cl
 
 The config format is exactly the same as for [Fitter_CLI](#how-to-use-fitter_cli): a top-level object with `item` (required), `limits` and `references`. [Notifiers](#notifiers) work too (the result is additionally pushed to http/telegram/redis/file/console); `trigger_config` and `http_server` are service-mode only and are ignored in MCP calls.
 
+### Remote / hosted mode (streamable HTTP)
+
+By default `fitter_mcp` talks stdio. Pass `--http` to serve the [streamable HTTP transport](https://modelcontextprotocol.io/docs/concepts/transports) instead — for a shared team server, a container, or any remote deployment:
+
+```bash
+# serve MCP at http://<host>:8080/mcp (health probe at /healthz)
+FITTER_MCP_AUTH_TOKEN=my-secret fitter_mcp --http :8080
+
+# register the remote endpoint in Claude Code
+claude mcp add --transport http fitter http://localhost:8080/mcp --header "Authorization: Bearer my-secret"
+```
+
+- `--http <addr>` (env `FITTER_MCP_HTTP_ADDR`) — listen address; stdio mode when empty
+- `FITTER_MCP_AUTH_TOKEN` — when set, every `/mcp` request must send `Authorization: Bearer <token>`; without it the endpoint is unauthenticated, so bind to localhost or put it behind a proxy
+- `--stateless` (env `FITTER_MCP_STATELESS=true`) — no per-session state, so replicas can sit behind a load balancer without sticky sessions
+
+The server shuts down gracefully on SIGINT/SIGTERM.
+
+#### Docker
+
+A slim multi-arch image (`linux/amd64` + `linux/arm64`) ships with every release:
+
+```bash
+# hosted HTTP mode
+docker run --rm -p 8080:8080 \
+  -e FITTER_MCP_HTTP_ADDR=:8080 \
+  -e FITTER_MCP_AUTH_TOKEN=my-secret \
+  ghcr.io/pxyup/fitter-mcp:latest
+
+# or stdio mode, spawned by the MCP client
+claude mcp add fitter -s user -- docker run --rm -i ghcr.io/pxyup/fitter-mcp:latest
+```
+
+The image contains only the fitter binary and CA certificates: server/static/file connectors work, browser connectors (`chromium`/`docker`/`playwright`) do not — use a release binary on a host with a browser for those.
+
 ### Environment variables
 1. **FITTER_PLUGINS** - string[""] - [path for plugins folder](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md), same as the `--plugins` flag of Fitter/Fitter_CLI
+2. **FITTER_MCP_HTTP_ADDR** - string[""] - listen address for [remote mode](#remote--hosted-mode-streamable-http), same as `--http`
+3. **FITTER_MCP_AUTH_TOKEN** - string[""] - bearer token protecting the HTTP endpoint
+4. **FITTER_MCP_STATELESS** - bool[false] - stateless HTTP transport, same as `--stateless`
 
 # Way to collect information
 
@@ -170,6 +212,8 @@ Output:
   "generated_id": "26b08b73-2f2e-444d-bcf2-dac77ac3130e"
 }
 ```
+
+Use `lib.ParseCtx(ctx, ...)` to pass a `context.Context`: cancelling it aborts in-flight fetches (HTTP requests, headless browsers, docker containers) and applies deadlines end-to-end. `lib.Parse` is equivalent to `lib.ParseCtx(context.Background(), ...)`.
 
 # How to use Fitter
 
@@ -489,6 +533,7 @@ Plugin example:
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/config"
@@ -508,7 +553,7 @@ type plugin struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func (pl *plugin) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
+func (pl *plugin) Get(ctx context.Context, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	return []byte(fmt.Sprintf(`{"name": "%s"}`, pl.Name)), nil
 }
 

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/connectors"
@@ -38,14 +39,14 @@ func CreateFileStorageField(parsedValue builder.Interfacable, index *uint32, inp
 	return utils.CreateFileWithContent([]byte(content), destinationFileName, destinationPath, os.ModePerm, cfg.Append, logger)
 }
 
-func ProcessFileField(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable, field *config.FileFieldConfig, logger logger.Logger) (string, error) {
+func ProcessFileField(ctx context.Context, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable, field *config.FileFieldConfig, logger logger.Logger) (string, error) {
 	destinationFileName := utils.Format(field.FileName, parsedValue, index, input)
 	destinationPath := utils.Format(field.Path, parsedValue, index, input)
 	destinationURL := utils.Format(field.Url, parsedValue, index, input)
 
 	connector := connectors.NewAPI(destinationURL, field.Config, http_client.GetDefaultClient()).WithLogger(logger.With("connector", "file"))
 
-	headers, body, err := connector.GetWithHeaders(parsedValue, index, input)
+	headers, body, err := connector.GetWithHeaders(ctx, parsedValue, index, input)
 	if err != nil {
 		logger.Errorw("unable to get file from url", "url", destinationURL, "error", err.Error())
 		return "", err

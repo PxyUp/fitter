@@ -1,6 +1,7 @@
 package utils_test
 
 import (
+	"context"
 	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
@@ -139,7 +140,7 @@ func (s *TestFormatterSuite) SetupSuite() {
 			},
 		},
 	}, func(_ string, model *config.ModelField) (builder.Jsonable, error) {
-		return parser.NewEngine(model.ConnectorConfig, logger.Null).Get(model.Model, nil, nil, nil)
+		return parser.NewEngine(model.ConnectorConfig, logger.Null).Get(context.Background(), model.Model, nil, nil, nil)
 	})
 	os.Setenv("TEST_VAL", "test")
 }

@@ -23,14 +23,12 @@ var (
 	}
 )
 
-func getFromChromium(url string, cfg *config.ChromiumConfig, logger logger.Logger) ([]byte, error) {
-	ctxB := context.Background()
-
+func getFromChromium(ctx context.Context, url string, cfg *config.ChromiumConfig, logger logger.Logger) ([]byte, error) {
 	t := timeout
 	if cfg.Timeout > 0 {
 		t = time.Second * time.Duration(cfg.Timeout)
 	}
-	ctxT, cancel := context.WithTimeout(ctxB, t)
+	ctxT, cancel := context.WithTimeout(ctx, t)
 	defer cancel()
 
 	if instanceLimit := limitter.ChromiumLimiter(); instanceLimit != nil {

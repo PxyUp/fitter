@@ -37,8 +37,8 @@ var (
 	}
 )
 
-func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) ([]byte, error) {
-	ctxB := context.Background()
+func getFromDocker(ctx context.Context, url string, cfg *config.DockerConfig, logger logger.Logger) ([]byte, error) {
+	ctxB := ctx
 
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -74,6 +74,9 @@ func getFromDocker(url string, cfg *config.DockerConfig, logger logger.Logger) (
 		select {
 		case <-pullFinish:
 			logger.Infow("image pulled", "image", image)
+		case <-ctx.Done():
+			logger.Errorw("cancelled during image pulling", "image", image)
+			return nil, ctx.Err()
 		case <-time.After(pTimeout):
 			logger.Errorw("timeout image pulling", "image", image)
 			return nil, errPullTimeout

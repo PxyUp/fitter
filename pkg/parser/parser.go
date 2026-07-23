@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
@@ -11,24 +12,24 @@ import (
 )
 
 var (
-	JsonFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
-		return NewJson(bytes, logger.With("parser", "json"))
+	JsonFactory Factory = func(ctx context.Context, bytes []byte, logger logger.Logger) Parser {
+		return NewJson(bytes, logger.With("parser", "json")).WithContext(ctx)
 	}
 
-	HTMLFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
-		return NewHTML(bytes, logger.With("parser", "html"))
+	HTMLFactory Factory = func(ctx context.Context, bytes []byte, logger logger.Logger) Parser {
+		return NewHTML(bytes, logger.With("parser", "html")).WithContext(ctx)
 	}
 
-	XPathFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
-		return NewXPath(bytes, logger.With("parser", "xpath"))
+	XPathFactory Factory = func(ctx context.Context, bytes []byte, logger logger.Logger) Parser {
+		return NewXPath(bytes, logger.With("parser", "xpath")).WithContext(ctx)
 	}
 
-	XMLFactory Factory = func(bytes []byte, logger logger.Logger) Parser {
-		return NewXML(bytes, logger.With("parser", "xml"))
+	XMLFactory Factory = func(ctx context.Context, bytes []byte, logger logger.Logger) Parser {
+		return NewXML(bytes, logger.With("parser", "xml")).WithContext(ctx)
 	}
 )
 
-type Factory func([]byte, logger.Logger) Parser
+type Factory func(context.Context, []byte, logger.Logger) Parser
 
 type Parser interface {
 	Parse(model *config.Model, input builder.Interfacable) (*ParseResult, error)
@@ -69,7 +70,7 @@ func getExpressionResult(expr string, fieldType config.FieldType, value builder.
 	return res
 }
 
-func buildGeneratedField(parsedValue builder.Interfacable, fieldType config.FieldType, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32, input builder.Interfacable) builder.Interfacable {
+func buildGeneratedField(ctx context.Context, parsedValue builder.Interfacable, fieldType config.FieldType, field *config.GeneratedFieldConfig, logger logger.Logger, index *uint32, input builder.Interfacable) builder.Interfacable {
 	if fieldType == config.String {
 		parsedValue = builder.PureString(parsedValue.ToJson())
 	}
@@ -79,7 +80,7 @@ func buildGeneratedField(parsedValue builder.Interfacable, fieldType config.Fiel
 	}
 
 	if field.File != nil {
-		filePath, err := ProcessFileField(parsedValue, index, input, field.File, logger)
+		filePath, err := ProcessFileField(ctx, parsedValue, index, input, field.File, logger)
 		if err != nil {
 			logger.Errorw("error during process file field", "error", err.Error())
 			return builder.NullValue
@@ -127,7 +128,7 @@ func buildGeneratedField(parsedValue builder.Interfacable, fieldType config.Fiel
 		if field.Model.Model == nil {
 			return builder.NullValue
 		}
-		result, err := NewEngine(field.Model.ConnectorConfig, logger.With("component", "engine")).Get(field.Model.Model, parsedValue, index, input)
+		result, err := NewEngine(field.Model.ConnectorConfig, logger.With("component", "engine")).Get(ctx, field.Model.Model, parsedValue, index, input)
 		if err != nil {
 			return builder.NullValue
 		}

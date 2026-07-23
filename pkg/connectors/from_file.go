@@ -1,6 +1,7 @@
 package connectors
 
 import (
+	"context"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -14,7 +15,7 @@ type fileConnector struct {
 	logger logger.Logger
 }
 
-func (j *fileConnector) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
+func (j *fileConnector) Get(_ context.Context, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	file, err := os.Open(utils.Format(j.cfg.Path, parsedValue, index, input))
 	if err != nil {
 		j.logger.Errorw("cant open file", "error", err.Error())

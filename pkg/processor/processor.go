@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"context"
 	"errors"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
@@ -17,7 +18,7 @@ var (
 )
 
 type Processor interface {
-	Process(input builder.Interfacable) (*parser.ParseResult, error)
+	Process(ctx context.Context, input builder.Interfacable) (*parser.ParseResult, error)
 }
 
 type processor struct {
@@ -43,7 +44,7 @@ func Null(errs ...error) *nullProcessor {
 	}
 }
 
-func (n *nullProcessor) Process(input builder.Interfacable) (*parser.ParseResult, error) {
+func (n *nullProcessor) Process(ctx context.Context, input builder.Interfacable) (*parser.ParseResult, error) {
 	return nil, n.err
 }
 
@@ -63,8 +64,8 @@ func (p *processor) WithLogger(logger logger.Logger) *processor {
 	return p
 }
 
-func (p *processor) Process(input builder.Interfacable) (*parser.ParseResult, error) {
-	result, err := p.engine.Get(p.model, nil, nil, input)
+func (p *processor) Process(ctx context.Context, input builder.Interfacable) (*parser.ParseResult, error) {
+	result, err := p.engine.Get(ctx, p.model, nil, nil, input)
 	if p.notifier != nil {
 		isArray := false
 		if p.model.ArrayConfig != nil || p.model.IsArray {
@@ -108,7 +109,7 @@ func CreateProcessor(item *config.Item, refMap config.RefMap, logger logger.Logg
 	}
 
 	references.SetReference(refMap, func(refName string, model *config.ModelField) (builder.Jsonable, error) {
-		return parser.NewEngine(model.ConnectorConfig, logger.With("reference_name", refName)).Get(model.Model, nil, nil, nil)
+		return parser.NewEngine(model.ConnectorConfig, logger.With("reference_name", refName)).Get(context.Background(), model.Model, nil, nil, nil)
 	})
 
 	var notifierInstance notifier.Notifier

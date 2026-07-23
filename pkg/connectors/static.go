@@ -1,6 +1,7 @@
 package connectors
 
 import (
+	"context"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -12,7 +13,7 @@ type staticConnector struct {
 	logger logger.Logger
 }
 
-func (j *staticConnector) Get(parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
+func (j *staticConnector) Get(_ context.Context, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable) ([]byte, error) {
 	if len(j.cfg.Raw) != 0 {
 		return []byte(utils.Format(string(j.cfg.Raw), parsedValue, index, input)), nil
 	}

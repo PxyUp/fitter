@@ -22,7 +22,7 @@ var (
 	errNoDriver          = errors.New("empty playwright driver")
 )
 
-func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable, logger logger.Logger) ([]byte, error) {
+func getFromPlaywright(ctx context.Context, url string, cfg *config.PlaywrightConfig, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable, logger logger.Logger) ([]byte, error) {
 	if instanceLimit := limitter.PlaywrightLimiter(); instanceLimit != nil {
 		errInstance := instanceLimit.Acquire(ctx, 1)
 		if errInstance != nil {
@@ -37,7 +37,7 @@ func getFromPlaywright(url string, cfg *config.PlaywrightConfig, parsedValue bui
 		t = time.Second * time.Duration(cfg.Timeout)
 	}
 
-	ctxT, cancel := context.WithTimeout(context.Background(), t)
+	ctxT, cancel := context.WithTimeout(ctx, t)
 	defer cancel()
 
 	res := make(chan struct{})

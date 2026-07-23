@@ -2,11 +2,18 @@ package main
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/json"
+	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/PxyUp/fitter/lib"
 	"github.com/PxyUp/fitter/pkg/agent"
@@ -19,10 +26,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const (
-	version      = "1.0.0"
-	referenceURI = "fitter://config-reference"
-)
+const referenceURI = "fitter://config-reference"
+
+// overridden at release time via -ldflags "-X main.version=..."
+var version = "dev"
 
 type runArgs struct {
 	Config string `json:"config" jsonschema:"Fitter CliItem config as a JSON or YAML string. Top-level keys: item (required), limits, references."`
@@ -56,7 +63,7 @@ func parseCliItem(content []byte) (*config.CliItem, error) {
 	return cfg, nil
 }
 
-func runConfig(cfg *config.CliItem, input string) (result string, err error) {
+func runConfig(ctx context.Context, cfg *config.CliItem, input string) (result string, err error) {
 	if err := agent.ValidateConfig(cfg); err != nil {
 		return "", err
 	}
@@ -65,16 +72,17 @@ func runConfig(cfg *config.CliItem, input string) (result string, err error) {
 			err = fmt.Errorf("fitter panicked while processing config: %v", r)
 		}
 	}()
-	res, err := lib.Parse(cfg.Item, cfg.Limits, cfg.References, builder.PureString(input), logger.Null)
+	res, err := lib.ParseCtx(ctx, cfg.Item, cfg.Limits, cfg.References, builder.PureString(input), logger.Null)
 	if err != nil {
 		return "", err
 	}
 	return res.ToJson(), nil
 }
 
-// runConfigCtx makes runConfig cancellable from the MCP client's side.
-// lib.Parse has no context support, so on cancellation the parse keeps
-// running in a goroutine until it finishes on its own; we just stop waiting.
+// runConfigCtx guards runConfig with the MCP request context. lib.ParseCtx
+// propagates ctx into the connectors, so cancellation aborts in-flight
+// fetches; the select is a backstop for the parsing work between fetches,
+// which is not context-aware.
 func runConfigCtx(ctx context.Context, cfg *config.CliItem, input string) (string, error) {
 	type parseOut struct {
 		result string
@@ -82,14 +90,14 @@ func runConfigCtx(ctx context.Context, cfg *config.CliItem, input string) (strin
 	}
 	ch := make(chan parseOut, 1)
 	go func() {
-		result, err := runConfig(cfg, input)
+		result, err := runConfig(ctx, cfg, input)
 		ch <- parseOut{result: result, err: err}
 	}()
 	select {
 	case out := <-ch:
 		return out.result, out.err
 	case <-ctx.Done():
-		return "", fmt.Errorf("request cancelled; the running fitter config is abandoned and will finish in the background: %w", ctx.Err())
+		return "", fmt.Errorf("request cancelled: %w", ctx.Err())
 	}
 }
 
@@ -99,20 +107,7 @@ func textResult(text string) *mcp.CallToolResult {
 	}
 }
 
-func main() {
-	// The stdio transport owns stdout: anything else writing there (the
-	// console notifier, plugins, stray prints) would corrupt the JSON-RPC
-	// stream. Keep the real stdout for the transport and point os.Stdout
-	// at stderr for everybody else.
-	realStdout := os.Stdout
-	os.Stdout = os.Stderr
-
-	if pluginsPath := os.Getenv("FITTER_PLUGINS"); pluginsPath != "" {
-		if err := store.PluginInitialize(pluginsPath); err != nil {
-			log.Fatalf("unable to initialize plugins from %s: %s", pluginsPath, err)
-		}
-	}
-
+func newServer() *mcp.Server {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "fitter",
 		Title:   "Fitter",
@@ -224,6 +219,101 @@ func main() {
 			}},
 		}, nil
 	})
+
+	return server
+}
+
+// withBearerAuth requires "Authorization: Bearer <token>" on every request
+// when token is non-empty.
+func withBearerAuth(next http.Handler, token string) http.Handler {
+	if token == "" {
+		return next
+	}
+	want := []byte("Bearer " + token)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got := []byte(r.Header.Get("Authorization"))
+		if subtle.ConstantTimeCompare(got, want) != 1 {
+			w.Header().Set("WWW-Authenticate", "Bearer")
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func newHTTPHandler(server *mcp.Server, authToken string, stateless bool) http.Handler {
+	streamable := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server {
+		return server
+	}, &mcp.StreamableHTTPOptions{
+		Stateless: stateless,
+	})
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
+	mux.Handle("/mcp", withBearerAuth(streamable, authToken))
+	return mux
+}
+
+func runHTTP(server *mcp.Server, addr string, authToken string, stateless bool) {
+	httpServer := &http.Server{
+		Addr:    addr,
+		Handler: newHTTPHandler(server, authToken, stateless),
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- httpServer.ListenAndServe()
+	}()
+	log.Printf("fitter mcp listening on %s (endpoint /mcp, health /healthz, auth %s, stateless %t)",
+		addr, map[bool]string{true: "bearer", false: "off"}[authToken != ""], stateless)
+
+	select {
+	case err := <-errCh:
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("mcp http server stopped with error: %s", err)
+		}
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			log.Printf("shutdown error: %s", err)
+		}
+	}
+}
+
+func main() {
+	httpAddr := flag.String("http", os.Getenv("FITTER_MCP_HTTP_ADDR"), "serve MCP over streamable HTTP on this address (e.g. :8080) instead of stdio; env FITTER_MCP_HTTP_ADDR")
+	stateless := flag.Bool("stateless", os.Getenv("FITTER_MCP_STATELESS") == "true", "run the HTTP transport without per-session state, allows load-balancing without sticky sessions; env FITTER_MCP_STATELESS=true")
+	flag.Parse()
+
+	var realStdout *os.File
+	if *httpAddr == "" {
+		// The stdio transport owns stdout: anything else writing there (the
+		// console notifier, plugins, stray prints) would corrupt the JSON-RPC
+		// stream. Keep the real stdout for the transport and point os.Stdout
+		// at stderr for everybody else.
+		realStdout = os.Stdout
+		os.Stdout = os.Stderr
+	}
+
+	if pluginsPath := os.Getenv("FITTER_PLUGINS"); pluginsPath != "" {
+		if err := store.PluginInitialize(pluginsPath); err != nil {
+			log.Fatalf("unable to initialize plugins from %s: %s", pluginsPath, err)
+		}
+	}
+
+	server := newServer()
+
+	if *httpAddr != "" {
+		runHTTP(server, *httpAddr, os.Getenv("FITTER_MCP_AUTH_TOKEN"), *stateless)
+		return
+	}
 
 	transport := &mcp.IOTransport{Reader: os.Stdin, Writer: realStdout}
 	if err := server.Run(context.Background(), transport); err != nil {

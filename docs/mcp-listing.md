@@ -24,8 +24,9 @@ Fitter exposes a declarative web-extraction engine over MCP. Instead of generati
 |------|---------|
 | `fitter_run` | Run an inline JSON/YAML config, return extracted JSON |
 | `fitter_run_file` | Run a config from a local file |
+| `fitter_run_url` | Run a config downloaded from an HTTP(S) URL |
 | `fitter_validate_config` | Validate a config without executing it |
-| `fitter_config_reference` | Condensed format reference so the model can author configs without external docs |
+| `fitter_config_reference` | Condensed format reference so the model can author configs without external docs (also exposed as MCP resource `fitter://config-reference`) |
 
 **Why it's different:**
 
@@ -44,9 +45,9 @@ Fitter exposes a declarative web-extraction engine over MCP. Instead of generati
 ## Metadata
 
 - **Categories:** web scraping, data extraction, automation, research
-- **Transport:** stdio
+- **Transport:** stdio (default) + streamable HTTP (`--http :8080`, optional bearer auth)
 - **Platforms:** macOS (amd64/arm64), Linux (amd64/arm64), Windows (amd64)
-- **Install:** [GitHub releases](https://github.com/PxyUp/fitter/releases) or `go build -o fitter_mcp ./cmd/mcp`
+- **Install:** `.mcpb` one-click bundle or raw binary from [GitHub releases](https://github.com/PxyUp/fitter/releases), Docker image `ghcr.io/pxyup/fitter-mcp`, or `go build -o fitter_mcp ./cmd/mcp`
 - **License:** MIT
 
 ## Claude Code registration
@@ -67,11 +68,17 @@ claude mcp add fitter -s user -- /path/to/fitter_mcp
 
 ## Submission checklist
 
-- [ ] Official MCP registry (`server.json` in repo root; requires publishing via `mcp-publisher` CLI — needs an mcpb bundle or OCI image, see note below)
-- [ ] [Glama](https://glama.ai/mcp/servers) — auto-indexes GitHub; claim the listing
+- [x] Official MCP registry — **automated**: the release workflow packs per-platform `.mcpb` bundles (`scripts/build_mcpb.bash`), uploads them as release assets, fills `server.json` (version + `fileSha256` per bundle) and publishes via `mcp-publisher` with GitHub OIDC. Runs on the next `v*.*.*` tag.
+- [ ] Add `mcp` + `mcp-server` + `ai-agents` GitHub topics to the repo (manual: repo page → ⚙ next to About → Topics)
+- [ ] [Glama](https://glama.ai/mcp/servers) — auto-indexes GitHub (topics help); claim the listing
 - [ ] [PulseMCP](https://www.pulsemcp.com) — submit form
 - [ ] [mcp.so](https://mcp.so) — submit form
 - [ ] Awesome MCP servers lists on GitHub (PR)
-- [ ] Add `mcp` + `mcp-server` GitHub topics to the repo
 
-> **Note:** the official registry accepts packages as npm/pypi/nuget/oci/mcpb. Fitter ships raw Go binaries, so the cleanest path is publishing a small **OCI image** (scratch + fitter_mcp binary) to ghcr.io, or packaging an `.mcpb` bundle per release. Verify the current schema at modelcontextprotocol.io/registry before submitting — `server.json` in the repo root is a draft.
+## How the registry publishing works
+
+- `server.json` (repo root) is a template: `__TAG__`, `__VERSION__` and `__SHA_*__` placeholders are substituted in CI — do not put real values in the committed file.
+- `scripts/build_mcpb.bash <tag>` zips each `fitter_mcp` release binary with a generated MCPB `manifest.json` into `bin/fitter-mcp-<os>-<arch>.mcpb`.
+- The registry entry is `io.github.pxyup/fitter`; GitHub OIDC from this repo authorizes that namespace (workflow permission `id-token: write`).
+- MCP clients verify `fileSha256` before install; the hashes are computed from the exact uploaded bundles in the same job.
+- The `oci` package points at `ghcr.io/pxyup/fitter-mcp:<tag>` (built from `Dockerfile.mcp`, multi-arch). The registry verifies it via the `io.modelcontextprotocol.server.name` image label, so the registry publish step must run after the docker push — keep that step order in `release.yaml`.

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -17,7 +18,9 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/signal"
 	"path"
+	"syscall"
 )
 
 func getConfig(filePath string, urlPath string) *config.CliItem {
@@ -98,8 +101,11 @@ func main() {
 		}
 	}
 
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	cfg := getConfig(*filePath, *urlPath)
-	res, err := lib.Parse(cfg.Item, cfg.Limits, cfg.References, builder.PureString(*inputFlag), log)
+	res, err := lib.ParseCtx(ctx, cfg.Item, cfg.Limits, cfg.References, builder.PureString(*inputFlag), log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return
