@@ -69,7 +69,7 @@ claude mcp add fitter -s user -- /path/to/fitter_mcp
 ## Submission checklist
 
 - [x] Official MCP registry — **automated**: the release workflow packs per-platform `.mcpb` bundles (`scripts/build_mcpb.bash`), uploads them as release assets, fills `server.json` (version + `fileSha256` per bundle) and publishes via `mcp-publisher` with GitHub OIDC. Runs on the next `v*.*.*` tag.
-- [ ] Add `mcp` + `mcp-server` + `ai-agents` GitHub topics to the repo (manual: repo page → ⚙ next to About → Topics)
+- [x] Add `mcp` + `mcp-server` + `ai-agents` GitHub topics to the repo
 - [ ] [Glama](https://glama.ai/mcp/servers) — auto-indexes GitHub (topics help); claim the listing
 - [ ] [PulseMCP](https://www.pulsemcp.com) — submit form
 - [ ] [mcp.so](https://mcp.so) — submit form
