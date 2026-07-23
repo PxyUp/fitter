@@ -47,6 +47,12 @@ func (s *TestFormatterSuite) TestInputPlainString() {
 	assert.Equal(s.T(), "https://wttr.in/Paris?format=j1", utils.Format("https://wttr.in/{{{FromInput=.}}}?format=j1", nil, nil, builder.PureString("Paris")))
 	assert.Equal(s.T(), "https://wttr.in/?format=j1", utils.Format("https://wttr.in/{{{FromInput=.}}}?format=j1", nil, nil, builder.PureString("")))
 	assert.Equal(s.T(), "https://wttr.in/?format=j1", utils.Format("https://wttr.in/{{{FromInput=.}}}?format=j1", nil, nil, nil))
+	// words gjson would loose-parse into Number/True/False garbage
+	assert.Equal(s.T(), "q=neuromancer", utils.Format("q={{{FromInput=.}}}", nil, nil, builder.PureString("neuromancer")))
+	assert.Equal(s.T(), "q=true-crime", utils.Format("q={{{FromInput=.}}}", nil, nil, builder.PureString("true-crime")))
+	// valid JSON scalars keep their gjson interpretation
+	assert.Equal(s.T(), "q=1984", utils.Format("q={{{FromInput=.}}}", nil, nil, builder.PureString("1984")))
+	assert.Equal(s.T(), "q=true", utils.Format("q={{{FromInput=.}}}", nil, nil, builder.PureString("true")))
 }
 
 func (s *TestFormatterSuite) TestFormatter() {

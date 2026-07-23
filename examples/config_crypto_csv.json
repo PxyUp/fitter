@@ -1,0 +1,27 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "json",
+      "url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=5&page=1",
+      "server_config": { "method": "GET" }
+    },
+    "model": {
+      "array_config": {
+        "root_path": "@this",
+        "item_config": {
+          "field": {
+            "type": "object",
+            "generated": {
+              "file_storage": {
+                "content": "{HUMAN_INDEX},{{{name}}},{{{current_price}}},{{{price_change_percentage_24h}}}\n",
+                "file_name": "coins.csv",
+                "path": "/tmp/fitter-report",
+                "append": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

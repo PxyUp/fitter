@@ -61,10 +61,13 @@ func processPrefix(prefix string, value builder.Interfacable, index *uint32, inp
 		tmp := ""
 		if input != nil {
 			if path == "" || path == "." {
-				tmp = html.UnescapeString(gjson.Parse(input.ToJson()).String())
-				if tmp == "" {
-					// plain non-JSON input (e.g. "Paris") is not parseable by gjson: use raw value
-					tmp = html.UnescapeString(input.ToJson())
+				raw := html.UnescapeString(input.ToJson())
+				if gjson.Valid(raw) {
+					tmp = gjson.Parse(raw).String()
+				} else {
+					// plain non-JSON input (e.g. "Paris", "neuromancer"): gjson would
+					// loose-parse it into garbage (Null, Number 0, ...) — use raw value
+					tmp = raw
 				}
 			} else {
 				tmp = gjson.Parse(html.UnescapeString(input.ToJson())).Get(path).String()

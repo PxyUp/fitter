@@ -1,0 +1,40 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "json",
+      "url": "https://openlibrary.org/search.json?q={{{FromInput=.}}}&limit=4&fields=title,author_key,first_publish_year",
+      "server_config": { "method": "GET" }
+    },
+    "model": {
+      "array_config": {
+        "root_path": "docs",
+        "item_config": {
+          "fields": {
+            "title": { "base_field": { "type": "string", "path": "title" } },
+            "year": { "base_field": { "type": "int", "path": "first_publish_year" } },
+            "author": {
+              "base_field": {
+                "type": "object",
+                "generated": { "model": {
+                  "type": "object",
+                  "connector_config": {
+                    "response_type": "json",
+                    "url": "https://openlibrary.org/authors/{{{FromExp=fromJSON(fRes).author_key[0]}}}.json",
+                    "server_config": { "method": "GET" },
+                    "null_on_error": true
+                  },
+                  "model": { "object_config": { "fields": {
+                    "name": { "base_field": { "type": "string", "path": "name" } },
+                    "born": { "base_field": { "type": "string", "path": "birth_date" } },
+                    "died": { "base_field": { "type": "string", "path": "death_date" } }
+                  } } }
+                } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "limits": { "host_request_limiter": { "openlibrary.org": 2 } }
+}

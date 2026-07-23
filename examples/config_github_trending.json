@@ -1,0 +1,41 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "HTML",
+      "url": "https://github.com/trending",
+      "server_config": {
+        "method": "GET",
+        "headers": { "User-Agent": "Mozilla/5.0 (fitter demo)" }
+      }
+    },
+    "model": {
+      "array_config": {
+        "root_path": "article.Box-row h2 a",
+        "length_limit": 5,
+        "item_config": {
+          "field": {
+            "type": "string",
+            "html_attribute": "href",
+            "generated": { "model": {
+              "type": "object",
+              "connector_config": {
+                "response_type": "json",
+                "url": "https://api.github.com/repos{PL}",
+                "server_config": { "method": "GET", "headers": { "User-Agent": "fitter-demo" } },
+                "null_on_error": true
+              },
+              "model": { "object_config": { "fields": {
+                "repo": { "base_field": { "type": "string", "path": "full_name" } },
+                "stars": { "base_field": { "type": "int", "path": "stargazers_count" } },
+                "language": { "base_field": { "type": "string", "path": "language" } },
+                "open_issues": { "base_field": { "type": "int", "path": "open_issues_count" } },
+                "description": { "base_field": { "type": "string", "path": "description" } }
+              } } }
+            } }
+          }
+        }
+      }
+    }
+  },
+  "limits": { "host_request_limiter": { "api.github.com": 2 } }
+}

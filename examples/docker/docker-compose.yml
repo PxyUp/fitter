@@ -1,0 +1,14 @@
+services:
+  fitter-mcp:
+    image: ghcr.io/pxyup/fitter-mcp:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      FITTER_MCP_HTTP_ADDR: ":8080"
+      # every /mcp request must send "Authorization: Bearer <token>"
+      FITTER_MCP_AUTH_TOKEN: "${FITTER_MCP_AUTH_TOKEN:?export FITTER_MCP_AUTH_TOKEN before starting}"
+    volumes:
+      # expose the repo examples read-only so fitter_run_file can use them,
+      # e.g. path=/configs/config_morning_briefing.json
+      - ../:/configs:ro

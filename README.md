@@ -125,6 +125,99 @@ The image contains only the fitter binary and CA certificates: server/static/fil
 3. **FITTER_MCP_AUTH_TOKEN** - string[""] - bearer token protecting the HTTP endpoint
 4. **FITTER_MCP_STATELESS** - bool[false] - stateless HTTP transport, same as `--stateless`
 
+# Recipes
+
+Complete, tested configs showing the main patterns. All of them run unchanged via [Fitter_MCP](#how-to-use-fitter_mcp) (`fitter_run_file`), [Fitter_CLI](#how-to-use-fitter_cli) or the [library](#use-like-a-library) — more in [examples/](https://github.com/PxyUp/fitter/tree/master/examples).
+
+### Scrape a page that has no API, enrich from one that does
+
+GitHub trending has no official API — scrape the HTML for repo slugs (`html_attribute` reads the `href`), then fan each one out into the GitHub REST API with `{PL}`:
+
+[examples/config_github_trending.json](https://github.com/PxyUp/fitter/blob/master/examples/config_github_trending.json)
+
+```json
+{
+  "item": {
+    "connector_config": {
+      "response_type": "HTML",
+      "url": "https://github.com/trending",
+      "server_config": { "method": "GET", "headers": { "User-Agent": "Mozilla/5.0 (fitter demo)" } }
+    },
+    "model": {
+      "array_config": {
+        "root_path": "article.Box-row h2 a",
+        "length_limit": 5,
+        "item_config": {
+          "field": {
+            "type": "string",
+            "html_attribute": "href",
+            "generated": { "model": {
+              "type": "object",
+              "connector_config": {
+                "response_type": "json",
+                "url": "https://api.github.com/repos{PL}",
+                "server_config": { "method": "GET", "headers": { "User-Agent": "fitter-demo" } },
+                "null_on_error": true
+              },
+              "model": { "object_config": { "fields": {
+                "repo": { "base_field": { "type": "string", "path": "full_name" } },
+                "stars": { "base_field": { "type": "int", "path": "stargazers_count" } },
+                "language": { "base_field": { "type": "string", "path": "language" } }
+              } } }
+            } }
+          }
+        }
+      }
+    }
+  },
+  "limits": { "host_request_limiter": { "api.github.com": 2 } }
+}
+```
+
+```json
+[{"repo": "block/buzz", "stars": 6214, "language": "Rust"}, {"repo": "koala73/worldmonitor", "stars": 71179, "language": "TypeScript"}]
+```
+
+### Join on a JSON field with an expression
+
+When array items are objects, the join key lives inside them — pull it out with `{{{FromExp=...}}}` ([expr-lang](https://expr-lang.org/) over `fRes`, the current item). Book search → author details, search query supplied via `input`:
+
+[examples/config_book_authors.json](https://github.com/PxyUp/fitter/blob/master/examples/config_book_authors.json)
+
+```json
+"url": "https://openlibrary.org/authors/{{{FromExp=fromJSON(fRes).author_key[0]}}}.json"
+```
+
+```bash
+./fitter_cli --path=examples/config_book_authors.json --input=dune
+```
+
+```json
+[{"title": "Dune", "year": 1965, "author": {"name": "Frank Herbert", "born": "8 October 1920", "died": "11 February 1986"}}]
+```
+
+### Write results to a local file
+
+The [file_storage](#file-storage-field) generated field turns fields into writes — top-5 crypto coins appended to a CSV, one row per item. Bare `{{{json.path}}}` placeholders read the current item; `{HUMAN_INDEX}` stamps the 1-based rank (items are processed in parallel, so appends land in completion order — sort by the rank column):
+
+[examples/config_crypto_csv.json](https://github.com/PxyUp/fitter/blob/master/examples/config_crypto_csv.json)
+
+```json
+"file_storage": {
+  "content": "{HUMAN_INDEX},{{{name}}},{{{current_price}}},{{{price_change_percentage_24h}}}\n",
+  "file_name": "coins.csv",
+  "path": "/tmp/fitter-report",
+  "append": true
+}
+```
+
+```bash
+$ sort -n /tmp/fitter-report/coins.csv
+1,Bitcoin,64778,-2.3
+2,Ethereum,1881.01,-3.4
+3,Tether,0.999265,0
+```
+
 # Way to collect information
 
 1. **Server** - parsing response from some API's or http request(usage of http.Client)
