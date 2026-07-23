@@ -42,6 +42,12 @@ func (s *TestFormatterSuite) TestInputWithPath() {
 	})))
 }
 
+func (s *TestFormatterSuite) TestInputPlainString() {
+	assert.Equal(s.T(), "https://wttr.in/Paris?format=j1", utils.Format("https://wttr.in/{{{FromInput=.}}}?format=j1", nil, nil, builder.PureString("Paris")))
+	assert.Equal(s.T(), "https://wttr.in/?format=j1", utils.Format("https://wttr.in/{{{FromInput=.}}}?format=j1", nil, nil, builder.PureString("")))
+	assert.Equal(s.T(), "https://wttr.in/?format=j1", utils.Format("https://wttr.in/{{{FromInput=.}}}?format=j1", nil, nil, nil))
+}
+
 func (s *TestFormatterSuite) TestFormatter() {
 	assert.Equal(s.T(), "", utils.Format("", nil, nil, nil))
 

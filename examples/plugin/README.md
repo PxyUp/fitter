@@ -18,9 +18,10 @@ Fitter and Fitter CLI can have external plugins which should implement interface
 # Example of plugin
 
 
-Build plugin
+Build plugins (the `.so` files are not shipped in the repo — build them from the repo root first):
 ```bash
 go build -buildmode=plugin -gcflags="all=-N -l" -o examples/plugin/hardcoder.so examples/plugin/hardcoder/hardcoder.go
+go build -buildmode=plugin -gcflags="all=-N -l" -o examples/plugin/connector.so examples/plugin/connector/connector.go
 ```
 
 Make sure you export **Plugin** variable which implements **pl.FieldPlugin** interface

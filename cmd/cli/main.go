@@ -13,7 +13,6 @@ import (
 	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/PxyUp/fitter/pkg/utils"
 	"github.com/atotto/clipboard"
-	"github.com/tidwall/gjson"
 	"gopkg.in/yaml.v3"
 	"io"
 	"log"
@@ -100,7 +99,7 @@ func main() {
 	}
 
 	cfg := getConfig(*filePath, *urlPath)
-	res, err := lib.Parse(cfg.Item, cfg.Limits, cfg.References, builder.PureString(gjson.Parse(*inputFlag).String()), log)
+	res, err := lib.Parse(cfg.Item, cfg.Limits, cfg.References, builder.PureString(*inputFlag), log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return

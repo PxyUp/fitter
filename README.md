@@ -31,6 +31,58 @@ Because configs are plain data, **LLMs can author them**. The built-in [MCP serv
 ![](https://github.com/PxyUp/fitter/blob/master/demo.gif)
 
 
+# How to use Fitter_MCP
+
+Fitter MCP is a [Model Context Protocol](https://modelcontextprotocol.io) server (stdio transport) which lets any MCP client — Claude Code, Claude Desktop, IDE assistants, custom agents — run Fitter configs and get structured JSON back.
+
+### Quick start (Claude Code)
+
+```bash
+# 1. get the binary: download fitter_mcp_<version>-<os>-<arch> from the release page
+#    https://github.com/PxyUp/fitter/releases — or build it from source:
+go build -o fitter_mcp ./cmd/mcp
+
+# 2. register it once, available in every project
+claude mcp add fitter -s user -- "$(pwd)/fitter_mcp"
+```
+
+Then just ask:
+
+> *Get the top 5 HackerNews stories with titles and scores using fitter*
+
+The model calls `fitter_config_reference`, authors a config, optionally checks it with `fitter_validate_config` and executes it via `fitter_run` — all data fetching happens locally on your machine. For a ready-made pipeline try [examples/config_morning_briefing.json](https://github.com/PxyUp/fitter/blob/master/examples/config_morning_briefing.json):
+
+> *Run examples/config_morning_briefing.json with fitter and give me the briefing*
+
+### Register in Claude Desktop
+
+```json
+{
+  "mcpServers": {
+    "fitter": {
+      "command": "/path/to/fitter_mcp"
+    }
+  }
+}
+```
+
+### Tools
+
+| Tool | Description |
+|------|-------------|
+| `fitter_run` | Run a Fitter config passed inline (JSON or YAML string) and return the extracted data as JSON. Accepts an optional `input` value available in the config via `{{{FromInput=.}}}` / `{{{FromInput=json.path}}}` |
+| `fitter_run_file` | Same as `fitter_run` but reads the config from a local `.json`/`.yaml` file |
+| `fitter_run_url` | Same as `fitter_run` but downloads the config from an HTTP(S) URL, e.g. a raw GitHub link |
+| `fitter_validate_config` | Validate a config without executing it (structure, `response_type`, connector data source, model). Useful while iterating on a config |
+| `fitter_config_reference` | Return a condensed reference of the whole config format (connectors, parsers, model/field schema, placeholders, notifiers, references, limits) with working examples, so the model can author configs without external docs |
+
+The reference is also exposed as MCP resource `fitter://config-reference` for clients that support resources.
+
+The config format is exactly the same as for [Fitter_CLI](#how-to-use-fitter_cli): a top-level object with `item` (required), `limits` and `references`. [Notifiers](#notifiers) work too (the result is additionally pushed to http/telegram/redis/file/console); `trigger_config` and `http_server` are service-mode only and are ignored in MCP calls.
+
+### Environment variables
+1. **FITTER_PLUGINS** - string[""] - [path for plugins folder](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md), same as the `--plugins` flag of Fitter/Fitter_CLI
+
 # Way to collect information
 
 1. **Server** - parsing response from some API's or http request(usage of http.Client)
@@ -334,58 +386,6 @@ The agent can generate configs for:
 - **Formatted Fields** - URL templates with placeholders
 - **Array Limiting** - Limit results to N items
 
-# How to use Fitter_MCP
-
-Fitter MCP is a [Model Context Protocol](https://modelcontextprotocol.io) server (stdio transport) which lets any MCP client — Claude Code, Claude Desktop, IDE assistants, custom agents — run Fitter configs and get structured JSON back.
-
-[Download latest version from the release page](https://github.com/PxyUp/fitter/releases)
-
-or build locally:
-```bash
-go build -o bin/fitter_mcp ./cmd/mcp
-```
-
-### Register in Claude Code
-
-```bash
-# available in every project
-claude mcp add fitter -s user -- /path/to/fitter_mcp
-```
-
-### Register in Claude Desktop
-
-```json
-{
-  "mcpServers": {
-    "fitter": {
-      "command": "/path/to/fitter_mcp"
-    }
-  }
-}
-```
-
-### Tools
-
-| Tool | Description |
-|------|-------------|
-| `fitter_run` | Run a Fitter config passed inline (JSON or YAML string) and return the extracted data as JSON. Accepts an optional `input` value available in the config via `{{{FromInput=.}}}` / `{{{FromInput=json.path}}}` |
-| `fitter_run_file` | Same as `fitter_run` but reads the config from a local `.json`/`.yaml` file |
-| `fitter_validate_config` | Validate a config without executing it (structure, `response_type`, connector data source, model). Useful while iterating on a config |
-| `fitter_config_reference` | Return a condensed reference of the whole config format (connectors, parsers, model/field schema, placeholders, references, limits) with working examples, so the model can author configs without external docs |
-
-The config format is exactly the same as for [Fitter_CLI](#how-to-use-fitter_cli): a top-level object with `item` (required), `limits` and `references`.
-
-### Environment variables
-1. **FITTER_PLUGINS** - string[""] - [path for plugins folder](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md), same as the `--plugins` flag of Fitter/Fitter_CLI
-
-### Example session
-
-Ask your MCP client something like:
-
-> Get the top 5 HackerNews stories with titles and scores using fitter
-
-The model calls `fitter_config_reference`, authors a config, optionally checks it with `fitter_validate_config` and executes it via `fitter_run` — all data fetching happens locally on your machine.
-
 # Configuration
 
 ## Connector
@@ -475,7 +475,7 @@ type PluginConnectorConfig struct {
 
 Build plugin
 ```bash
-go build -buildmode=plugin -gcflags="all=-N -l" -o examples/plugin/connector.so examples/plugin/hardcoder/connector.go
+go build -buildmode=plugin -gcflags="all=-N -l" -o examples/plugin/connector.so examples/plugin/connector/connector.go
 ```
 
 Make sure you export **Plugin** variable which implements **pl.ConnectorPlugin** interface
@@ -633,8 +633,6 @@ Example:
   }
 }
 ```
-
-Right now default timeout it is 10 sec.
 
 ##### Proxy config
 
@@ -1011,9 +1009,9 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json#L58
       },
       "connector_config": {
         "response_type": "HTML",
+        "url": "http://www.quotationspage.com/random.php",
         "attempts": 3,
         "browser_config": {
-          "url": "http://www.quotationspage.com/random.php",
           "chromium": {
             "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
             "wait": 10000
@@ -1425,7 +1423,7 @@ Can be used for:
 type Reference struct {
     *ModelField
     
-    Expire uint32 `yaml:"expire" json:"expire"`
+    Expire *uint32 `yaml:"expire" json:"expire"`
 }
 ```
 
@@ -1507,6 +1505,81 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L2
 
 [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json)
 
+## Notifiers
+
+Optional per-item config `item.notifier_config` which pushes the parse result somewhere after processing. The result is still returned as usual (CLI/MCP output, service logs); the notifier additionally delivers it. Works in Fitter (service mode), Fitter_CLI and Fitter_MCP.
+
+```go
+type NotifierConfig struct {
+    Expression      string `yaml:"expression" json:"expression"`
+    Force           bool   `json:"force" yaml:"force"`
+    SendArrayByItem bool   `yaml:"send_array_by_item" json:"send_array_by_item"`
+    Template        string `yaml:"template" json:"template"`
+
+    // exactly ONE destination:
+    Console     *ConsoleConfig       `yaml:"console" json:"console"`
+    TelegramBot *TelegramBotConfig   `yaml:"telegram_bot" json:"telegram_bot"`
+    Http        *HttpConfig          `yaml:"http" json:"http"`
+    Redis       *RedisNotifierConfig `json:"redis" yaml:"redis"`
+    File        *FileStorageField    `json:"file" yaml:"file"`
+}
+```
+
+- Expression - optional [expr-lang](https://expr-lang.org/) condition: notify only when it evaluates to true. The parse result is available as `fRes` (parsed value), `fResRaw` (raw bytes), `fResJson` (JSON string), e.g. `len(fResRaw) > 0`
+- Force - notify even if parsing finished with an error
+- SendArrayByItem - if the result is an array, send each element as a separate notification
+- Template - optional template applied to the result before sending, [placeholders](#placeholder-list) allowed
+- Destination - exactly one of `console`, `telegram_bot`, `http`, `redis`, `file`
+
+Destination configs:
+
+```go
+type HttpConfig struct {
+    Url     string            `yaml:"url" json:"url"`
+    Method  string            `json:"method" yaml:"method"`
+    Headers map[string]string `yaml:"headers" json:"headers"`
+    Timeout uint32            `yaml:"timeout" json:"timeout"`
+}
+
+type TelegramBotConfig struct {
+    Token   string  `json:"token" yaml:"token"`
+    UsersId []int64 `json:"users_id" yaml:"users_id"`
+    Pretty  bool    `json:"pretty" yaml:"pretty"`
+    OnlyMsg bool    `json:"only_msg" yaml:"only_msg"`
+}
+
+type RedisNotifierConfig struct {
+    Addr     string `json:"addr" yaml:"addr"`
+    Password string `json:"password" yaml:"password"`
+    DB       int    `json:"db" yaml:"db"`
+    Channel  string `json:"channel" yaml:"channel"`
+}
+
+type ConsoleConfig struct {
+    OnlyResult bool `json:"only_result" yaml:"only_result"`
+}
+```
+
+The `file` destination uses the same [FileStorageField](#file-storage-field) as the file field type.
+
+Example ([examples/config_telegram.json](https://github.com/PxyUp/fitter/blob/master/examples/config_telegram.json)):
+```json
+{
+  "item": {
+    "connector_config": { "...": "..." },
+    "model": { "...": "..." },
+    "notifier_config": {
+      "expression": "len(fResRaw) > 0",
+      "telegram_bot": {
+        "token": "{{{FromEnv=TG_TOKEN}}}",
+        "users_id": [123456],
+        "pretty": true
+      }
+    }
+  }
+}
+```
+
 ## Limits
 Provide limitation for prevent DDOS, big usage of memory
 
@@ -1537,10 +1610,3 @@ https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json#L2
   }
 }
 ```
-
-# Roadmap
-
-1. Add browser scenario for preparing, after parsing
-2. Add scrolling support for scenario
-3. Add pagination support for scenario
-4. Add notification methods for Fitter: Webhook/Queue

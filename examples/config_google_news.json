@@ -1,0 +1,75 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "xpath",
+      "url": "https://news.google.com/rss",
+      "server_config": {
+        "method": "GET"
+      }
+    },
+    "model": {
+      "object_config": {
+        "fields": {
+          "feed_title": {
+            "base_field": {
+              "type": "string",
+              "path": "//channel/title/text()"
+            }
+          },
+          "feed_description": {
+            "base_field": {
+              "type": "string",
+              "path": "//channel/description/text()"
+            }
+          },
+          "feed_link": {
+            "base_field": {
+              "type": "string",
+              "path": "//channel/link/text()"
+            }
+          },
+          "articles": {
+            "array_config": {
+              "root_path": "//item",
+              "length_limit": 10,
+              "item_config": {
+                "fields": {
+                  "title": {
+                    "base_field": {
+                      "type": "string",
+                      "path": "title/text()"
+                    }
+                  },
+                  "link": {
+                    "base_field": {
+                      "type": "string",
+                      "path": "link/text()"
+                    }
+                  },
+                  "published_date": {
+                    "base_field": {
+                      "type": "string",
+                      "path": "pubDate/text()"
+                    }
+                  },
+                  "source": {
+                    "base_field": {
+                      "type": "string",
+                      "path": "source/text()"
+                    }
+                  },
+                  "description": {
+                    "base_field": {
+                      "type": "string",
+                      "path": "description/text()"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

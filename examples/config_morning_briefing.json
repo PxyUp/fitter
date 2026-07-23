@@ -1,0 +1,70 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "json",
+      "url": "https://wttr.in/{{{FromInput=.}}}?format=j1",
+      "server_config": { "method": "GET", "timeout": 30 },
+      "attempts": 2
+    },
+    "model": {
+      "object_config": {
+        "fields": {
+          "weather": {
+            "object_config": { "fields": {
+              "city": { "base_field": { "type": "string", "path": "nearest_area.0.areaName.0.value" } },
+              "temp_c": { "base_field": { "type": "string", "path": "current_condition.0.temp_C" } },
+              "feels_like_c": { "base_field": { "type": "string", "path": "current_condition.0.FeelsLikeC" } },
+              "description": { "base_field": { "type": "string", "path": "current_condition.0.weatherDesc.0.value" } }
+            } }
+          },
+          "hacker_news_top5": {
+            "base_field": { "type": "array", "generated": { "model": {
+              "type": "array",
+              "connector_config": { "response_type": "json", "url": "https://hacker-news.firebaseio.com/v0/topstories.json", "server_config": { "method": "GET" }, "null_on_error": true },
+              "model": { "array_config": { "root_path": "@this", "length_limit": 5, "item_config": { "fields": {
+                "story": { "base_field": { "type": "object", "generated": { "model": {
+                  "type": "object",
+                  "connector_config": { "response_type": "json", "url": "https://hacker-news.firebaseio.com/v0/item/{PL}.json", "server_config": { "method": "GET" } },
+                  "model": { "object_config": { "fields": {
+                    "title": { "base_field": { "type": "string", "path": "title" } },
+                    "score": { "base_field": { "type": "int", "path": "score" } },
+                    "url": { "base_field": { "type": "string", "path": "url" } }
+                  } } }
+                } } } }
+              } } } }
+            } } }
+          },
+          "world_news_top5": {
+            "base_field": { "type": "array", "generated": { "model": {
+              "type": "array",
+              "connector_config": { "response_type": "xpath", "url": "https://news.google.com/rss", "server_config": { "method": "GET" }, "null_on_error": true },
+              "model": { "array_config": { "root_path": "//item", "length_limit": 5, "item_config": { "fields": {
+                "headline": { "base_field": { "type": "string", "path": "title/text()" } }
+              } } } }
+            } } }
+          },
+          "bitcoin": {
+            "base_field": { "type": "object", "generated": { "model": {
+              "type": "object",
+              "connector_config": { "response_type": "json", "url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", "server_config": { "method": "GET" }, "null_on_error": true },
+              "model": { "object_config": { "fields": {
+                "price_usd": { "base_field": { "type": "float", "path": "0.current_price" } },
+                "change_24h_pct": { "base_field": { "type": "float", "path": "0.price_change_percentage_24h" } }
+              } } }
+            } } }
+          },
+          "market_mood": {
+            "base_field": { "type": "object", "generated": { "model": {
+              "type": "object",
+              "connector_config": { "response_type": "json", "url": "https://api.alternative.me/fng/?limit=1", "server_config": { "method": "GET" }, "null_on_error": true },
+              "model": { "object_config": { "fields": {
+                "fear_greed_index": { "base_field": { "type": "int", "path": "data.0.value" } },
+                "label": { "base_field": { "type": "string", "path": "data.0.value_classification" } }
+              } } }
+            } } }
+          }
+        }
+      }
+    }
+  }
+}

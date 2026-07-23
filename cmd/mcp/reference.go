@@ -125,6 +125,30 @@ Good for auth tokens shared across requests.
 
 { "host_request_limiter": {"example.com": 5}, "chromium_instance": 1, "docker_containers": 1, "playwright_instance": 1 }
 
+## item.notifier_config (optional) — push the result somewhere after parsing
+
+The parse result is still returned by the tool; the notifier additionally delivers it.
+
+{
+  "expression": "len(fResRaw) > 0",   // optional expr-lang condition: notify only when true (fRes* = parse result)
+  "template": "",                     // optional template applied to the result before sending (placeholders allowed)
+  "send_array_by_item": false,        // send each array element as a separate notification
+  "force": false,                     // notify even on parse error
+
+  // exactly ONE of:
+  "http":         { "url": "https://hooks.example.com", "method": "POST", "headers": {}, "timeout": 30 },
+  "telegram_bot": { "token": "{{{FromEnv=TG_TOKEN}}}", "users_id": [123], "pretty": true, "only_msg": false },
+  "redis":        { "addr": "localhost:6379", "password": "", "db": 0, "channel": "fitter" },
+  "file":         { "content": "{PL}\n", "file_name": "out.log", "path": "/tmp", "append": true },
+  "console":      { "only_result": true }    // prints to the server's stderr, visible in MCP client logs
+}
+
+## NOT available via MCP (service mode only)
+
+"trigger_config" (scheduler/http triggers) and "http_server" are only used by the long-running
+fitter service binary; in MCP tool calls they are ignored. Each tool call is one-shot: it runs
+the config once and returns the result.
+
 ## Examples
 
 1) JSON API -> array of objects:

@@ -62,6 +62,10 @@ func processPrefix(prefix string, value builder.Interfacable, index *uint32, inp
 		if input != nil {
 			if path == "" || path == "." {
 				tmp = html.UnescapeString(gjson.Parse(input.ToJson()).String())
+				if tmp == "" {
+					// plain non-JSON input (e.g. "Paris") is not parseable by gjson: use raw value
+					tmp = html.UnescapeString(input.ToJson())
+				}
 			} else {
 				tmp = gjson.Parse(html.UnescapeString(input.ToJson())).Get(path).String()
 			}

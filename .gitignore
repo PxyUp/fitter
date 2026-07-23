@@ -2,6 +2,16 @@
 coverage.txt
 bin
 main
+debug
+
+# local build outputs
+fitter_agent
+fitter_cli_*
+fitter_mcp*
+*.so
+
+# local MCP client config
+.mcp.json
 
 examples/cli/test
 examples/test

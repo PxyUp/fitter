@@ -1,0 +1,192 @@
+{
+  "name": "Trading Signals Aggregator",
+  "limits": {
+    "host_request_limiter": {
+      "api.coingecko.com": 10,
+      "api.alternative.me": 5,
+      "api.binance.com": 20
+    }
+  },
+  "references": {
+    "fear_greed": {
+      "expire": 3600,
+      "connector_config": {
+        "response_type": "json",
+        "url": "https://api.alternative.me/fng/?limit=1",
+        "server_config": {
+          "method": "GET",
+          "timeout": 15
+        }
+      },
+      "model": {
+        "object_config": {
+          "fields": {
+            "value": {
+              "base_field": {
+                "type": "int",
+                "path": "data.0.value"
+              }
+            },
+            "classification": {
+              "base_field": {
+                "type": "string",
+                "path": "data.0.value_classification"
+              }
+            }
+          }
+        }
+      }
+    },
+    "btc_price": {
+      "expire": 60,
+      "connector_config": {
+        "response_type": "json",
+        "url": "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT",
+        "server_config": {
+          "method": "GET",
+          "timeout": 10
+        }
+      },
+      "model": {
+        "object_config": {
+          "fields": {
+            "price": {
+              "base_field": {
+                "type": "float64",
+                "path": "price"
+              }
+            }
+          }
+        }
+      }
+    },
+    "eth_price": {
+      "expire": 60,
+      "connector_config": {
+        "response_type": "json",
+        "url": "https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT",
+        "server_config": {
+          "method": "GET",
+          "timeout": 10
+        }
+      },
+      "model": {
+        "object_config": {
+          "fields": {
+            "price": {
+              "base_field": {
+                "type": "float64",
+                "path": "price"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "item":
+    {
+      "connector_config": {
+        "response_type": "json",
+        "url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,solana,cardano,ripple&sparkline=false",
+        "attempts": 3,
+        "server_config": {
+          "method": "GET",
+          "timeout": 30
+        }
+      },
+      "model": {
+        "object_config": {
+          "fields": {
+            "fear_greed_value": {
+              "base_field": {
+                "generated": {
+                  "static": {
+                    "type": "string",
+                    "value": "{{{RefName=fear_greed value}}}"
+                  }
+                }
+              }
+            },
+            "fear_greed_label": {
+              "base_field": {
+                "generated": {
+                  "static": {
+                    "type": "string",
+                    "value": "{{{RefName=fear_greed classification}}}"
+                  }
+                }
+              }
+            },
+            "btc_price": {
+              "base_field": {
+                "generated": {
+                  "static": {
+                    "type": "string",
+                    "value": "{{{RefName=btc_price price}}}"
+                  }
+                }
+              }
+            },
+            "eth_price": {
+              "base_field": {
+                "generated": {
+                  "static": {
+                    "type": "string",
+                    "value": "{{{RefName=eth_price price}}}"
+                  }
+                }
+              }
+            },
+            "coins": {
+              "array_config": {
+                "root_path": "@this",
+                "item_config": {
+                  "fields": {
+                    "id": {
+                      "base_field": {
+                        "type": "string",
+                        "path": "id"
+                      }
+                    },
+                    "symbol": {
+                      "base_field": {
+                        "type": "string",
+                        "path": "symbol"
+                      }
+                    },
+                    "price": {
+                      "base_field": {
+                        "type": "float64",
+                        "path": "current_price"
+                      }
+                    },
+                    "change_24h": {
+                      "base_field": {
+                        "type": "float64",
+                        "path": "price_change_percentage_24h"
+                      }
+                    },
+                    "volume": {
+                      "base_field": {
+                        "type": "float64",
+                        "path": "total_volume"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "generated_id": {
+              "base_field": {
+                "generated": {
+                  "uuid": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+}
