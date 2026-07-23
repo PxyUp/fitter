@@ -29,7 +29,7 @@ FROM alpine:3.20
 LABEL org.opencontainers.image.source="https://github.com/PxyUp/fitter" \
       org.opencontainers.image.description="Fitter MCP server — web data for AI agents" \
       org.opencontainers.image.licenses="MIT" \
-      io.modelcontextprotocol.server.name="io.github.pxyup/fitter"
+      io.modelcontextprotocol.server.name="io.github.PxyUp/fitter"
 
 RUN apk add --no-cache ca-certificates
 

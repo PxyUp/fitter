@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.pxyup/fitter",
+  "name": "io.github.PxyUp/fitter",
   "title": "Fitter",
   "description": "Turn any website or API into structured JSON with LLM-authored declarative scraping configs.",
   "repository": {

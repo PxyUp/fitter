@@ -79,6 +79,6 @@ claude mcp add fitter -s user -- /path/to/fitter_mcp
 
 - `server.json` (repo root) is a template: `__TAG__`, `__VERSION__` and `__SHA_*__` placeholders are substituted in CI — do not put real values in the committed file.
 - `scripts/build_mcpb.bash <tag>` zips each `fitter_mcp` release binary with a generated MCPB `manifest.json` into `bin/fitter-mcp-<os>-<arch>.mcpb`.
-- The registry entry is `io.github.pxyup/fitter`; GitHub OIDC from this repo authorizes that namespace (workflow permission `id-token: write`).
+- The registry entry is `io.github.PxyUp/fitter` — the namespace is case-sensitive and must match the GitHub username exactly; GitHub OIDC from this repo authorizes it (workflow permission `id-token: write`).
 - MCP clients verify `fileSha256` before install; the hashes are computed from the exact uploaded bundles in the same job.
 - The `oci` package points at `ghcr.io/pxyup/fitter-mcp:<tag>` (built from `Dockerfile.mcp`, multi-arch). The registry verifies it via the `io.modelcontextprotocol.server.name` image label, so the registry publish step must run after the docker push — keep that step order in `release.yaml`.
