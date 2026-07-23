@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.pxyup/fitter",
   "title": "Fitter",
-  "description": "Turn any website or API into structured JSON with declarative scraping configs the LLM authors itself. HTTP, headless browser, JSON/HTML/XML/XPath — local-first, no scraping API keys.",
+  "description": "Turn any website or API into structured JSON with LLM-authored declarative scraping configs.",
   "repository": {
     "url": "https://github.com/PxyUp/fitter",
     "source": "github"
