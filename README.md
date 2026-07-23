@@ -156,18 +156,20 @@ Fitter Agent is an AI-powered CLI that uses Claude to convert natural language r
 
 or locally:
 ```bash
-go run cmd/agent/main.go --api-key=<your-anthropic-api-key>
+export ANTHROPIC_API_KEY=<your-anthropic-api-key>
+go run cmd/agent/main.go
 ```
 
 ### Arguments
-1. **--api-key** - string (required) - Anthropic API key for Claude
-2. **--model** - string["claude-sonnet-4-20250514"] - Claude model to use
-3. **--verbose** - bool[false] - enable logging
-4. **--log-level** - enum["info", "error", "debug", "fatal"] - set log level
-5. **--plugins** - string[""] - path for plugins for Fitter
-6. **--chromium-limit** - uint[0] - limit concurrent Chromium instances
-7. **--docker-limit** - uint[0] - limit concurrent Docker containers
-8. **--playwright-limit** - uint[0] - limit concurrent Playwright instances
+1. **--api-key** - string[""] - Anthropic API key. Prefer the `ANTHROPIC_API_KEY` environment variable so the key does not end up in your shell history
+2. **--model** - string["claude-opus-4-8"] - Claude model to use
+3. **--effort** - enum["low", "medium", "high", "xhigh", "max"] - reasoning effort, default "high". Lower it for faster/cheaper configs, raise it for harder extractions
+4. **--verbose** - bool[false] - enable logging
+5. **--log-level** - enum["info", "error", "debug", "fatal"] - set log level
+6. **--plugins** - string[""] - path for plugins for Fitter
+7. **--chromium-limit** - uint[0] - limit concurrent Chromium instances
+8. **--docker-limit** - uint[0] - limit concurrent Docker containers
+9. **--playwright-limit** - uint[0] - limit concurrent Playwright instances
 
 ### How it works
 
@@ -176,31 +178,49 @@ go run cmd/agent/main.go --api-key=<your-anthropic-api-key>
 │  1. User enters natural language request                       │
 │     "Get top 5 HackerNews stories with titles and scores"      │
 │                              ↓                                  │
-│  2. Claude generates Fitter config JSON                        │
+│  2. Claude returns a config in a schema-constrained response   │
 │                              ↓                                  │
-│  3. Agent displays config and asks for confirmation            │
+│  3. Agent validates it; on failure the error is handed back    │
+│     to Claude to repair (up to 3 attempts)                     │
 │                              ↓                                  │
-│  4. On confirmation, executes via lib.Parse()                  │
+│  4. Agent displays config and asks for confirmation            │
 │                              ↓                                  │
-│  5. Returns structured JSON result                             │
+│  5. On confirmation, executes via lib.Parse()                  │
+│                              ↓                                  │
+│  6. Returns structured JSON result                             │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+### Refining a config
+
+The agent keeps the conversation, so after a config is generated you can just
+say what to change instead of restating the whole request:
+
+```
+> Get top 3 HackerNews stories with titles and scores
+refine> Only return 5 items and also include the article URL
+```
+
+Use **new** to forget the current config and start a fresh session.
+
 ### Interactive REPL Commands
 - **help** - show help message
+- **new/reset** - forget the current config and start fresh
 - **clear** - clear the screen
 - **exit/quit/q** - exit the agent
 
 ### Example Session
 
 ```bash
-$ ./fitter_agent --api-key=sk-ant-...
+$ export ANTHROPIC_API_KEY=sk-ant-...
+$ ./fitter_agent
 
 ╔══════════════════════════════════════════════════════════════╗
-║              Fitter Agent - AI-Powered Data Extraction       ║
+║           Fitter Agent - AI-Powered Data Extraction           ║
 ╚══════════════════════════════════════════════════════════════╝
 
-Enter your request in natural language. Type 'help' for commands.
+Describe what you want to extract. Follow-up messages refine the
+previous config. Type 'help' for commands.
 
 > Get top 3 HackerNews stories with titles and scores
 

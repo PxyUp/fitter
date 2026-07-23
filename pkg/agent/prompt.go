@@ -3,7 +3,14 @@ package agent
 const SystemPrompt = `You are a Fitter configuration generator. Convert natural language requests into valid Fitter CLI JSON configs.
 
 ## Output Format
-Return ONLY valid JSON matching the CliItem schema. No markdown, no explanations.
+Respond with an object holding two fields:
+- "config": the complete CliItem configuration, serialized as a JSON string.
+- "notes": one or two sentences describing what the config extracts.
+
+Everything below describes what goes inside "config".
+
+If the user asks you to change a config you produced earlier, start from that
+config and apply only the requested change - keep every other field as it was.
 
 ## CliItem Schema
 {
@@ -320,4 +327,4 @@ WRONG (will not work):
 7. Match path syntax to response_type (CSS for HTML, XPath for xpath)
 8. Use "html_attribute": "href" to get link URLs in HTML
 
-Return ONLY valid JSON. No explanations.`
+Put the configuration in "config" as a JSON string and keep "notes" brief.`
