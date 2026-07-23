@@ -263,7 +263,7 @@ func parseResult(text string) (*Result, error) {
 		return nil, fmt.Errorf("the \"config\" field is not valid JSON: %w", err)
 	}
 
-	if err := validateConfig(cfg); err != nil {
+	if err := ValidateConfig(cfg); err != nil {
 		return nil, err
 	}
 
@@ -274,9 +274,9 @@ func parseResult(text string) (*Result, error) {
 	}, nil
 }
 
-// validateConfig catches the structural mistakes that would otherwise surface
+// ValidateConfig catches the structural mistakes that would otherwise surface
 // as a confusing nil dereference or an empty result at execution time.
-func validateConfig(cfg *config.CliItem) error {
+func ValidateConfig(cfg *config.CliItem) error {
 	if cfg == nil || cfg.Item == nil {
 		return errors.New(`missing "item" object at the top level`)
 	}

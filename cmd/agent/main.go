@@ -16,8 +16,9 @@ import (
 )
 
 func main() {
-	apiKey := flag.String("api-key", "", "Anthropic API key (required)")
+	apiKey := flag.String("api-key", "", "Anthropic API key (defaults to $ANTHROPIC_API_KEY)")
 	model := flag.String("model", agent.DefaultModel, "Claude model to use")
+	effort := flag.String("effort", agent.DefaultEffort, "Reasoning effort (low, medium, high, xhigh, max)")
 	verbose := flag.Bool("verbose", false, "Enable verbose logging")
 	logLevel := flag.String("log-level", "info", "Log level (debug, info, warn, error)")
 	plugins := flag.String("plugins", "", "Plugins folder path")
@@ -28,9 +29,10 @@ func main() {
 
 	flag.Parse()
 
-	if *apiKey == "" {
-		fmt.Fprintln(os.Stderr, "Error: --api-key is required")
-		fmt.Fprintln(os.Stderr, "Usage: fitter_agent --api-key=<your-anthropic-api-key>")
+	// Prefer the environment so the key never lands in shell history or ps output.
+	if *apiKey == "" && os.Getenv("ANTHROPIC_API_KEY") == "" {
+		fmt.Fprintln(os.Stderr, "Error: no Anthropic API key found")
+		fmt.Fprintln(os.Stderr, "Set ANTHROPIC_API_KEY, or pass --api-key=<your-anthropic-api-key>")
 		os.Exit(1)
 	}
 
@@ -59,6 +61,7 @@ func main() {
 	ag, err := agent.NewAgent(agent.AgentConfig{
 		APIKey:  *apiKey,
 		Model:   *model,
+		Effort:  *effort,
 		Logger:  log,
 		Limits:  limits,
 		Verbose: *verbose,

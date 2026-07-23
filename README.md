@@ -8,6 +8,8 @@ Fitter Lib - library which provide functional of fitter CLI as a library
 
 Fitter Agent - AI-powered CLI that converts natural language requests into Fitter configs and executes them
 
+Fitter MCP - MCP (Model Context Protocol) server which exposes Fitter to AI tools like Claude Code, Claude Desktop and any other MCP client
+
 ![](https://github.com/PxyUp/fitter/blob/master/demo.gif)
 
 
@@ -313,6 +315,58 @@ The agent can generate configs for:
 - **Browser Emulation** - Playwright for JS-rendered pages
 - **Formatted Fields** - URL templates with placeholders
 - **Array Limiting** - Limit results to N items
+
+# How to use Fitter_MCP
+
+Fitter MCP is a [Model Context Protocol](https://modelcontextprotocol.io) server (stdio transport) which lets any MCP client — Claude Code, Claude Desktop, IDE assistants, custom agents — run Fitter configs and get structured JSON back.
+
+[Download latest version from the release page](https://github.com/PxyUp/fitter/releases)
+
+or build locally:
+```bash
+go build -o bin/fitter_mcp ./cmd/mcp
+```
+
+### Register in Claude Code
+
+```bash
+# available in every project
+claude mcp add fitter -s user -- /path/to/fitter_mcp
+```
+
+### Register in Claude Desktop
+
+```json
+{
+  "mcpServers": {
+    "fitter": {
+      "command": "/path/to/fitter_mcp"
+    }
+  }
+}
+```
+
+### Tools
+
+| Tool | Description |
+|------|-------------|
+| `fitter_run` | Run a Fitter config passed inline (JSON or YAML string) and return the extracted data as JSON. Accepts an optional `input` value available in the config via `{{{FromInput=.}}}` / `{{{FromInput=json.path}}}` |
+| `fitter_run_file` | Same as `fitter_run` but reads the config from a local `.json`/`.yaml` file |
+| `fitter_validate_config` | Validate a config without executing it (structure, `response_type`, connector data source, model). Useful while iterating on a config |
+| `fitter_config_reference` | Return a condensed reference of the whole config format (connectors, parsers, model/field schema, placeholders, references, limits) with working examples, so the model can author configs without external docs |
+
+The config format is exactly the same as for [Fitter_CLI](#how-to-use-fitter_cli): a top-level object with `item` (required), `limits` and `references`.
+
+### Environment variables
+1. **FITTER_PLUGINS** - string[""] - [path for plugins folder](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md), same as the `--plugins` flag of Fitter/Fitter_CLI
+
+### Example session
+
+Ask your MCP client something like:
+
+> Get the top 5 HackerNews stories with titles and scores using fitter
+
+The model calls `fitter_config_reference`, authors a config, optionally checks it with `fitter_validate_config` and executes it via `fitter_run` — all data fetching happens locally on your machine.
 
 # Configuration
 

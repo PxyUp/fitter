@@ -21,7 +21,7 @@ do
     if [ $GOOS = "windows" ]; then
         output_name+='.exe'
     fi
-    env GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=0 go build -gcflags="all=-N -l" -o $output_name ./cmd/$package_path/main.go
+    env GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=0 go build -gcflags="all=-N -l" -o $output_name ./cmd/$package_path
     if [ $? -ne 0 ]; then
         echo 'An error has occurred! Aborting the script execution...'
         exit 1
