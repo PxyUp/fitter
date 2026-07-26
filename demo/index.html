@@ -15,6 +15,7 @@
     --accent-hover: #6f9cf2;
     --ok: #4cc38a;
     --err: #e5534b;
+    --warn: #d8a03d;
     --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   @media (prefers-color-scheme: light) {
@@ -71,7 +72,7 @@
     border-radius: 10px;
     display: flex;
     flex-direction: column;
-    min-height: 480px;
+    min-height: 520px;
   }
   .panel-head {
     display: flex;
@@ -81,8 +82,21 @@
     border-bottom: 1px solid var(--border);
     flex-wrap: wrap;
   }
-  .panel-head span { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-  select, input[type=text] {
+  .panel-head span.label { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .tab:hover { color: var(--text); background: transparent; }
+  .tab.active { color: var(--text); background: var(--bg); border-color: var(--border); }
+  select, input[type=text], input[type=number] {
     background: var(--bg);
     color: var(--text);
     border: 1px solid var(--border);
@@ -90,9 +104,9 @@
     padding: 6px 10px;
     font-size: 14px;
   }
-  select:focus, input[type=text]:focus, textarea:focus { outline: 1.5px solid var(--accent); }
+  select:focus, input:focus, textarea:focus { outline: 1.5px solid var(--accent); }
+  #example { margin-left: auto; max-width: 46%; }
   textarea {
-    flex: 1;
     width: 100%;
     resize: none;
     border: 0;
@@ -102,8 +116,8 @@
     font-size: 13px;
     line-height: 1.5;
     padding: 14px;
-    min-height: 320px;
   }
+  #config { flex: 1; min-height: 320px; }
   .runbar {
     display: flex;
     gap: 10px;
@@ -112,7 +126,7 @@
     border-top: 1px solid var(--border);
   }
   .runbar input { flex: 1; }
-  button {
+  button.primary {
     background: var(--accent);
     border: 0;
     color: #fff;
@@ -122,8 +136,8 @@
     padding: 8px 22px;
     cursor: pointer;
   }
-  button:hover { background: var(--accent-hover); }
-  button:disabled { opacity: .5; cursor: default; }
+  button.primary:hover { background: var(--accent-hover); }
+  button.primary:disabled { opacity: .5; cursor: default; }
   #output {
     flex: 1;
     margin: 0;
@@ -144,6 +158,97 @@
     font-size: 13.5px;
   }
   footer code { font-family: var(--mono); font-size: 12.5px; }
+
+  /* ---- builder ---- */
+  #builderPane {
+    flex: 1;
+    overflow: auto;
+    padding: 14px;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+  }
+  #builderPane.active { display: flex; }
+  #config.hiddenTab { display: none; }
+  .notice {
+    border: 1px solid var(--warn);
+    color: var(--warn);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  fieldset {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  legend {
+    font-size: 12.5px;
+    font-weight: 650;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 0 6px;
+  }
+  .brow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .brow label { font-size: 13px; color: var(--muted); }
+  .brow input[type=text] { flex: 1; min-width: 120px; }
+  .brow input[type=number] { width: 90px; }
+  .brow textarea {
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg);
+    min-height: 64px;
+    padding: 8px 10px;
+    flex: 1;
+  }
+  .frow {
+    display: grid;
+    grid-template-columns: minmax(80px, 1fr) auto minmax(90px, 1.4fr) auto;
+    gap: 6px;
+    align-items: center;
+  }
+  .frow .xtra { grid-column: 1 / -1; display: flex; gap: 6px; align-items: center; }
+  .frow .xtra input { flex: 1; }
+  .frow button.del {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 7px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+  }
+  .frow button.del:hover { color: var(--err); border-color: var(--err); }
+  button.ghost {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    border-radius: 7px;
+    padding: 7px;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+  button.ghost:hover { color: var(--accent); border-color: var(--accent); }
+  .hint { font-size: 12.5px; color: var(--muted); }
+  .subpanel {
+    grid-column: 1 / -1;
+    border-left: 2px solid var(--border);
+    margin-left: 4px;
+    padding: 8px 0 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .srow { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .srow input[type=text] { flex: 1; min-width: 100px; }
+  .slabel { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
 </style>
 </head>
 <body>
@@ -157,19 +262,85 @@
 <main>
   <section class="panel">
     <div class="panel-head">
-      <span>Config</span>
+      <div class="tabs">
+        <button class="tab" id="tabBuilder" type="button">Builder</button>
+        <button class="tab active" id="tabJson" type="button">JSON</button>
+      </div>
       <select id="example"></select>
     </div>
+
+    <div id="builderPane">
+      <div id="builderNotice" class="notice" hidden>
+        <p style="margin:0 0 8px;">This config uses features the builder can’t express (plugins, file fields,
+        first_of, browser connectors, …). It stays fully editable — and runnable — on the JSON tab.</p>
+        <button id="bFresh" class="ghost" type="button">discard it and start a fresh config in the builder</button>
+      </div>
+
+      <div id="bForm" style="display:flex;flex-direction:column;gap:14px;">
+      <fieldset>
+        <legend>Source</legend>
+        <div class="brow">
+          <select id="bSource">
+            <option value="url">Fetch URL</option>
+            <option value="static">Static value</option>
+            <option value="sequence">Int sequence</option>
+          </select>
+          <label for="bResponseType">parse as</label>
+          <select id="bResponseType">
+            <option value="json">json</option>
+            <option value="HTML">HTML</option>
+            <option value="xpath">xpath</option>
+            <option value="XML">XML</option>
+            <option value="pdf">pdf</option>
+          </select>
+        </div>
+        <div class="brow" data-src="url">
+          <select id="bMethod">
+            <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option>
+          </select>
+          <input type="text" id="bUrl" placeholder="https://api.example.com/… ({{{FromInput=.}}} injects the input box)">
+        </div>
+        <div class="brow" data-src="static">
+          <textarea id="bStatic" spellcheck="false" placeholder='raw body to parse, e.g. {"name": "fitter"} or <html>…</html>'></textarea>
+        </div>
+        <div class="brow" data-src="sequence">
+          <label>start</label><input type="number" id="bSeqStart" value="1">
+          <label>end</label><input type="number" id="bSeqEnd" value="5">
+          <label>step</label><input type="number" id="bSeqStep" value="1">
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Model</legend>
+        <div class="brow">
+          <select id="bKind">
+            <option value="object">Single object</option>
+            <option value="array">Array of items</option>
+          </select>
+          <select id="bItemShape" hidden>
+            <option value="fields">items: named fields</option>
+            <option value="single">items: single value</option>
+          </select>
+          <input type="text" id="bRootPath" placeholder="root path of the array (e.g. docs, @this, //item)" hidden>
+        </div>
+        <div id="bFields" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <button class="ghost" id="bAddField" type="button">+ add field</button>
+        <div class="hint">path syntax follows “parse as”: gjson for json/pdf, CSS selectors for HTML, XPath for xpath/XML</div>
+      </fieldset>
+      </div>
+    </div>
+
     <textarea id="config" spellcheck="false"></textarea>
+
     <div class="runbar">
       <input type="text" id="input" placeholder="input (optional — used by {{{FromInput=.}}})">
-      <button id="run" disabled>Run</button>
+      <button id="run" class="primary" disabled>Run</button>
     </div>
   </section>
 
   <section class="panel">
     <div class="panel-head">
-      <span>Result</span>
+      <span class="label">Result</span>
       <span id="timing"></span>
     </div>
     <pre id="output">Engine loading — the fitter Go binary is compiled to WebAssembly (~7&nbsp;MB gzipped), first load takes a moment…</pre>
@@ -407,23 +578,482 @@ const EXAMPLES = {
 
 const $ = id => document.getElementById(id);
 const statusEl = $("status"), runBtn = $("run"), output = $("output"), timing = $("timing");
+const configEl = $("config");
 
+// __BASE__ resolves to the URL the demo itself is served from, so bundled
+// assets (sample.pdf) fetch same-origin — locally and on GitHub Pages alike.
+const BASE = location.origin + location.pathname.replace(/\/[^/]*$/, "");
+
+/* ---------- examples ---------- */
 const select = $("example");
 for (const name of Object.keys(EXAMPLES)) {
   const opt = document.createElement("option");
   opt.textContent = name;
   select.appendChild(opt);
 }
-// __BASE__ resolves to the URL the demo itself is served from, so bundled
-// assets (sample.pdf) fetch same-origin — locally and on GitHub Pages alike.
-const BASE = location.origin + location.pathname.replace(/\/[^/]*$/, "");
 function loadExample(name) {
-  $("config").value = JSON.stringify(EXAMPLES[name].config, null, 2).replaceAll("__BASE__", BASE);
+  configEl.value = JSON.stringify(EXAMPLES[name].config, null, 2).replaceAll("__BASE__", BASE);
   $("input").value = EXAMPLES[name].input;
+  syncBuilderFromJson();
 }
 select.addEventListener("change", () => loadExample(select.value));
-loadExample(select.value = Object.keys(EXAMPLES)[0]);
 
+/* ---------- builder state ---------- */
+const FIELD_TYPES = ["string", "int", "float", "boolean", "array", "object"];
+let fieldSeq = 0;
+
+function defaultState() {
+  return {
+    source: "url", url: "", method: "GET",
+    staticValue: "", seqStart: 1, seqEnd: 5, seqStep: 1,
+    responseType: "json",
+    kind: "object", rootPath: "", itemShape: "fields",
+    fields: [newField()],
+    limitsRaw: null, referencesRaw: null
+  };
+}
+function newField() {
+  return { id: ++fieldSeq, name: "", type: "string", path: "", transform: "none", expr: "", calcType: null, nested: null };
+}
+function defaultNested() {
+  return {
+    url: "", method: "GET", responseType: "json", nullOnError: true,
+    kind: "object", rootPath: "", itemShape: "fields", fields: [newField()]
+  };
+}
+const RESPONSE_TYPES = ["json", "HTML", "xpath", "XML", "pdf"];
+let bState = defaultState();
+let builderCanRepresent = true;
+
+/* ---------- builder -> config ---------- */
+function buildFieldConfig(f) {
+  const base = { type: f.type };
+  if (f.path !== "") base.path = f.path;
+  if (f.transform === "calculated" && f.expr !== "") {
+    base.generated = { calculated: { type: f.calcType || f.type, expression: f.expr } };
+  } else if (f.transform === "formatted" && f.expr !== "") {
+    base.generated = { formatted: { template: f.expr } };
+  } else if (f.transform === "uuid") {
+    base.generated = { uuid: f.expr !== "" ? { regexp: f.expr } : {} };
+  } else if (f.transform === "static") {
+    base.generated = { static: { type: f.calcType || f.type, value: f.expr } };
+  } else if (f.transform === "model" && f.nested) {
+    const n = f.nested;
+    const cc = { response_type: n.responseType, url: n.url, server_config: { method: n.method } };
+    if (n.nullOnError) cc.null_on_error = true;
+    base.generated = { model: { type: f.type, connector_config: cc, model: buildModelPart(n) } };
+  }
+  return { base_field: base };
+}
+
+function buildModelPart(p) {
+  const fields = {};
+  for (const f of p.fields) {
+    if (f.name.trim() !== "") fields[f.name.trim()] = buildFieldConfig(f);
+  }
+  if (p.kind === "object") return { object_config: { fields } };
+  const ac = {};
+  if (p.itemShape === "single") {
+    ac.item_config = { field: buildFieldConfig(p.fields[0] || newField()).base_field };
+  } else {
+    ac.item_config = { fields };
+  }
+  if (p.rootPath !== "") ac.root_path = p.rootPath;
+  return { array_config: ac };
+}
+
+function buildConfig(s) {
+  const cc = { response_type: s.responseType };
+  if (s.source === "url") {
+    cc.url = s.url;
+    cc.server_config = { method: s.method };
+  } else if (s.source === "static") {
+    cc.static_config = { value: s.staticValue };
+  } else {
+    cc.int_sequence_config = { start: Number(s.seqStart), end: Number(s.seqEnd), step: Number(s.seqStep) };
+  }
+
+  const out = { item: { connector_config: cc, model: buildModelPart(s) } };
+  if (s.limitsRaw) out.limits = s.limitsRaw;
+  if (s.referencesRaw) out.references = s.referencesRaw;
+  return out;
+}
+
+/* ---------- config -> builder (import) ---------- */
+function importField(fieldCfg) {
+  const keys = Object.keys(fieldCfg || {});
+  if (keys.length !== 1 || keys[0] !== "base_field") return null;
+  return importBaseField(fieldCfg.base_field);
+}
+
+function importBaseField(b) {
+  const allowed = new Set(["type", "path", "generated"]);
+  if (!b || typeof b !== "object" || Object.keys(b).some(k => !allowed.has(k))) return null;
+  if (!FIELD_TYPES.includes(b.type)) return null;
+
+  const f = newField();
+  f.type = b.type;
+  f.path = b.path || "";
+  if (b.generated) {
+    const gk = Object.keys(b.generated);
+    if (gk.length !== 1) return null;
+    if (gk[0] === "calculated") {
+      const c = b.generated.calculated;
+      if (!c || Object.keys(c).some(k => !["type", "expression"].includes(k))) return null;
+      f.transform = "calculated"; f.expr = c.expression || ""; f.calcType = c.type || null;
+    } else if (gk[0] === "formatted") {
+      const fm = b.generated.formatted;
+      if (!fm || Object.keys(fm).some(k => k !== "template")) return null;
+      f.transform = "formatted"; f.expr = fm.template || "";
+    } else if (gk[0] === "uuid") {
+      const u = b.generated.uuid;
+      if (!u || Object.keys(u).some(k => k !== "regexp")) return null;
+      f.transform = "uuid"; f.expr = u.regexp || "";
+    } else if (gk[0] === "static") {
+      const st = b.generated.static;
+      if (!st || Object.keys(st).some(k => !["type", "value"].includes(k))) return null;
+      f.transform = "static"; f.expr = st.value || ""; f.calcType = st.type || null;
+    } else if (gk[0] === "model") {
+      const m = b.generated.model;
+      if (!m || Object.keys(m).some(k => !["type", "connector_config", "model"].includes(k))) return null;
+      if (m.type !== b.type) return null;
+      const mcc = m.connector_config || {};
+      if (Object.keys(mcc).some(k => !["response_type", "url", "server_config", "null_on_error"].includes(k))) return null;
+      if (!RESPONSE_TYPES.includes(mcc.response_type) || typeof mcc.url !== "string") return null;
+      const msc = mcc.server_config || {};
+      if (Object.keys(msc).some(k => k !== "method")) return null;
+      const part = importModelPart(m.model || {});
+      if (!part) return null;
+      f.transform = "model";
+      f.nested = {
+        url: mcc.url, method: msc.method || "GET",
+        responseType: mcc.response_type, nullOnError: !!mcc.null_on_error,
+        kind: part.kind, rootPath: part.rootPath, itemShape: part.itemShape, fields: part.fields
+      };
+    } else return null;
+  }
+  return f;
+}
+
+function importModelPart(model) {
+  const mk = Object.keys(model || {});
+  if (mk.length !== 1) return null;
+  const part = { kind: "object", rootPath: "", itemShape: "fields", fields: [] };
+  let fieldsCfg;
+  if (mk[0] === "object_config") {
+    const oc = model.object_config;
+    if (!oc || Object.keys(oc).some(k => k !== "fields")) return null;
+    fieldsCfg = oc.fields || {};
+  } else if (mk[0] === "array_config") {
+    const ac = model.array_config;
+    if (!ac || Object.keys(ac).some(k => !["root_path", "item_config"].includes(k))) return null;
+    part.kind = "array";
+    part.rootPath = ac.root_path || "";
+    const ic = ac.item_config || {};
+    const icKeys = Object.keys(ic);
+    if (icKeys.some(k => !["fields", "field"].includes(k)) || icKeys.length > 1) return null;
+    if (ic.field) {
+      const f = importBaseField(ic.field);
+      if (!f) return null;
+      part.itemShape = "single";
+      part.fields.push(f);
+      fieldsCfg = {};
+    } else {
+      fieldsCfg = ic.fields || {};
+    }
+  } else return null;
+
+  for (const [name, fc] of Object.entries(fieldsCfg)) {
+    const f = importField(fc);
+    if (!f) return null;
+    f.name = name;
+    part.fields.push(f);
+  }
+  if (part.fields.length === 0) part.fields.push(newField());
+  return part;
+}
+
+function importConfig(cfg) {
+  if (!cfg || typeof cfg !== "object") return null;
+  if (Object.keys(cfg).some(k => !["item", "limits", "references"].includes(k))) return null;
+  const item = cfg.item;
+  if (!item || Object.keys(item).some(k => !["connector_config", "model"].includes(k))) return null;
+
+  const s = defaultState();
+  s.fields = [];
+  s.limitsRaw = cfg.limits || null;
+  s.referencesRaw = cfg.references || null;
+
+  const cc = item.connector_config || {};
+  const ccAllowed = new Set(["response_type", "url", "server_config", "static_config", "int_sequence_config"]);
+  if (Object.keys(cc).some(k => !ccAllowed.has(k))) return null;
+  if (!RESPONSE_TYPES.includes(cc.response_type)) return null;
+  s.responseType = cc.response_type;
+
+  if (cc.url !== undefined) {
+    s.source = "url"; s.url = cc.url;
+    const sc = cc.server_config || {};
+    if (Object.keys(sc).some(k => k !== "method")) return null;
+    s.method = sc.method || "GET";
+    if (cc.static_config || cc.int_sequence_config) return null;
+  } else if (cc.static_config) {
+    if (Object.keys(cc.static_config).some(k => k !== "value")) return null;
+    if (cc.server_config || cc.int_sequence_config) return null;
+    s.source = "static"; s.staticValue = cc.static_config.value || "";
+  } else if (cc.int_sequence_config) {
+    if (cc.server_config) return null;
+    const q = cc.int_sequence_config;
+    s.source = "sequence"; s.seqStart = q.start ?? 0; s.seqEnd = q.end ?? 0; s.seqStep = q.step ?? 1;
+  } else return null;
+
+  const part = importModelPart(item.model || {});
+  if (!part) return null;
+  s.kind = part.kind;
+  s.rootPath = part.rootPath;
+  s.itemShape = part.itemShape;
+  s.fields = part.fields;
+  return s;
+}
+
+/* ---------- builder UI ---------- */
+function setBuilderRepresentable(ok) {
+  builderCanRepresent = ok;
+  $("builderNotice").hidden = ok;
+  $("bForm").style.display = ok ? "" : "none";
+}
+
+function renderBuilder() {
+  $("bSource").value = bState.source;
+  $("bResponseType").value = bState.responseType;
+  $("bMethod").value = bState.method;
+  $("bUrl").value = bState.url;
+  $("bStatic").value = bState.staticValue;
+  $("bSeqStart").value = bState.seqStart;
+  $("bSeqEnd").value = bState.seqEnd;
+  $("bSeqStep").value = bState.seqStep;
+  $("bKind").value = bState.kind;
+  $("bRootPath").value = bState.rootPath;
+  $("bRootPath").hidden = bState.kind !== "array";
+  $("bItemShape").value = bState.itemShape;
+  $("bItemShape").hidden = bState.kind !== "array";
+  for (const row of document.querySelectorAll("[data-src]")) {
+    row.style.display = row.dataset.src === bState.source ? "" : "none";
+  }
+
+  const singleItem = bState.kind === "array" && bState.itemShape === "single";
+  $("bAddField").style.display = singleItem ? "none" : "";
+  if (singleItem && bState.fields.length === 0) bState.fields.push(newField());
+
+  renderFieldList($("bFields"), bState.fields, singleItem);
+}
+
+const PLACEHOLDERS = {
+  calculated: 'e.g. upper(fRes) + "!"',
+  formatted: "e.g. value: {PL}",
+  static: "the static value",
+  uuid: "optional regexp applied to the uuid"
+};
+const NO_EXPR = ["none", "model"];
+
+function renderFieldList(container, fields, singleItem) {
+  container.innerHTML = "";
+  for (const f of (singleItem ? fields.slice(0, 1) : fields)) {
+    container.appendChild(fieldRow(f, fields, singleItem));
+  }
+}
+
+function fieldRow(f, siblings, singleItem) {
+  const row = document.createElement("div");
+  row.className = "frow";
+
+  const name = document.createElement("input");
+  name.type = "text"; name.placeholder = "field name"; name.value = f.name;
+  name.addEventListener("input", () => { f.name = name.value; builderChanged(); });
+  if (singleItem) { name.style.visibility = "hidden"; }
+
+  const type = document.createElement("select");
+  for (const t of FIELD_TYPES) { const o = document.createElement("option"); o.textContent = t; type.appendChild(o); }
+  type.value = f.type;
+  type.addEventListener("change", () => { f.type = type.value; f.calcType = null; builderChanged(); });
+
+  const path = document.createElement("input");
+  path.type = "text"; path.placeholder = "path"; path.value = f.path;
+  path.addEventListener("input", () => { f.path = path.value; builderChanged(); });
+
+  const del = document.createElement("button");
+  del.type = "button"; del.className = "del"; del.textContent = "×"; del.title = "remove field";
+  del.addEventListener("click", () => {
+    const i = siblings.findIndex(x => x.id === f.id);
+    if (i >= 0) siblings.splice(i, 1);
+    if (siblings.length === 0) siblings.push(newField());
+    renderBuilder(); builderChanged();
+  });
+  if (singleItem) { del.style.visibility = "hidden"; }
+
+  row.append(name, type, path, del);
+
+  const xtra = document.createElement("div");
+  xtra.className = "xtra";
+  const tf = document.createElement("select");
+  for (const [v, label] of [
+    ["none", "no generated value"],
+    ["calculated", "generated: expression (fRes)"],
+    ["formatted", "generated: template ({PL})"],
+    ["static", "generated: static value"],
+    ["uuid", "generated: uuid"],
+    ["model", "generated: nested fetch (model)"]
+  ]) {
+    const o = document.createElement("option"); o.value = v; o.textContent = label; tf.appendChild(o);
+  }
+  tf.value = f.transform;
+  const expr = document.createElement("input");
+  expr.type = "text";
+  expr.placeholder = PLACEHOLDERS[f.transform] || "";
+  expr.value = f.expr;
+  expr.style.display = NO_EXPR.includes(f.transform) ? "none" : "";
+  tf.addEventListener("change", () => {
+    f.transform = tf.value; f.calcType = null;
+    if (f.transform === "model" && !f.nested) f.nested = defaultNested();
+    renderBuilder(); builderChanged();
+  });
+  expr.addEventListener("input", () => { f.expr = expr.value; builderChanged(); });
+  xtra.append(tf, expr);
+  row.appendChild(xtra);
+
+  if (f.transform === "model" && f.nested) {
+    row.appendChild(nestedPanel(f.nested));
+  }
+  return row;
+}
+
+function slabel(text) {
+  const s = document.createElement("span");
+  s.className = "slabel";
+  s.textContent = text;
+  return s;
+}
+
+function nestedPanel(n) {
+  const panel = document.createElement("div");
+  panel.className = "subpanel";
+
+  const r1 = document.createElement("div");
+  r1.className = "srow";
+  const method = document.createElement("select");
+  for (const m of ["GET", "POST", "PUT", "DELETE"]) { const o = document.createElement("option"); o.textContent = m; method.appendChild(o); }
+  method.value = n.method;
+  method.addEventListener("change", () => { n.method = method.value; builderChanged(); });
+  const url = document.createElement("input");
+  url.type = "text";
+  url.placeholder = "https://… ({PL} or {{{FromExp=…}}} injects the parent value)";
+  url.value = n.url;
+  url.addEventListener("input", () => { n.url = url.value; builderChanged(); });
+  r1.append(method, url);
+
+  const r2 = document.createElement("div");
+  r2.className = "srow";
+  const rt = document.createElement("select");
+  for (const t of RESPONSE_TYPES) { const o = document.createElement("option"); o.textContent = t; rt.appendChild(o); }
+  rt.value = n.responseType;
+  rt.addEventListener("change", () => { n.responseType = rt.value; builderChanged(); });
+  const nullLbl = document.createElement("label");
+  nullLbl.className = "slabel";
+  const nullCb = document.createElement("input");
+  nullCb.type = "checkbox";
+  nullCb.checked = n.nullOnError;
+  nullCb.addEventListener("change", () => { n.nullOnError = nullCb.checked; builderChanged(); });
+  nullLbl.append(nullCb, document.createTextNode(" null on error"));
+  r2.append(slabel("parse as"), rt, nullLbl);
+
+  const r3 = document.createElement("div");
+  r3.className = "srow";
+  const kind = document.createElement("select");
+  for (const [v, label] of [["object", "single object"], ["array", "array of items"]]) {
+    const o = document.createElement("option"); o.value = v; o.textContent = label; kind.appendChild(o);
+  }
+  kind.value = n.kind;
+  kind.addEventListener("change", () => { n.kind = kind.value; renderBuilder(); builderChanged(); });
+  const shape = document.createElement("select");
+  for (const [v, label] of [["fields", "items: named fields"], ["single", "items: single value"]]) {
+    const o = document.createElement("option"); o.value = v; o.textContent = label; shape.appendChild(o);
+  }
+  shape.value = n.itemShape;
+  shape.hidden = n.kind !== "array";
+  shape.addEventListener("change", () => { n.itemShape = shape.value; renderBuilder(); builderChanged(); });
+  const rootPath = document.createElement("input");
+  rootPath.type = "text";
+  rootPath.placeholder = "root path of the array";
+  rootPath.value = n.rootPath;
+  rootPath.hidden = n.kind !== "array";
+  rootPath.addEventListener("input", () => { n.rootPath = rootPath.value; builderChanged(); });
+  r3.append(kind, shape, rootPath);
+
+  const nSingle = n.kind === "array" && n.itemShape === "single";
+  if (nSingle && n.fields.length === 0) n.fields.push(newField());
+  const fieldsWrap = document.createElement("div");
+  fieldsWrap.style.cssText = "display:flex;flex-direction:column;gap:8px;";
+  renderFieldList(fieldsWrap, n.fields, nSingle);
+
+  const add = document.createElement("button");
+  add.type = "button"; add.className = "ghost"; add.textContent = "+ add field";
+  add.style.display = nSingle ? "none" : "";
+  add.addEventListener("click", () => { n.fields.push(newField()); renderBuilder(); builderChanged(); });
+
+  panel.append(r1, r2, r3, fieldsWrap, add);
+  return panel;
+}
+
+let autoRunTimer = null;
+function builderChanged() {
+  setBuilderRepresentable(true);
+  configEl.value = JSON.stringify(buildConfig(bState), null, 2);
+  // instant feedback for offline sources; URL sources run via the button
+  if (bState.source !== "url" && !runBtn.disabled) {
+    clearTimeout(autoRunTimer);
+    autoRunTimer = setTimeout(run, 500);
+  }
+}
+
+function syncBuilderFromJson() {
+  let parsed = null;
+  try { parsed = JSON.parse(configEl.value); } catch { /* YAML or invalid: builder can't show it */ }
+  const imported = parsed && importConfig(parsed);
+  if (imported) {
+    bState = imported;
+    setBuilderRepresentable(true);
+  } else {
+    setBuilderRepresentable(false);
+  }
+  renderBuilder();
+}
+
+/* ---------- builder form events ---------- */
+$("bSource").addEventListener("change", e => { bState.source = e.target.value; renderBuilder(); builderChanged(); });
+$("bResponseType").addEventListener("change", e => { bState.responseType = e.target.value; builderChanged(); });
+$("bMethod").addEventListener("change", e => { bState.method = e.target.value; builderChanged(); });
+$("bUrl").addEventListener("input", e => { bState.url = e.target.value; builderChanged(); });
+$("bStatic").addEventListener("input", e => { bState.staticValue = e.target.value; builderChanged(); });
+$("bSeqStart").addEventListener("input", e => { bState.seqStart = e.target.value; builderChanged(); });
+$("bSeqEnd").addEventListener("input", e => { bState.seqEnd = e.target.value; builderChanged(); });
+$("bSeqStep").addEventListener("input", e => { bState.seqStep = e.target.value; builderChanged(); });
+$("bKind").addEventListener("change", e => { bState.kind = e.target.value; renderBuilder(); builderChanged(); });
+$("bItemShape").addEventListener("change", e => { bState.itemShape = e.target.value; renderBuilder(); builderChanged(); });
+$("bRootPath").addEventListener("input", e => { bState.rootPath = e.target.value; builderChanged(); });
+$("bAddField").addEventListener("click", () => { bState.fields.push(newField()); renderBuilder(); builderChanged(); });
+$("bFresh").addEventListener("click", () => { bState = defaultState(); renderBuilder(); builderChanged(); });
+
+/* ---------- tabs ---------- */
+function showTab(which) {
+  $("tabBuilder").classList.toggle("active", which === "builder");
+  $("tabJson").classList.toggle("active", which === "json");
+  $("builderPane").classList.toggle("active", which === "builder");
+  configEl.classList.toggle("hiddenTab", which === "builder");
+  if (which === "builder") syncBuilderFromJson();
+}
+$("tabBuilder").addEventListener("click", () => showTab("builder"));
+$("tabJson").addEventListener("click", () => showTab("json"));
+
+/* ---------- engine ---------- */
 const go = new Go();
 (WebAssembly.instantiateStreaming
   ? WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
@@ -433,7 +1063,7 @@ const go = new Go();
   statusEl.textContent = "engine ready";
   statusEl.className = "ready";
   runBtn.disabled = false;
-  output.textContent = "Pick an example (or write your own config) and hit Run.";
+  output.textContent = "Pick an example, build a config on the Builder tab, or write JSON/YAML — then hit Run.";
 }).catch(err => {
   statusEl.textContent = "engine failed to load";
   statusEl.className = "error";
@@ -448,7 +1078,7 @@ async function run() {
   timing.textContent = "";
   const started = performance.now();
   try {
-    const res = await fitterRun($("config").value, $("input").value);
+    const res = await fitterRun(configEl.value, $("input").value);
     const ms = Math.round(performance.now() - started);
     try {
       output.textContent = JSON.stringify(JSON.parse(res), null, 2);
@@ -467,6 +1097,9 @@ runBtn.addEventListener("click", run);
 document.addEventListener("keydown", e => {
   if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !runBtn.disabled) run();
 });
+
+/* ---------- init ---------- */
+loadExample(select.value = Object.keys(EXAMPLES)[0]);
 </script>
 </body>
 </html>
