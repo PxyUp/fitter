@@ -378,7 +378,7 @@
   <section class="panel">
     <div class="panel-head">
       <span class="label">Result</span>
-      <span id="sendCounter" hidden title="messages delivered to Telegram from this playground — try the default example">📨 <b id="sendCount" style="color:var(--ok)">0</b> sent via playground</span>
+      <span id="sendCounter" hidden title="live global counter for this example"><span id="counterLabel"></span><b id="sendCount" style="color:var(--ok)">0</b></span>
       <span id="timing"></span>
     </div>
     <pre id="output">Engine loading — the fitter Go binary is compiled to WebAssembly (~7&nbsp;MB gzipped), first load takes a moment…</pre>
@@ -396,6 +396,7 @@
 <script>
 const EXAMPLES = {
   "Telegram bot → scraped briefing to yourself (input: token + chat_id)": {
+    counter: "telegram-sends",
     input: JSON.stringify({ token: "123456:PASTE_YOUR_BOT_TOKEN", chat_id: 123456789, _hint: "create a bot via @BotFather, get your chat_id from @userinfobot; with the placeholder token the run yields null (invalid bots fail Telegram's CORS preflight) — paste real values and it delivers. Don't Share links with a real token inside" }),
     config: {
           "references": {
@@ -521,6 +522,7 @@ const EXAMPLES = {
     }
   },
   "Book search → author join (live, uses input)": {
+    counter: "book-search",
     input: "dune",
     config: {
       item: {
@@ -563,6 +565,7 @@ const EXAMPLES = {
     }
   },
   "Static JSON (offline)": {
+    counter: "static-json",
     input: "",
     config: {
       item: {
@@ -591,6 +594,7 @@ const EXAMPLES = {
     }
   },
   "GitHub repo (live API)": {
+    counter: "github-repo",
     input: "",
     config: {
       item: {
@@ -613,6 +617,7 @@ const EXAMPLES = {
     }
   },
   "Top-5 crypto (live API + expressions)": {
+    counter: "crypto-top5",
     input: "",
     config: {
       item: {
@@ -642,6 +647,7 @@ const EXAMPLES = {
     }
   },
   "HTML scraping with CSS selectors (live)": {
+    counter: "html-css",
     input: "",
     config: {
       item: {
@@ -667,6 +673,7 @@ const EXAMPLES = {
     }
   },
   "PDF text extraction": {
+    counter: "pdf-extract",
     input: "",
     config: {
       item: {
@@ -692,6 +699,7 @@ const EXAMPLES = {
     }
   },
   "XML / RSS parsing (offline)": {
+    counter: "xml-rss",
     input: "",
     config: {
       item: {
@@ -716,6 +724,7 @@ const EXAMPLES = {
     }
   },
   "Generated sequence (offline)": {
+    counter: "int-sequence",
     input: "",
     config: {
       item: {
@@ -1537,24 +1546,45 @@ function showTab(which) {
 $("tabBuilder").addEventListener("click", () => showTab("builder"));
 $("tabJson").addEventListener("click", () => showTab("json"));
 
-/* ---------- send counter (abacus: /get reads, /hit increments) ---------- */
-let sendCountLoaded = false;
-function updateSendCounterVis() {
-  // the counter belongs to the telegram demo — hide it for unrelated configs
-  $("sendCounter").hidden = !(sendCountLoaded && configEl.value.includes("api.telegram.org"));
+/* ---------- per-example counters (abacus: /get reads, /hit increments) ---------- */
+const counterCache = {};
+function activeCounter() {
+  // telegram is content-based (works for shared/edited configs too); others follow the selected example
+  if (configEl.value.includes("api.telegram.org")) {
+    return { key: "telegram-sends", mode: "delivered", label: "\u{1F4E8} sent via playground " };
+  }
+  const ex = EXAMPLES[select.value];
+  if (ex && ex.counter) return { key: ex.counter, mode: "run", label: "\u25B6 example runs " };
+  return null;
 }
-async function refreshSendCounter(hit) {
-  try {
-    const r = await fetch("https://abacus.jasoncameron.dev/" + (hit ? "hit" : "get") + "/pxyup-fitter/telegram-sends");
-    const { value } = await r.json();
-    if (typeof value === "number") {
-      $("sendCount").textContent = value;
-      sendCountLoaded = true;
-      updateSendCounterVis();
-    }
-  } catch { /* counter is cosmetic — never break the page over it */ }
+async function counterFetch(key, hit) {
+  const r = await fetch("https://abacus.jasoncameron.dev/" + (hit ? "hit" : "get") + "/pxyup-fitter/" + key);
+  const { value } = await r.json();
+  if (typeof value === "number") counterCache[key] = value;
 }
-refreshSendCounter(false);
+function renderCounter() {
+  const c = activeCounter();
+  const el = $("sendCounter");
+  if (!c || counterCache[c.key] == null) { el.hidden = true; return; }
+  $("counterLabel").textContent = c.label;
+  $("sendCount").textContent = counterCache[c.key];
+  el.hidden = false;
+}
+async function updateSendCounterVis() {
+  const c = activeCounter();
+  if (c && counterCache[c.key] == null) {
+    try { await counterFetch(c.key, false); } catch { /* cosmetic */ }
+  }
+  renderCounter();
+}
+async function bumpCounter(parsed) {
+  const c = activeCounter();
+  if (!c) return;
+  if (c.mode === "delivered" && !(parsed && parsed.delivered === true)) return;
+  try { await counterFetch(c.key, true); } catch { /* cosmetic */ }
+  renderCounter();
+}
+updateSendCounterVis();
 configEl.addEventListener("input", updateSendCounterVis);
 
 /* ---------- engine ---------- */
@@ -1595,9 +1625,7 @@ async function run() {
     } catch {
       output.textContent = res;
     }
-    if (parsed && parsed.delivered === true && configEl.value.includes("api.telegram.org")) {
-      refreshSendCounter(true); // count strictly confirmed deliveries
-    }
+    bumpCounter(parsed);
     timing.textContent = ms + " ms";
   } catch (e) {
     output.className = "error";
