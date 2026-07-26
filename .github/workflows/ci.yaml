@@ -18,3 +18,35 @@ jobs:
         run: go test -coverprofile=coverage.txt -covermode=atomic ./pkg/...
       - name: Upload coverage to Codecov
         run: bash <(curl -s https://codecov.io/bash)
+
+  pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: github-pages
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.6'
+      - name: Build WASM playground into pages/
+        run: |
+          mkdir -p pages
+          GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o pages/main.wasm ./cmd/wasm
+          WASM_EXEC="$(go env GOROOT)/lib/wasm/wasm_exec.js"
+          [ -f "$WASM_EXEC" ] || WASM_EXEC="$(go env GOROOT)/misc/wasm/wasm_exec.js"
+          cp "$WASM_EXEC" pages/
+          cp demo/index.html pages/
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -9,6 +9,9 @@ fitter_agent
 fitter_cli_*
 fitter_mcp*
 *.so
+demo/main.wasm
+demo/wasm_exec.js
+pages/
 
 # local MCP client config
 .mcp.json

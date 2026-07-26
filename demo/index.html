@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fitter Playground — web data for AI agents</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #171a23;
+    --border: #2a2f3d;
+    --text: #e6e9f0;
+    --muted: #8b93a7;
+    --accent: #5b8def;
+    --accent-hover: #6f9cf2;
+    --ok: #4cc38a;
+    --err: #e5534b;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --border: #dde1e8;
+      --text: #1c2333;
+      --muted: #5d6678;
+      --accent: #2f6bdb;
+      --accent-hover: #4680ea;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  header {
+    padding: 22px 28px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  header h1 { margin: 0; font-size: 20px; font-weight: 650; }
+  header .tag { color: var(--muted); font-size: 14px; }
+  header a { color: var(--accent); text-decoration: none; margin-left: auto; font-size: 14px; }
+  header a:hover { text-decoration: underline; }
+  #status {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 2px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  #status.ready { color: var(--ok); border-color: var(--ok); }
+  #status.error { color: var(--err); border-color: var(--err); }
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px;
+    padding: 20px 28px 28px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    min-height: 480px;
+  }
+  .panel-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .panel-head span { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  select, input[type=text] {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+  select:focus, input[type=text]:focus, textarea:focus { outline: 1.5px solid var(--accent); }
+  textarea {
+    flex: 1;
+    width: 100%;
+    resize: none;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 14px;
+    min-height: 320px;
+  }
+  .runbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .runbar input { flex: 1; }
+  button {
+    background: var(--accent);
+    border: 0;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 7px;
+    padding: 8px 22px;
+    cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  button:disabled { opacity: .5; cursor: default; }
+  #output {
+    flex: 1;
+    margin: 0;
+    padding: 14px;
+    overflow: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  #output.error { color: var(--err); }
+  #timing { margin-left: auto; font-size: 12.5px; color: var(--muted); }
+  footer {
+    padding: 0 28px 26px;
+    max-width: 1400px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+  footer code { font-family: var(--mono); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fitter Playground</h1>
+  <span class="tag">declarative web-data extraction, running as WebAssembly in your browser</span>
+  <span id="status">loading engine…</span>
+  <a href="https://github.com/PxyUp/fitter" target="_blank" rel="noopener">GitHub ↗</a>
+</header>
+
+<main>
+  <section class="panel">
+    <div class="panel-head">
+      <span>Config</span>
+      <select id="example"></select>
+    </div>
+    <textarea id="config" spellcheck="false"></textarea>
+    <div class="runbar">
+      <input type="text" id="input" placeholder="input (optional — used by {{{FromInput=.}}})">
+      <button id="run" disabled>Run</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <span>Result</span>
+      <span id="timing"></span>
+    </div>
+    <pre id="output">Engine loading — the fitter Go binary is compiled to WebAssembly (~7&nbsp;MB gzipped), first load takes a moment…</pre>
+  </section>
+</main>
+
+<footer>
+  Every run executes the real fitter engine — the same code as the CLI and MCP server — entirely client-side.
+  Live HTTP examples use CORS-friendly public APIs (GitHub, OpenLibrary, CoinGecko); arbitrary page scraping and the
+  browser/docker connectors need the native binary. Get it via <code>go install github.com/PxyUp/fitter/cmd/fitter_cli@latest</code>
+  or the MCP server from the <a href="https://github.com/PxyUp/fitter#how-to-use-fitter_mcp" target="_blank" rel="noopener" style="color:var(--accent)">README</a>.
+</footer>
+
+<script src="wasm_exec.js"></script>
+<script>
+const EXAMPLES = {
+  "Static JSON (offline)": {
+    input: "",
+    config: {
+      item: {
+        connector_config: {
+          response_type: "json",
+          static_config: {
+            value: JSON.stringify({ name: "fitter", stars: 400, topics: ["scraping", "mcp", "ai-agents"] })
+          }
+        },
+        model: {
+          object_config: {
+            fields: {
+              project:     { base_field: { type: "string", path: "name" } },
+              stars:       { base_field: { type: "int",    path: "stars" } },
+              first_topic: { base_field: { type: "string", path: "topics.0" } },
+              shout: {
+                base_field: {
+                  type: "string", path: "name",
+                  generated: { calculated: { type: "string", expression: "upper(fRes) + \"!\"" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "GitHub repo (live API)": {
+    input: "",
+    config: {
+      item: {
+        connector_config: {
+          response_type: "json",
+          url: "https://api.github.com/repos/PxyUp/fitter",
+          server_config: { method: "GET" }
+        },
+        model: {
+          object_config: {
+            fields: {
+              repo:        { base_field: { type: "string", path: "full_name" } },
+              description: { base_field: { type: "string", path: "description" } },
+              stars:       { base_field: { type: "int",    path: "stargazers_count" } },
+              language:    { base_field: { type: "string", path: "language" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "Book search → author join (live, uses input)": {
+    input: "dune",
+    config: {
+      item: {
+        connector_config: {
+          response_type: "json",
+          url: "https://openlibrary.org/search.json?q={{{FromInput=.}}}&limit=3&fields=title,author_key,first_publish_year",
+          server_config: { method: "GET" }
+        },
+        model: {
+          array_config: {
+            root_path: "docs",
+            item_config: {
+              fields: {
+                title: { base_field: { type: "string", path: "title" } },
+                year:  { base_field: { type: "int", path: "first_publish_year" } },
+                author: {
+                  base_field: {
+                    type: "object",
+                    generated: { model: {
+                      type: "object",
+                      connector_config: {
+                        response_type: "json",
+                        url: "https://openlibrary.org/authors/{{{FromExp=fromJSON(fRes).author_key[0]}}}.json",
+                        server_config: { method: "GET" },
+                        null_on_error: true
+                      },
+                      model: { object_config: { fields: {
+                        name: { base_field: { type: "string", path: "name" } },
+                        born: { base_field: { type: "string", path: "birth_date" } }
+                      } } }
+                    } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      limits: { host_request_limiter: { "openlibrary.org": 2 } }
+    }
+  },
+  "Top-5 crypto (live API + expressions)": {
+    input: "",
+    config: {
+      item: {
+        connector_config: {
+          response_type: "json",
+          url: "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=5&page=1",
+          server_config: { method: "GET" }
+        },
+        model: {
+          array_config: {
+            root_path: "@this",
+            item_config: {
+              fields: {
+                coin:  { base_field: { type: "string", path: "name" } },
+                price: { base_field: { type: "float", path: "current_price" } },
+                trend: {
+                  base_field: {
+                    type: "float", path: "price_change_percentage_24h",
+                    generated: { calculated: { type: "string", expression: "fRes > 0 ? \"up\" : \"down\"" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "Generated sequence (offline)": {
+    input: "",
+    config: {
+      item: {
+        connector_config: {
+          response_type: "json",
+          int_sequence_config: { start: 1, end: 6, step: 1 }
+        },
+        model: {
+          array_config: {
+            root_path: "@this",
+            item_config: {
+              field: {
+                type: "int",
+                generated: { calculated: { type: "int", expression: "fRes * fRes" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
+const $ = id => document.getElementById(id);
+const statusEl = $("status"), runBtn = $("run"), output = $("output"), timing = $("timing");
+
+const select = $("example");
+for (const name of Object.keys(EXAMPLES)) {
+  const opt = document.createElement("option");
+  opt.textContent = name;
+  select.appendChild(opt);
+}
+function loadExample(name) {
+  $("config").value = JSON.stringify(EXAMPLES[name].config, null, 2);
+  $("input").value = EXAMPLES[name].input;
+}
+select.addEventListener("change", () => loadExample(select.value));
+loadExample(select.value = Object.keys(EXAMPLES)[0]);
+
+const go = new Go();
+(WebAssembly.instantiateStreaming
+  ? WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
+  : fetch("main.wasm").then(r => r.arrayBuffer()).then(b => WebAssembly.instantiate(b, go.importObject))
+).then(result => {
+  go.run(result.instance);
+  statusEl.textContent = "engine ready";
+  statusEl.className = "ready";
+  runBtn.disabled = false;
+  output.textContent = "Pick an example (or write your own config) and hit Run.";
+}).catch(err => {
+  statusEl.textContent = "engine failed to load";
+  statusEl.className = "error";
+  output.className = "error";
+  output.textContent = String(err);
+});
+
+async function run() {
+  runBtn.disabled = true;
+  output.className = "";
+  output.textContent = "running…";
+  timing.textContent = "";
+  const started = performance.now();
+  try {
+    const res = await fitterRun($("config").value, $("input").value);
+    const ms = Math.round(performance.now() - started);
+    try {
+      output.textContent = JSON.stringify(JSON.parse(res), null, 2);
+    } catch {
+      output.textContent = res;
+    }
+    timing.textContent = ms + " ms";
+  } catch (e) {
+    output.className = "error";
+    output.textContent = "Error: " + e;
+  } finally {
+    runBtn.disabled = false;
+  }
+}
+runBtn.addEventListener("click", run);
+document.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !runBtn.disabled) run();
+});
+</script>
+</body>
+</html>
