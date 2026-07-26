@@ -39,3 +39,5 @@ cd demo && python3 -m http.server 8642
   `syscall/js`; configs are accepted as JSON or YAML
 - `pkg/connectors/browser_js.go` provides the WASM stubs for the native-only connectors
 - `index.html` is the playground UI with preloaded example configs
+- `sample.pdf` is bundled so the PDF example fetches same-origin (`__BASE__/sample.pdf`
+  in the example resolves to the demo's own URL — no CORS involved)

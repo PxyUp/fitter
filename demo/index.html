@@ -186,6 +186,48 @@
 <script src="wasm_exec.js"></script>
 <script>
 const EXAMPLES = {
+  "Book search → author join (live, uses input)": {
+    input: "dune",
+    config: {
+      item: {
+        connector_config: {
+          response_type: "json",
+          url: "https://openlibrary.org/search.json?q={{{FromInput=.}}}&limit=3&fields=title,author_key,first_publish_year",
+          server_config: { method: "GET" }
+        },
+        model: {
+          array_config: {
+            root_path: "docs",
+            item_config: {
+              fields: {
+                title: { base_field: { type: "string", path: "title" } },
+                year:  { base_field: { type: "int", path: "first_publish_year" } },
+                author: {
+                  base_field: {
+                    type: "object",
+                    generated: { model: {
+                      type: "object",
+                      connector_config: {
+                        response_type: "json",
+                        url: "https://openlibrary.org/authors/{{{FromExp=fromJSON(fRes).author_key[0]}}}.json",
+                        server_config: { method: "GET" },
+                        null_on_error: true
+                      },
+                      model: { object_config: { fields: {
+                        name: { base_field: { type: "string", path: "name" } },
+                        born: { base_field: { type: "string", path: "birth_date" } }
+                      } } }
+                    } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      limits: { host_request_limiter: { "openlibrary.org": 2 } }
+    }
+  },
   "Static JSON (offline)": {
     input: "",
     config: {
@@ -236,48 +278,6 @@ const EXAMPLES = {
       }
     }
   },
-  "Book search → author join (live, uses input)": {
-    input: "dune",
-    config: {
-      item: {
-        connector_config: {
-          response_type: "json",
-          url: "https://openlibrary.org/search.json?q={{{FromInput=.}}}&limit=3&fields=title,author_key,first_publish_year",
-          server_config: { method: "GET" }
-        },
-        model: {
-          array_config: {
-            root_path: "docs",
-            item_config: {
-              fields: {
-                title: { base_field: { type: "string", path: "title" } },
-                year:  { base_field: { type: "int", path: "first_publish_year" } },
-                author: {
-                  base_field: {
-                    type: "object",
-                    generated: { model: {
-                      type: "object",
-                      connector_config: {
-                        response_type: "json",
-                        url: "https://openlibrary.org/authors/{{{FromExp=fromJSON(fRes).author_key[0]}}}.json",
-                        server_config: { method: "GET" },
-                        null_on_error: true
-                      },
-                      model: { object_config: { fields: {
-                        name: { base_field: { type: "string", path: "name" } },
-                        born: { base_field: { type: "string", path: "birth_date" } }
-                      } } }
-                    } }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      limits: { host_request_limiter: { "openlibrary.org": 2 } }
-    }
-  },
   "Top-5 crypto (live API + expressions)": {
     input: "",
     config: {
@@ -300,6 +300,80 @@ const EXAMPLES = {
                     generated: { calculated: { type: "string", expression: "fRes > 0 ? \"up\" : \"down\"" } }
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "HTML scraping with CSS selectors (live)": {
+    input: "",
+    config: {
+      item: {
+        connector_config: {
+          response_type: "HTML",
+          url: "https://httpbin.org/html",
+          server_config: { method: "GET" }
+        },
+        model: {
+          object_config: {
+            fields: {
+              title: { base_field: { type: "string", path: "h1" } },
+              excerpt: {
+                base_field: {
+                  type: "string", path: "div p",
+                  generated: { calculated: { type: "string", expression: "trim(fRes[:120]) + \"…\"" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "PDF text extraction": {
+    input: "",
+    config: {
+      item: {
+        connector_config: {
+          response_type: "pdf",
+          url: "__BASE__/sample.pdf",
+          server_config: { method: "GET" }
+        },
+        model: {
+          object_config: {
+            fields: {
+              total_pages: { base_field: { type: "int", path: "total_pages" } },
+              intro: {
+                base_field: {
+                  type: "string", path: "text",
+                  generated: { calculated: { type: "string", expression: "trim(fRes[:100]) + \"…\"" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "XML / RSS parsing (offline)": {
+    input: "",
+    config: {
+      item: {
+        connector_config: {
+          response_type: "XML",
+          static_config: {
+            value: "<rss><channel><item><title>Fitter ships PDF support</title><link>https://github.com/PxyUp/fitter</link></item><item><title>Fitter playground runs on WebAssembly</title><link>https://pxyup.github.io/fitter</link></item></channel></rss>"
+          }
+        },
+        model: {
+          array_config: {
+            root_path: "//item",
+            item_config: {
+              fields: {
+                headline: { base_field: { type: "string", path: "/title" } },
+                url:      { base_field: { type: "string", path: "/link" } }
               }
             }
           }
@@ -340,8 +414,11 @@ for (const name of Object.keys(EXAMPLES)) {
   opt.textContent = name;
   select.appendChild(opt);
 }
+// __BASE__ resolves to the URL the demo itself is served from, so bundled
+// assets (sample.pdf) fetch same-origin — locally and on GitHub Pages alike.
+const BASE = location.origin + location.pathname.replace(/\/[^/]*$/, "");
 function loadExample(name) {
-  $("config").value = JSON.stringify(EXAMPLES[name].config, null, 2);
+  $("config").value = JSON.stringify(EXAMPLES[name].config, null, 2).replaceAll("__BASE__", BASE);
   $("input").value = EXAMPLES[name].input;
 }
 select.addEventListener("change", () => loadExample(select.value));
