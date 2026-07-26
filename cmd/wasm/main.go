@@ -17,6 +17,7 @@ import (
 	"github.com/PxyUp/fitter/lib"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"gopkg.in/yaml.v3"
 )
@@ -66,6 +67,10 @@ func fitterRun(_ js.Value, args []js.Value) any {
 				reject.Invoke(`missing "item" object at the top level of the config`)
 				return
 			}
+
+			// the page is a long-lived process running many unrelated configs;
+			// without this, only the first config's limits would ever apply
+			limitter.ReplaceLimits(cfg.Limits)
 
 			res, errParse := lib.ParseCtx(context.Background(), cfg.Item, cfg.Limits, cfg.References, builder.PureString(input), logger.Null)
 			if errParse != nil {

@@ -42,6 +42,19 @@ func SetLimits(limits *config.Limits) {
 	})
 }
 
+// ReplaceLimits swaps the host request limits, bypassing the process-lifetime
+// once semantics of SetLimits. Long-lived embedders that execute many
+// unrelated configs in one process (e.g. the WASM playground) call it before
+// each run so every config gets exactly its own limits. Only in-flight
+// requests keep the semaphores they already acquired.
+func ReplaceLimits(limits *config.Limits) {
+	limitPerHost = make(map[string]*semaphore.Weighted)
+	if limits == nil {
+		return
+	}
+	setRequestPerHost(limits.HostRequestLimiter)
+}
+
 func HostLimiter(host string) *semaphore.Weighted {
 	if hostLimit, ok := limitPerHost[host]; ok {
 		return hostLimit

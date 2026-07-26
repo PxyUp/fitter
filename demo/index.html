@@ -327,6 +327,13 @@
         <button class="ghost" id="bAddField" type="button">+ add field</button>
         <div class="hint">path syntax follows “parse as”: gjson for json/pdf, CSS selectors for HTML, XPath for xpath/XML</div>
       </fieldset>
+
+      <fieldset>
+        <legend>Limits</legend>
+        <div id="bHostLimits" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <button class="ghost" id="bAddHostLimit" type="button">+ host rate limit</button>
+        <div class="hint">max parallel requests per host (host_request_limiter)</div>
+      </fieldset>
       </div>
     </div>
 
@@ -609,7 +616,7 @@ function defaultState() {
     responseType: "json",
     kind: "object", rootPath: "", itemShape: "fields",
     fields: [newField()],
-    limitsRaw: null, referencesRaw: null
+    hostLimits: [], limitsExtra: null, referencesRaw: null
   };
 }
 function newField() {
@@ -674,7 +681,13 @@ function buildConfig(s) {
   }
 
   const out = { item: { connector_config: cc, model: buildModelPart(s) } };
-  if (s.limitsRaw) out.limits = s.limitsRaw;
+  const limits = Object.assign({}, s.limitsExtra || {});
+  const hostMap = {};
+  for (const hl of s.hostLimits) {
+    if (hl.host.trim() !== "") hostMap[hl.host.trim()] = Number(hl.n) || 1;
+  }
+  if (Object.keys(hostMap).length) limits.host_request_limiter = hostMap;
+  if (Object.keys(limits).length) out.limits = limits;
   if (s.referencesRaw) out.references = s.referencesRaw;
   return out;
 }
@@ -781,8 +794,16 @@ function importConfig(cfg) {
 
   const s = defaultState();
   s.fields = [];
-  s.limitsRaw = cfg.limits || null;
   s.referencesRaw = cfg.references || null;
+  if (cfg.limits && typeof cfg.limits === "object") {
+    const { host_request_limiter, ...rest } = cfg.limits;
+    s.limitsExtra = Object.keys(rest).length ? rest : null;
+    if (host_request_limiter && typeof host_request_limiter === "object") {
+      for (const [h, v] of Object.entries(host_request_limiter)) {
+        s.hostLimits.push({ id: ++fieldSeq, host: h, n: v });
+      }
+    }
+  }
 
   const cc = item.connector_config || {};
   const ccAllowed = new Set(["response_type", "url", "server_config", "static_config", "int_sequence_config"]);
@@ -845,6 +866,35 @@ function renderBuilder() {
   if (singleItem && bState.fields.length === 0) bState.fields.push(newField());
 
   renderFieldList($("bFields"), bState.fields, singleItem);
+  renderHostLimits();
+}
+
+function renderHostLimits() {
+  const wrap = $("bHostLimits");
+  wrap.innerHTML = "";
+  for (const hl of bState.hostLimits) {
+    const row = document.createElement("div");
+    row.className = "srow";
+
+    const host = document.createElement("input");
+    host.type = "text"; host.placeholder = "host, e.g. api.github.com"; host.value = hl.host;
+    host.addEventListener("input", () => { hl.host = host.value; builderChanged(); });
+
+    const n = document.createElement("input");
+    n.type = "number"; n.min = "1"; n.value = hl.n; n.style.width = "90px"; n.title = "max parallel requests";
+    n.addEventListener("input", () => { hl.n = n.value; builderChanged(); });
+
+    const del = document.createElement("button");
+    del.type = "button"; del.className = "del"; del.textContent = "×"; del.title = "remove limit";
+    del.addEventListener("click", () => {
+      const i = bState.hostLimits.findIndex(x => x.id === hl.id);
+      if (i >= 0) bState.hostLimits.splice(i, 1);
+      renderBuilder(); builderChanged();
+    });
+
+    row.append(host, n, del);
+    wrap.appendChild(row);
+  }
 }
 
 const PLACEHOLDERS = {
@@ -1041,6 +1091,10 @@ $("bItemShape").addEventListener("change", e => { bState.itemShape = e.target.va
 $("bRootPath").addEventListener("input", e => { bState.rootPath = e.target.value; builderChanged(); });
 $("bAddField").addEventListener("click", () => { bState.fields.push(newField()); renderBuilder(); builderChanged(); });
 $("bFresh").addEventListener("click", () => { bState = defaultState(); renderBuilder(); builderChanged(); });
+$("bAddHostLimit").addEventListener("click", () => {
+  bState.hostLimits.push({ id: ++fieldSeq, host: "", n: 2 });
+  renderBuilder(); builderChanged();
+});
 
 /* ---------- tabs ---------- */
 function showTab(which) {
