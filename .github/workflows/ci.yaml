@@ -44,7 +44,7 @@ jobs:
           WASM_EXEC="$(go env GOROOT)/lib/wasm/wasm_exec.js"
           [ -f "$WASM_EXEC" ] || WASM_EXEC="$(go env GOROOT)/misc/wasm/wasm_exec.js"
           cp "$WASM_EXEC" pages/
-          cp demo/index.html demo/sample.pdf pages/
+          cp demo/index.html demo/live.html demo/sample.pdf pages/
       - uses: actions/upload-pages-artifact@v4
         with:
           path: pages

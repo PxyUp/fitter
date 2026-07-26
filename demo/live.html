@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fitter — live run</title>
+<style>
+  body { margin: 0; background: #0d1117; }
+  .term {
+    width: 820px; margin: 10px auto; background: #0d1117;
+    border: 1px solid #30363d; border-radius: 10px; overflow: hidden;
+    font: 13px/1.62 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .bar {
+    background: #161b22; color: #8b949e; font-size: 12px;
+    padding: 8px 14px; display: flex; align-items: center; gap: 6px;
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .bar .title { flex: 1; text-align: center; }
+  pre { margin: 0; padding: 14px 20px 16px; color: #c9d1d9; white-space: pre-wrap; word-break: break-word; }
+  .k { color: #7ee787; } .s { color: #a5d6ff; } .n { color: #79c0ff; }
+  .dim { color: #8b949e; } .ok { color: #3fb950; } .p { color: #ff7b72; } .spark { color: #f7931a; }
+</style>
+</head>
+<body>
+<div class="term">
+  <div class="bar">
+    <span class="dot" style="background:#ff5f56"></span>
+    <span class="dot" style="background:#ffbd2e"></span>
+    <span class="dot" style="background:#27c93f"></span>
+    <span class="title">fitter — this run happened when this image was built</span>
+  </div>
+  <pre id="out"><span class="p">$ </span>fitter_cli -path fitter/profile.json
+<span class="dim">loading the real engine (Go → WASM)…</span></pre>
+</div>
+<script src="wasm_exec.js"></script>
+<script>
+const RAW = new URLSearchParams(location.search).get("raw") || "https://raw.githubusercontent.com/PxyUp/PxyUp/master/fitter/";
+const out = document.getElementById("out");
+// decode entities the APIs ship, then escape for our own HTML
+const esc = v => String(v ?? "").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const k = t => `<span class="k">"${t}"</span>`;
+const s = (t, max = 64) => { t = esc(t); if (t.length > max) t = t.slice(0, max - 1) + "…"; return `<span class="s">"${t}"</span>`; };
+const n = v => `<span class="n">${v ?? 0}</span>`;
+
+async function fetchConfig(name) {
+  const r = await fetch(RAW + name, { cache: "no-store" });
+  if (!r.ok) throw new Error(name + ": " + r.status);
+  return r.text();
+}
+
+function sparkline(points) {
+  const chars = "▁▂▃▄▅▆▇█";
+  const lo = Math.min(...points), hi = Math.max(...points);
+  return points.map(v => chars[Math.min(7, Math.floor((v - lo) / ((hi - lo) || 1) * 8))]).join("");
+}
+
+async function main() {
+  const started = performance.now();
+  const go = new Go();
+  const [cfgProfile, cfgBtc, wasm] = await Promise.all([
+    fetchConfig("profile.json"),
+    fetchConfig("btc_week.json").catch(() => null),
+    WebAssembly.instantiateStreaming
+      ? WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
+      : fetch("main.wasm").then(r => r.arrayBuffer()).then(b => WebAssembly.instantiate(b, go.importObject))
+  ]);
+  go.run(wasm.instance);
+
+  const [pRes, bRes] = await Promise.allSettled([
+    fitterRun(cfgProfile, ""),
+    cfgBtc ? fitterRun(cfgBtc, "") : Promise.reject(new Error("no config"))
+  ]);
+  if (pRes.status === "rejected") throw pRes.reason;
+  const d = JSON.parse(pRes.value);
+  const me = d.me ?? {}, cd = d.caught_doing ?? {}, ft = d.fitter ?? {}, btc = d.btc ?? {}, hn = d.hn_top_story ?? {}, joke = d.dad_joke ?? {};
+
+  let spark = "";
+  if (bRes.status === "fulfilled") {
+    const pts = JSON.parse(bRes.value).map(p => p.usd);
+    spark = `\n  ${k("btc_7d")}:       <span class="spark">${sparkline(pts)}</span> <span class="dim">← scraped + drawn just now (fitter/btc_week.json)</span>`;
+  }
+
+  const ms = Math.round(performance.now() - started);
+  const t = new Date().toISOString().slice(11, 19);
+  out.innerHTML = `<span class="p">$ </span>fitter_cli -path fitter/profile.json
+{
+  ${k("me")}:           { ${k("followers")}: ${n(me.followers)}, ${k("status")}: ${s(me.status)} },
+  ${k("caught_doing")}: { ${k("action")}: ${s(cd.action ?? "sleeping, probably")}, ${k("repo")}: ${s(cd.repo ?? "-")} },
+  ${k("btc")}:          { ${k("price_usd")}: ${n(btc.price_usd)}, ${k("advice")}: ${s(btc.professional_advice ?? "HODL")} },
+  ${k("fitter")}:       { ${k("stars")}: ${n(ft.stars)}, ${k("star_it")}: ${s(ft.should_you_star_it ?? "yes")} },
+  ${k("hn_top_story")}: ${s(hn.reading ?? "-", 66)},
+  ${k("dad_joke")}:     { ${k("setup")}: ${s(joke.setup ?? "-", 62)},
+                  ${k("punchline")}: ${s(joke.punchline ?? "-", 58)} } }${spark}
+}
+<span class="ok">✓</span> <span class="dim">real engine, real fetches — executed in ${ms} ms at ${t} UTC, the moment this image was rendered</span>`;
+}
+
+main().catch(e => {
+  out.innerHTML += `\n<span class="dim">recoverable hiccup: ${esc(e.message || e)} — retrying won't hurt, it's all client-side</span>`;
+});
+</script>
+</body>
+</html>
