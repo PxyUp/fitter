@@ -8,11 +8,10 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
-	"github.com/docker/docker/api/types/container"
-	imageTypes "github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/google/uuid"
+	"github.com/moby/moby/api/pkg/stdcopy"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"io"
 	"time"
 )
@@ -52,7 +51,7 @@ func getFromDocker(ctx context.Context, url string, cfg *config.DockerConfig, lo
 	}
 
 	if !cfg.NoPull {
-		outPull, errPull := cli.ImagePull(ctxB, image, imageTypes.PullOptions{})
+		outPull, errPull := cli.ImagePull(ctxB, image, client.ImagePullOptions{})
 		if errPull != nil {
 			logger.Errorw("unable to pull docker container", "error", errPull.Error())
 			return nil, err
@@ -112,11 +111,15 @@ func getFromDocker(ctx context.Context, url string, cfg *config.DockerConfig, lo
 		entryPoint = append(entryPoint, cfg.EntryPoint)
 	}
 
-	resp, err := cli.ContainerCreate(ctxT, &container.Config{
-		Image:      image,
-		Cmd:        args,
-		Entrypoint: entryPoint,
-	}, &container.HostConfig{}, nil, nil, uuid.New().String())
+	resp, err := cli.ContainerCreate(ctxT, client.ContainerCreateOptions{
+		Config: &container.Config{
+			Image:      image,
+			Cmd:        args,
+			Entrypoint: entryPoint,
+		},
+		HostConfig: &container.HostConfig{},
+		Name:       uuid.New().String(),
+	})
 	if err != nil {
 		logger.Errorw("unable to create docker container", "error", err.Error())
 		return nil, err
@@ -129,7 +132,7 @@ func getFromDocker(ctx context.Context, url string, cfg *config.DockerConfig, lo
 		removeCtx, cancelRemoveFn := context.WithTimeout(context.Background(), timeout)
 		defer cancelRemoveFn()
 
-		errRemove := cli.ContainerRemove(removeCtx, resp.ID, container.RemoveOptions{
+		_, errRemove := cli.ContainerRemove(removeCtx, resp.ID, client.ContainerRemoveOptions{
 			Force: true,
 		})
 		if errRemove != nil {
@@ -148,7 +151,7 @@ func getFromDocker(ctx context.Context, url string, cfg *config.DockerConfig, lo
 		defer instanceLimit.Release(1)
 	}
 
-	err = cli.ContainerStart(ctxT, resp.ID, container.StartOptions{})
+	_, err = cli.ContainerStart(ctxT, resp.ID, client.ContainerStartOptions{})
 	if err != nil {
 		logger.Errorw("unable to start docker container", "error", err.Error())
 		return nil, err
@@ -157,7 +160,7 @@ func getFromDocker(ctx context.Context, url string, cfg *config.DockerConfig, lo
 	defer func() {
 		stopCtx, cancelStopFn := context.WithTimeout(context.Background(), timeout)
 		defer cancelStopFn()
-		errStop := cli.ContainerStop(stopCtx, resp.ID, container.StopOptions{})
+		_, errStop := cli.ContainerStop(stopCtx, resp.ID, client.ContainerStopOptions{})
 		if errStop != nil {
 			logger.Errorw("unable to stop docker container", "error", err.Error())
 			return
@@ -165,21 +168,22 @@ func getFromDocker(ctx context.Context, url string, cfg *config.DockerConfig, lo
 		logger.Infow("container stopped", "id", resp.ID)
 	}()
 
-	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+	waitRes := cli.ContainerWait(ctx, resp.ID, client.ContainerWaitOptions{Condition: container.WaitConditionNotRunning})
 	select {
-	case errWait := <-errCh:
+	case errWait := <-waitRes.Error:
 		if errWait != nil {
 			logger.Errorw("unable to get docker status", "error", errWait.Error())
 			return nil, errWait
 		}
-	case <-statusCh:
+	case <-waitRes.Result:
 	}
 
-	data, err := cli.ContainerLogs(ctxT, resp.ID, container.LogsOptions{ShowStdout: true, ShowStderr: true})
+	data, err := cli.ContainerLogs(ctxT, resp.ID, client.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		logger.Errorw("unable to get docker container logs", "error", err.Error())
 		return nil, err
 	}
+
 	var outb, errb bytes.Buffer
 
 	_, err = stdcopy.StdCopy(&outb, &errb, data)
