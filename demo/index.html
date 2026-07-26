@@ -56,6 +56,13 @@
     border-radius: 999px;
   }
   #status.ready { color: var(--ok); border-color: var(--ok); }
+  #sendCounter {
+    font-size: 12.5px;
+    color: var(--muted);
+    padding: 2px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
   #status.error { color: var(--err); border-color: var(--err); }
   main {
     display: grid;
@@ -96,7 +103,7 @@
   }
   .tab:hover { color: var(--text); background: transparent; }
   .tab.active { color: var(--text); background: var(--bg); border-color: var(--border); }
-  select, input[type=text], input[type=number] {
+  select, input[type=text], input[type=number], .runbar textarea {
     background: var(--bg);
     color: var(--text);
     border: 1px solid var(--border);
@@ -125,7 +132,16 @@
     padding: 10px 14px;
     border-top: 1px solid var(--border);
   }
-  .runbar input { flex: 1; }
+  .runbar input, .runbar textarea { flex: 1; }
+  .runbar textarea {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    overflow: auto;
+    white-space: pre;
+    min-height: 38px;
+  }
   button.primary {
     background: var(--accent);
     border: 0;
@@ -202,9 +218,10 @@
     border: 1px solid var(--border);
     border-radius: 7px;
     background: var(--bg);
-    min-height: 64px;
+    min-height: 120px;
     padding: 8px 10px;
     flex: 1;
+    resize: vertical;
   }
   .frow {
     display: grid;
@@ -272,7 +289,7 @@
     <div id="builderPane">
       <div id="builderNotice" class="notice" hidden>
         <p style="margin:0 0 8px;">This config uses features the builder can’t express (plugins, file fields,
-        first_of, browser connectors, …). It stays fully editable — and runnable — on the JSON tab.</p>
+        first_of, references, browser connectors, …). It stays fully editable — and runnable — on the JSON tab.</p>
         <button id="bFresh" class="ghost" type="button">discard it and start a fresh config in the builder</button>
       </div>
 
@@ -284,6 +301,7 @@
             <option value="url">Fetch URL</option>
             <option value="static">Static value</option>
             <option value="sequence">Int sequence</option>
+            <option value="reference">Reference (cached)</option>
           </select>
           <label for="bResponseType">parse as</label>
           <select id="bResponseType">
@@ -308,6 +326,9 @@
           <label>end</label><input type="number" id="bSeqEnd" value="5">
           <label>step</label><input type="number" id="bSeqStep" value="1">
         </div>
+        <div class="brow" data-src="reference">
+          <label>name</label><input type="text" id="bRefName" placeholder="reference name defined below, e.g. hn_top">
+        </div>
       </fieldset>
 
       <fieldset>
@@ -316,6 +337,7 @@
           <select id="bKind">
             <option value="object">Single object</option>
             <option value="array">Array of items</option>
+            <option value="value">Single value</option>
           </select>
           <select id="bItemShape" hidden>
             <option value="fields">items: named fields</option>
@@ -326,6 +348,13 @@
         <div id="bFields" style="display:flex;flex-direction:column;gap:8px;"></div>
         <button class="ghost" id="bAddField" type="button">+ add field</button>
         <div class="hint">path syntax follows “parse as”: gjson for json/pdf, CSS selectors for HTML, XPath for xpath/XML</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>References</legend>
+        <div id="bRefs" style="display:flex;flex-direction:column;gap:12px;"></div>
+        <button class="ghost" id="bAddRef" type="button">+ add reference</button>
+        <div class="hint">named cached sub-configs — use one as the Source (“Reference”) or inline via {{{RefName=name path}}} / {{{RefName=name}}}</div>
       </fieldset>
 
       <fieldset>
@@ -340,7 +369,7 @@
     <textarea id="config" spellcheck="false"></textarea>
 
     <div class="runbar">
-      <input type="text" id="input" placeholder="input (optional — used by {{{FromInput=.}}})">
+      <textarea id="input" rows="1" spellcheck="false" placeholder="input (optional — used by {{{FromInput=.}}}; JSON is pretty-printed)"></textarea>
       <button id="share" class="ghost" type="button" title="copy a link that opens and runs this config">Share</button>
       <button id="run" class="primary" disabled>Run</button>
     </div>
@@ -349,6 +378,7 @@
   <section class="panel">
     <div class="panel-head">
       <span class="label">Result</span>
+      <span id="sendCounter" hidden title="messages delivered to Telegram from this playground — try the default example">📨 <b id="sendCount" style="color:var(--ok)">0</b> sent via playground</span>
       <span id="timing"></span>
     </div>
     <pre id="output">Engine loading — the fitter Go binary is compiled to WebAssembly (~7&nbsp;MB gzipped), first load takes a moment…</pre>
@@ -365,6 +395,131 @@
 <script src="wasm_exec.js"></script>
 <script>
 const EXAMPLES = {
+  "Telegram bot → scraped briefing to yourself (input: token + chat_id)": {
+    input: JSON.stringify({ token: "123456:PASTE_YOUR_BOT_TOKEN", chat_id: 123456789, _hint: "create a bot via @BotFather, get your chat_id from @userinfobot; with the placeholder token the run yields null (invalid bots fail Telegram's CORS preflight) — paste real values and it delivers. Don't Share links with a real token inside" }),
+    config: {
+          "references": {
+                "hn_top": {
+                      "connector_config": {
+                            "response_type": "json",
+                            "url": "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=5",
+                            "server_config": {
+                                  "method": "GET",
+                                  "timeout": 15
+                            }
+                      },
+                      "model": {
+                            "array_config": {
+                                  "root_path": "hits",
+                                  "item_config": {
+                                        "fields": {
+                                              "title": {
+                                                    "base_field": {
+                                                          "type": "string",
+                                                          "path": "title"
+                                                    }
+                                              },
+                                              "points": {
+                                                    "base_field": {
+                                                          "type": "int",
+                                                          "path": "points"
+                                                    }
+                                              }
+                                        }
+                                  }
+                            }
+                      }
+                },
+                "btc": {
+                      "connector_config": {
+                            "response_type": "json",
+                            "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true",
+                            "server_config": {
+                                  "method": "GET",
+                                  "timeout": 15
+                            }
+                      },
+                      "model": {
+                            "object_config": {
+                                  "fields": {
+                                        "usd": {
+                                              "base_field": {
+                                                    "type": "int",
+                                                    "path": "bitcoin.usd"
+                                              }
+                                        },
+                                        "trend": {
+                                              "base_field": {
+                                                    "type": "float",
+                                                    "path": "bitcoin.usd_24h_change",
+                                                    "generated": {
+                                                          "calculated": {
+                                                                "type": "string",
+                                                                "expression": "fRes > 0 ? \"📈 up\" : \"📉 down\""
+                                                          }
+                                                    }
+                                              }
+                                        }
+                                  }
+                            }
+                      }
+                }
+          },
+          "item": {
+                "connector_config": {
+                      "response_type": "json",
+                      "reference_config": {
+                            "name": "hn_top"
+                      }
+                },
+                "model": {
+                      "base_field": {
+                            "type": "object",
+                            "generated": {
+                                  "model": {
+                                        "type": "object",
+                                        "connector_config": {
+                                              "response_type": "json",
+                                              "url": "https://api.telegram.org/bot{{{FromInput=token}}}/sendMessage",
+                                              "server_config": {
+                                                    "method": "POST",
+                                                    "headers": {
+                                                          "Content-Type": "application/json"
+                                                    },
+                                                    "body": "{\"chat_id\":\"{{{FromInput=chat_id}}}\",\"link_preview_options\":{\"is_disabled\":true},\"text\":\"📡 fitter briefing\\n\\n₿ BTC: ${{{RefName=btc usd}}} ({{{RefName=btc trend}}} last 24h)\\n\\n🗞 Hacker News front page:\\n{{{FromExp=join(map(fromJSON(fResJson), {string(#index+1) + '. ' + .title + ' — ' + string(.points) + ' pts'}), '\\n')}}}\"}"
+                                              }
+                                        },
+                                        "model": {
+                                              "object_config": {
+                                                    "fields": {
+                                                          "delivered": {
+                                                                "base_field": {
+                                                                      "type": "boolean",
+                                                                      "path": "ok"
+                                                                }
+                                                          },
+                                                          "message_id": {
+                                                                "base_field": {
+                                                                      "type": "int",
+                                                                      "path": "result.message_id"
+                                                                }
+                                                          },
+                                                          "to": {
+                                                                "base_field": {
+                                                                      "type": "string",
+                                                                      "path": "result.chat.first_name"
+                                                                }
+                                                          }
+                                                    }
+                                              }
+                                        }
+                                  }
+                            }
+                      }
+                }
+          }
+    }
+  },
   "Book search → author join (live, uses input)": {
     input: "dune",
     config: {
@@ -599,10 +754,27 @@ for (const name of Object.keys(EXAMPLES)) {
   opt.textContent = name;
   select.appendChild(opt);
 }
+const inputEl = $("input");
+function autosizeInput() {
+  const lines = inputEl.value.split("\n").length;
+  inputEl.rows = Math.min(Math.max(lines, 1), 7);
+}
+function setInput(v) {
+  try {
+    const parsed = JSON.parse(v);
+    if (parsed && typeof parsed === "object") v = JSON.stringify(parsed, null, 2);
+  } catch { /* not JSON: leave as plain text */ }
+  inputEl.value = v;
+  autosizeInput();
+}
+inputEl.addEventListener("input", autosizeInput);
+inputEl.addEventListener("blur", () => setInput(inputEl.value));
+
 function loadExample(name) {
   configEl.value = JSON.stringify(EXAMPLES[name].config, null, 2).replaceAll("__BASE__", BASE);
-  $("input").value = EXAMPLES[name].input;
+  setInput(EXAMPLES[name].input);
   syncBuilderFromJson();
+  updateSendCounterVis();
 }
 select.addEventListener("change", () => {
   if (!EXAMPLES[select.value]) return; // the injected "shared link" entry
@@ -670,6 +842,8 @@ function defaultState() {
     responseType: "json",
     kind: "object", rootPath: "", itemShape: "fields",
     fields: [newField()],
+    refName: "",
+    references: [],
     hostLimits: [], limitsExtra: null, referencesRaw: null
   };
 }
@@ -679,6 +853,7 @@ function newField() {
 function defaultNested() {
   return {
     url: "", method: "GET", responseType: "json", nullOnError: true,
+    headers: [], body: "", timeout: "",
     kind: "object", rootPath: "", itemShape: "fields", fields: [newField()]
   };
 }
@@ -688,6 +863,9 @@ let builderCanRepresent = true;
 
 /* ---------- builder -> config ---------- */
 function buildFieldConfig(f) {
+  if (f.transform === "first_of") {
+    return { first_of: (f.alts || []).map(a => buildFieldConfig(a)) };
+  }
   const base = { type: f.type };
   if (f.path !== "") base.path = f.path;
   if (f.transform === "calculated" && f.expr !== "") {
@@ -700,14 +878,29 @@ function buildFieldConfig(f) {
     base.generated = { static: { type: f.calcType || f.type, value: f.expr } };
   } else if (f.transform === "model" && f.nested) {
     const n = f.nested;
-    const cc = { response_type: n.responseType, url: n.url, server_config: { method: n.method } };
+    const cc = { response_type: n.responseType, url: n.url, server_config: buildServerConfig(n) };
     if (n.nullOnError) cc.null_on_error = true;
     base.generated = { model: { type: f.type, connector_config: cc, model: buildModelPart(n) } };
   }
   return { base_field: base };
 }
 
+function buildServerConfig(n) {
+  const sc = { method: n.method };
+  const hs = {};
+  for (const h of n.headers || []) {
+    if (h.k.trim() !== "") hs[h.k.trim()] = h.v;
+  }
+  if (Object.keys(hs).length) sc.headers = hs;
+  if (n.body) sc.body = n.body;
+  if (n.timeout !== "" && n.timeout != null) sc.timeout = Number(n.timeout);
+  return sc;
+}
+
 function buildModelPart(p) {
+  if (p.kind === "value") {
+    return { base_field: buildFieldConfig(p.fields[0] || newField()).base_field };
+  }
   const fields = {};
   for (const f of p.fields) {
     if (f.name.trim() !== "") fields[f.name.trim()] = buildFieldConfig(f);
@@ -730,6 +923,8 @@ function buildConfig(s) {
     cc.server_config = { method: s.method };
   } else if (s.source === "static") {
     cc.static_config = { value: s.staticValue };
+  } else if (s.source === "reference") {
+    cc.reference_config = { name: s.refName };
   } else {
     cc.int_sequence_config = { start: Number(s.seqStart), end: Number(s.seqEnd), step: Number(s.seqStep) };
   }
@@ -742,14 +937,37 @@ function buildConfig(s) {
   }
   if (Object.keys(hostMap).length) limits.host_request_limiter = hostMap;
   if (Object.keys(limits).length) out.limits = limits;
-  if (s.referencesRaw) out.references = s.referencesRaw;
+  if (s.references && s.references.length) {
+    const refs = {};
+    for (const r of s.references) {
+      if (r.name.trim() === "") continue;
+      const rcc = { response_type: r.responseType, url: r.url, server_config: buildServerConfig(r) };
+      if (r.nullOnError) rcc.null_on_error = true;
+      const entry = { connector_config: rcc, model: buildModelPart(r) };
+      if (r.expire !== "" && r.expire != null) entry.expire = Number(r.expire);
+      refs[r.name.trim()] = entry;
+    }
+    if (Object.keys(refs).length) out.references = refs;
+  } else if (s.referencesRaw) {
+    out.references = s.referencesRaw;
+  }
   return out;
 }
 
 /* ---------- config -> builder (import) ---------- */
 function importField(fieldCfg) {
   const keys = Object.keys(fieldCfg || {});
-  if (keys.length !== 1 || keys[0] !== "base_field") return null;
+  if (keys.length !== 1) return null;
+  if (keys[0] === "first_of") {
+    if (!Array.isArray(fieldCfg.first_of) || fieldCfg.first_of.length === 0) return null;
+    const alts = fieldCfg.first_of.map(importField);
+    if (alts.some(a => !a || a.transform === "first_of")) return null;
+    const f = newField();
+    f.transform = "first_of";
+    f.alts = alts;
+    return f;
+  }
+  if (keys[0] !== "base_field") return null;
   return importBaseField(fieldCfg.base_field);
 }
 
@@ -787,13 +1005,13 @@ function importBaseField(b) {
       const mcc = m.connector_config || {};
       if (Object.keys(mcc).some(k => !["response_type", "url", "server_config", "null_on_error"].includes(k))) return null;
       if (!RESPONSE_TYPES.includes(mcc.response_type) || typeof mcc.url !== "string") return null;
-      const msc = mcc.server_config || {};
-      if (Object.keys(msc).some(k => k !== "method")) return null;
+      const msc = importServerConfig(mcc.server_config);
+      if (!msc) return null;
       const part = importModelPart(m.model || {});
       if (!part) return null;
       f.transform = "model";
       f.nested = {
-        url: mcc.url, method: msc.method || "GET",
+        url: mcc.url, ...msc,
         responseType: mcc.response_type, nullOnError: !!mcc.null_on_error,
         kind: part.kind, rootPath: part.rootPath, itemShape: part.itemShape, fields: part.fields
       };
@@ -802,11 +1020,49 @@ function importBaseField(b) {
   return f;
 }
 
+function importServerConfig(sc) {
+  sc = sc || {};
+  if (Object.keys(sc).some(k => !["method", "headers", "body", "timeout"].includes(k))) return null;
+  if (sc.headers && (typeof sc.headers !== "object" || Object.values(sc.headers).some(v => typeof v !== "string"))) return null;
+  if (sc.body != null && typeof sc.body !== "string") return null;
+  return {
+    method: sc.method || "GET",
+    headers: Object.entries(sc.headers || {}).map(([k, v]) => ({ id: ++fieldSeq, k, v })),
+    body: sc.body || "",
+    timeout: sc.timeout ?? ""
+  };
+}
+
+function importReference(name, r) {
+  if (!r || typeof r !== "object") return null;
+  if (Object.keys(r).some(k => !["connector_config", "model", "expire"].includes(k))) return null;
+  const cc = r.connector_config || {};
+  if (Object.keys(cc).some(k => !["response_type", "url", "server_config", "null_on_error"].includes(k))) return null;
+  if (!RESPONSE_TYPES.includes(cc.response_type) || typeof cc.url !== "string") return null;
+  const sc = importServerConfig(cc.server_config);
+  if (!sc) return null;
+  const part = importModelPart(r.model || {});
+  if (!part) return null;
+  return {
+    id: ++fieldSeq, name, expire: r.expire ?? "",
+    url: cc.url, ...sc,
+    responseType: cc.response_type, nullOnError: !!cc.null_on_error,
+    kind: part.kind, rootPath: part.rootPath, itemShape: part.itemShape, fields: part.fields
+  };
+}
+
 function importModelPart(model) {
   const mk = Object.keys(model || {});
   if (mk.length !== 1) return null;
   const part = { kind: "object", rootPath: "", itemShape: "fields", fields: [] };
   let fieldsCfg;
+  if (mk[0] === "base_field") {
+    const f = importBaseField(model.base_field);
+    if (!f) return null;
+    part.kind = "value";
+    part.fields.push(f);
+    return part;
+  }
   if (mk[0] === "object_config") {
     const oc = model.object_config;
     if (!oc || Object.keys(oc).some(k => k !== "fields")) return null;
@@ -848,7 +1104,14 @@ function importConfig(cfg) {
 
   const s = defaultState();
   s.fields = [];
-  s.referencesRaw = cfg.references || null;
+  if (cfg.references && typeof cfg.references === "object") {
+    const refs = Object.entries(cfg.references).map(([name, r]) => importReference(name, r));
+    if (refs.every(Boolean)) {
+      s.references = refs;
+    } else {
+      s.referencesRaw = cfg.references; // beyond the UI: keep verbatim, still runnable
+    }
+  }
   if (cfg.limits && typeof cfg.limits === "object") {
     const { host_request_limiter, ...rest } = cfg.limits;
     s.limitsExtra = Object.keys(rest).length ? rest : null;
@@ -860,12 +1123,16 @@ function importConfig(cfg) {
   }
 
   const cc = item.connector_config || {};
-  const ccAllowed = new Set(["response_type", "url", "server_config", "static_config", "int_sequence_config"]);
+  const ccAllowed = new Set(["response_type", "url", "server_config", "static_config", "int_sequence_config", "reference_config"]);
   if (Object.keys(cc).some(k => !ccAllowed.has(k))) return null;
   if (!RESPONSE_TYPES.includes(cc.response_type)) return null;
   s.responseType = cc.response_type;
 
-  if (cc.url !== undefined) {
+  if (cc.reference_config) {
+    if (Object.keys(cc.reference_config).some(k => k !== "name")) return null;
+    if (cc.url !== undefined || cc.static_config || cc.int_sequence_config || cc.server_config) return null;
+    s.source = "reference"; s.refName = cc.reference_config.name || "";
+  } else if (cc.url !== undefined) {
     s.source = "url"; s.url = cc.url;
     const sc = cc.server_config || {};
     if (Object.keys(sc).some(k => k !== "method")) return null;
@@ -907,6 +1174,7 @@ function renderBuilder() {
   $("bSeqEnd").value = bState.seqEnd;
   $("bSeqStep").value = bState.seqStep;
   $("bKind").value = bState.kind;
+  $("bRefName").value = bState.refName;
   $("bRootPath").value = bState.rootPath;
   $("bRootPath").hidden = bState.kind !== "array";
   $("bItemShape").value = bState.itemShape;
@@ -915,12 +1183,43 @@ function renderBuilder() {
     row.style.display = row.dataset.src === bState.source ? "" : "none";
   }
 
-  const singleItem = bState.kind === "array" && bState.itemShape === "single";
+  const singleItem = (bState.kind === "array" && bState.itemShape === "single") || bState.kind === "value";
   $("bAddField").style.display = singleItem ? "none" : "";
   if (singleItem && bState.fields.length === 0) bState.fields.push(newField());
 
   renderFieldList($("bFields"), bState.fields, singleItem);
+  renderReferences();
   renderHostLimits();
+}
+
+function renderReferences() {
+  const wrap = $("bRefs");
+  wrap.innerHTML = "";
+  for (const r of bState.references) {
+    const box = document.createElement("div");
+    box.className = "subpanel";
+
+    const head = document.createElement("div");
+    head.className = "srow";
+    const name = document.createElement("input");
+    name.type = "text"; name.placeholder = "reference name"; name.value = r.name;
+    name.addEventListener("input", () => { r.name = name.value; builderChanged(); });
+    const expire = document.createElement("input");
+    expire.type = "number"; expire.min = "0"; expire.placeholder = "∞"; expire.value = r.expire;
+    expire.style.width = "80px"; expire.title = "cache TTL in seconds (empty = fetched once per run)";
+    expire.addEventListener("input", () => { r.expire = expire.value; builderChanged(); });
+    const del = document.createElement("button");
+    del.type = "button"; del.className = "del"; del.textContent = "×"; del.title = "remove reference";
+    del.addEventListener("click", () => {
+      const i = bState.references.findIndex(x => x.id === r.id);
+      if (i >= 0) bState.references.splice(i, 1);
+      renderBuilder(); builderChanged();
+    });
+    head.append(name, slabel("expire s"), expire, del);
+
+    box.append(head, nestedPanel(r));
+    wrap.appendChild(box);
+  }
 }
 
 function renderHostLimits() {
@@ -957,23 +1256,23 @@ const PLACEHOLDERS = {
   static: "the static value",
   uuid: "optional regexp applied to the uuid"
 };
-const NO_EXPR = ["none", "model"];
+const NO_EXPR = ["none", "model", "first_of"];
 
-function renderFieldList(container, fields, singleItem) {
+function renderFieldList(container, fields, singleItem, isAlt) {
   container.innerHTML = "";
   for (const f of (singleItem ? fields.slice(0, 1) : fields)) {
-    container.appendChild(fieldRow(f, fields, singleItem));
+    container.appendChild(fieldRow(f, fields, singleItem, isAlt));
   }
 }
 
-function fieldRow(f, siblings, singleItem) {
+function fieldRow(f, siblings, singleItem, isAlt) {
   const row = document.createElement("div");
   row.className = "frow";
 
   const name = document.createElement("input");
   name.type = "text"; name.placeholder = "field name"; name.value = f.name;
   name.addEventListener("input", () => { f.name = name.value; builderChanged(); });
-  if (singleItem) { name.style.visibility = "hidden"; }
+  if (singleItem) { name.style.display = "none"; }
 
   const type = document.createElement("select");
   for (const t of FIELD_TYPES) { const o = document.createElement("option"); o.textContent = t; type.appendChild(o); }
@@ -992,21 +1291,32 @@ function fieldRow(f, siblings, singleItem) {
     if (siblings.length === 0) siblings.push(newField());
     renderBuilder(); builderChanged();
   });
-  if (singleItem) { del.style.visibility = "hidden"; }
+  if (singleItem) {
+    del.style.display = "none";
+    row.style.gridTemplateColumns = "auto minmax(90px, 1.4fr)";
+  }
 
   row.append(name, type, path, del);
+
+  const isFirstOf = f.transform === "first_of";
+  if (isFirstOf) {
+    type.style.display = "none"; path.style.display = "none";
+    row.style.gridTemplateColumns = singleItem ? "auto" : "minmax(80px, 1fr) auto";
+  }
 
   const xtra = document.createElement("div");
   xtra.className = "xtra";
   const tf = document.createElement("select");
-  for (const [v, label] of [
+  const tfOptions = [
     ["none", "no generated value"],
     ["calculated", "generated: expression (fRes)"],
     ["formatted", "generated: template ({PL})"],
     ["static", "generated: static value"],
     ["uuid", "generated: uuid"],
     ["model", "generated: nested fetch (model)"]
-  ]) {
+  ];
+  if (!isAlt && !singleItem) tfOptions.push(["first_of", "first_of: fallback alternatives"]);
+  for (const [v, label] of tfOptions) {
     const o = document.createElement("option"); o.value = v; o.textContent = label; tf.appendChild(o);
   }
   tf.value = f.transform;
@@ -1018,6 +1328,7 @@ function fieldRow(f, siblings, singleItem) {
   tf.addEventListener("change", () => {
     f.transform = tf.value; f.calcType = null;
     if (f.transform === "model" && !f.nested) f.nested = defaultNested();
+    if (f.transform === "first_of" && !f.alts) f.alts = [newField(), newField()];
     renderBuilder(); builderChanged();
   });
   expr.addEventListener("input", () => { f.expr = expr.value; builderChanged(); });
@@ -1026,6 +1337,21 @@ function fieldRow(f, siblings, singleItem) {
 
   if (f.transform === "model" && f.nested) {
     row.appendChild(nestedPanel(f.nested));
+  }
+  if (isFirstOf) {
+    const panel = document.createElement("div");
+    panel.className = "subpanel";
+    const hint = document.createElement("div");
+    hint.className = "hint";
+    hint.textContent = "alternatives are tried in order — the first non-null wins";
+    const altsWrap = document.createElement("div");
+    altsWrap.style.cssText = "display:flex;flex-direction:column;gap:8px;";
+    renderFieldList(altsWrap, f.alts || (f.alts = [newField()]), false, true);
+    const add = document.createElement("button");
+    add.type = "button"; add.className = "ghost"; add.textContent = "+ add alternative";
+    add.addEventListener("click", () => { f.alts.push(newField()); renderBuilder(); builderChanged(); });
+    panel.append(hint, altsWrap, add);
+    row.appendChild(panel);
   }
   return row;
 }
@@ -1069,10 +1395,54 @@ function nestedPanel(n) {
   nullLbl.append(nullCb, document.createTextNode(" null on error"));
   r2.append(slabel("parse as"), rt, nullLbl);
 
+  const rHdrs = document.createElement("div");
+  rHdrs.style.cssText = "display:flex;flex-direction:column;gap:6px;";
+  for (const h of (n.headers || (n.headers = []))) {
+    const hr = document.createElement("div");
+    hr.className = "srow";
+    const hk = document.createElement("input");
+    hk.type = "text"; hk.placeholder = "header, e.g. Content-Type"; hk.value = h.k;
+    hk.addEventListener("input", () => { h.k = hk.value; builderChanged(); });
+    const hv = document.createElement("input");
+    hv.type = "text"; hv.placeholder = "value"; hv.value = h.v;
+    hv.addEventListener("input", () => { h.v = hv.value; builderChanged(); });
+    const hd = document.createElement("button");
+    hd.type = "button"; hd.className = "del"; hd.textContent = "×"; hd.title = "remove header";
+    hd.addEventListener("click", () => {
+      const i = n.headers.findIndex(x => x.id === h.id);
+      if (i >= 0) n.headers.splice(i, 1);
+      renderBuilder(); builderChanged();
+    });
+    hr.append(hk, hv, hd);
+    rHdrs.appendChild(hr);
+  }
+  const addHdr = document.createElement("button");
+  addHdr.type = "button"; addHdr.className = "ghost"; addHdr.textContent = "+ header";
+  addHdr.addEventListener("click", () => {
+    n.headers.push({ id: ++fieldSeq, k: "", v: "" });
+    renderBuilder(); builderChanged();
+  });
+  rHdrs.appendChild(addHdr);
+
+  const rBody = document.createElement("textarea");
+  rBody.spellcheck = false;
+  rBody.placeholder = "request body (optional — placeholders like {{{FromInput=…}}}, {{{RefName=…}}}, {{{FromExp=…}}} work here)";
+  rBody.value = n.body || "";
+  rBody.style.cssText = "border:1px solid var(--border);border-radius:7px;background:var(--bg);min-height:120px;padding:8px 10px;resize:vertical;";
+  rBody.addEventListener("input", () => { n.body = rBody.value; builderChanged(); });
+
+  const rTime = document.createElement("div");
+  rTime.className = "srow";
+  const tIn = document.createElement("input");
+  tIn.type = "number"; tIn.min = "0"; tIn.placeholder = "default"; tIn.value = n.timeout ?? "";
+  tIn.style.width = "90px";
+  tIn.addEventListener("input", () => { n.timeout = tIn.value; builderChanged(); });
+  rTime.append(slabel("timeout s"), tIn);
+
   const r3 = document.createElement("div");
   r3.className = "srow";
   const kind = document.createElement("select");
-  for (const [v, label] of [["object", "single object"], ["array", "array of items"]]) {
+  for (const [v, label] of [["object", "single object"], ["array", "array of items"], ["value", "single value"]]) {
     const o = document.createElement("option"); o.value = v; o.textContent = label; kind.appendChild(o);
   }
   kind.value = n.kind;
@@ -1092,7 +1462,7 @@ function nestedPanel(n) {
   rootPath.addEventListener("input", () => { n.rootPath = rootPath.value; builderChanged(); });
   r3.append(kind, shape, rootPath);
 
-  const nSingle = n.kind === "array" && n.itemShape === "single";
+  const nSingle = (n.kind === "array" && n.itemShape === "single") || n.kind === "value";
   if (nSingle && n.fields.length === 0) n.fields.push(newField());
   const fieldsWrap = document.createElement("div");
   fieldsWrap.style.cssText = "display:flex;flex-direction:column;gap:8px;";
@@ -1103,7 +1473,7 @@ function nestedPanel(n) {
   add.style.display = nSingle ? "none" : "";
   add.addEventListener("click", () => { n.fields.push(newField()); renderBuilder(); builderChanged(); });
 
-  panel.append(r1, r2, r3, fieldsWrap, add);
+  panel.append(r1, r2, rHdrs, rBody, rTime, r3, fieldsWrap, add);
   return panel;
 }
 
@@ -1111,6 +1481,7 @@ let autoRunTimer = null;
 function builderChanged() {
   setBuilderRepresentable(true);
   configEl.value = JSON.stringify(buildConfig(bState), null, 2);
+  updateSendCounterVis();
   // instant feedback for offline sources; URL sources run via the button
   if (bState.source !== "url" && !runBtn.disabled) {
     clearTimeout(autoRunTimer);
@@ -1145,6 +1516,11 @@ $("bItemShape").addEventListener("change", e => { bState.itemShape = e.target.va
 $("bRootPath").addEventListener("input", e => { bState.rootPath = e.target.value; builderChanged(); });
 $("bAddField").addEventListener("click", () => { bState.fields.push(newField()); renderBuilder(); builderChanged(); });
 $("bFresh").addEventListener("click", () => { bState = defaultState(); renderBuilder(); builderChanged(); });
+$("bRefName").addEventListener("input", e => { bState.refName = e.target.value; builderChanged(); });
+$("bAddRef").addEventListener("click", () => {
+  bState.references.push({ id: ++fieldSeq, name: "", expire: "", ...defaultNested() });
+  renderBuilder(); builderChanged();
+});
 $("bAddHostLimit").addEventListener("click", () => {
   bState.hostLimits.push({ id: ++fieldSeq, host: "", n: 2 });
   renderBuilder(); builderChanged();
@@ -1160,6 +1536,26 @@ function showTab(which) {
 }
 $("tabBuilder").addEventListener("click", () => showTab("builder"));
 $("tabJson").addEventListener("click", () => showTab("json"));
+
+/* ---------- send counter (abacus: /get reads, /hit increments) ---------- */
+let sendCountLoaded = false;
+function updateSendCounterVis() {
+  // the counter belongs to the telegram demo — hide it for unrelated configs
+  $("sendCounter").hidden = !(sendCountLoaded && configEl.value.includes("api.telegram.org"));
+}
+async function refreshSendCounter(hit) {
+  try {
+    const r = await fetch("https://abacus.jasoncameron.dev/" + (hit ? "hit" : "get") + "/pxyup-fitter/telegram-sends");
+    const { value } = await r.json();
+    if (typeof value === "number") {
+      $("sendCount").textContent = value;
+      sendCountLoaded = true;
+      updateSendCounterVis();
+    }
+  } catch { /* counter is cosmetic — never break the page over it */ }
+}
+refreshSendCounter(false);
+configEl.addEventListener("input", updateSendCounterVis);
 
 /* ---------- engine ---------- */
 const go = new Go();
@@ -1192,10 +1588,15 @@ async function run() {
   try {
     const res = await fitterRun(configEl.value, $("input").value);
     const ms = Math.round(performance.now() - started);
+    let parsed = null;
     try {
-      output.textContent = JSON.stringify(JSON.parse(res), null, 2);
+      parsed = JSON.parse(res);
+      output.textContent = JSON.stringify(parsed, null, 2);
     } catch {
       output.textContent = res;
+    }
+    if (parsed && parsed.delivered === true && configEl.value.includes("api.telegram.org")) {
+      refreshSendCounter(true); // count strictly confirmed deliveries
     }
     timing.textContent = ms + " ms";
   } catch (e) {
@@ -1228,14 +1629,16 @@ shareBtn.addEventListener("click", async () => {
 /* ---------- init ---------- */
 let runSharedOnReady = false;
 (async () => {
+  if (location.hash === "#builder") showTab("builder");
   const q = new URLSearchParams(location.search).get("q");
   if (q) {
     try {
       const p = await decodeShare(q);
       configEl.value = typeof p.c === "string" ? p.c : "";
-      $("input").value = typeof p.i === "string" ? p.i : "";
+      setInput(typeof p.i === "string" ? p.i : "");
       markShared();
       syncBuilderFromJson();
+      updateSendCounterVis();
       if (runBtn.disabled) {
         runSharedOnReady = true; // engine still loading — run() fires when it's ready
       } else {
