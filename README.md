@@ -25,7 +25,7 @@ Because configs are plain data, **LLMs can author them**. The built-in [MCP serv
 
 - **Declarative & auditable** — the agent produces a config you can read, save and re-run, not throwaway code
 - **Local-first** — all fetching happens on your machine; no third-party scraping API, no keys, no per-request billing
-- **Batteries included** — HTTP client, headless browser (Playwright/Chromium/Docker), JSON/HTML/XML/XPath parsing, pagination, cached references, host rate-limits — in a single static binary
+- **Batteries included** — HTTP client, headless browser (Playwright/Chromium/Docker), JSON/HTML/XML/XPath/PDF parsing, pagination, cached references, host rate-limits — in a single static binary
 - **Reusable** — what the agent authored today becomes tomorrow's cron job or service config
 
 ![](https://github.com/PxyUp/fitter/blob/master/demo.gif)
@@ -218,6 +218,47 @@ $ sort -n /tmp/fitter-report/coins.csv
 3,Tether,0.999265,0
 ```
 
+### Extract text from a PDF
+
+`response_type: "pdf"` turns any fetched PDF into a JSON document — `{"text": "...", "pages": ["..."], "total_pages": N}` — so regular JSON paths (`text`, `pages.0`) and expressions work on it. The Bitcoin whitepaper, page count plus a trimmed intro:
+
+[examples/config_pdf.json](https://github.com/PxyUp/fitter/blob/master/examples/config_pdf.json)
+
+```json
+{
+  "item": {
+    "connector_config": {
+      "response_type": "pdf",
+      "url": "https://bitcoin.org/bitcoin.pdf",
+      "server_config": { "method": "GET" }
+    },
+    "model": {
+      "object_config": {
+        "fields": {
+          "total_pages": { "base_field": { "type": "int", "path": "total_pages" } },
+          "intro": {
+            "base_field": {
+              "type": "string",
+              "path": "pages.0",
+              "generated": {
+                "calculated": {
+                  "type": "string",
+                  "expression": "trim(fRes[:100]) + \"...\""
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+```json
+{"intro": "Bitcoin: A Peer-to-Peer Electronic Cash SystemSatoshi Nakamotosatoshin@gmx.comwww.bitcoin.orgAbstrac...", "total_pages": 9}
+```
+
 # Way to collect information
 
 1. **Server** - parsing response from some API's or http request(usage of http.Client)
@@ -230,6 +271,7 @@ $ sort -n /tmp/fitter-report/coins.csv
 2. **XML** - parsing xml tree to get specific information
 3. **HTML** - parsing dom tree to get specific information
 4. **XPath** - parsing dom tree to get specific information but by xpath
+5. **PDF** - extracting text from PDF documents; the content is exposed as JSON `{"text": "...", "pages": ["..."], "total_pages": N}` so regular JSON paths like `text` or `pages.0` work
 
 # Use like a library
 
@@ -547,7 +589,7 @@ type ConnectorConfig struct {
 ```
 
 - NullOnError[false] - if set to true then all errors a ignored
-- ResponseType - enum["HTML", "json","xpath"] - in which format data comes from the connector
+- ResponseType - enum["HTML", "json", "xpath", "XML", "pdf"] - in which format data comes from the connector
 - Attempts - how many attempts to use for fetch data by connector
 - Url - define which address to request. Important: can be with [inject of the parent value as a string](#placeholder-list)
 `https://api.open-meteo.com/v1/forecast?latitude={{{latitude}}}&longitude={{{longitude}}}&hourly=temperature_2m&forecast_days=1`

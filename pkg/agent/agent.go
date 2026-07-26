@@ -287,11 +287,11 @@ func ValidateConfig(cfg *config.CliItem) error {
 	}
 
 	switch connector.ResponseType {
-	case config.Json, config.HTML, config.XML, config.XPath:
+	case config.Json, config.HTML, config.XML, config.XPath, config.PDF:
 	case "":
 		return errors.New(`"connector_config" is missing "response_type"`)
 	default:
-		return fmt.Errorf(`"connector_config" has invalid "response_type" %q (want json, HTML, XML or xpath)`, connector.ResponseType)
+		return fmt.Errorf(`"connector_config" has invalid "response_type" %q (want json, HTML, XML, xpath or pdf)`, connector.ResponseType)
 	}
 
 	if connector.Url == "" &&

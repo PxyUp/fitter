@@ -24,7 +24,7 @@ config and apply only the requested change - keep every other field as it was.
 
 ## ConnectorConfig
 {
-  "response_type": "json" | "HTML" | "xpath" | "XML",
+  "response_type": "json" | "HTML" | "xpath" | "XML" | "pdf",
   "url": "https://...",
   "attempts": 3,
   "server_config": { "method": "GET", "headers": {...}, "body": "...", "timeout": 30 },
@@ -47,6 +47,7 @@ config and apply only the requested change - keep every other field as it was.
 - JSON: "field", "items.0", "items.#.name", "@this" (root array), "items.#.city|@flatten"
 - HTML: "div.class", "#id", "a[href]", "table tr td:nth-of-type(2)"
 - XPath: "//div[@class='item']", "//a/@href", "text()", ".//h2/text()"
+- PDF: extracted as JSON document {"text": "...", "pages": ["..."], "total_pages": N}, use JSON paths like "text" or "pages.0"
 
 ## Placeholders
 - {PL} - Current value (requires base_field to have "type" set)

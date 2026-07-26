@@ -15,6 +15,7 @@ Ready-to-run Fitter configs. Two formats live here:
 | [config_github_trending.json](config_github_trending.json) | GitHub trending (HTML scrape — no official API) enriched per-repo from the GitHub REST API via `{PL}` |
 | [config_book_authors.json](config_book_authors.json) | OpenLibrary book search (query via `{{{FromInput=.}}}`) with per-book author details via a `{{{FromExp=...}}}` JSON-field join |
 | [config_crypto_csv.json](config_crypto_csv.json) | Top-5 crypto coins written to a local CSV with `file_storage` (`{HUMAN_INDEX}` rank column) |
+| [config_pdf.json](config_pdf.json) | PDF text extraction (`response_type: "pdf"`): Bitcoin whitepaper page count + trimmed intro via a calculated expression |
 | [cli/config_cli.json](cli/config_cli.json) | HackerNews + quotes: JSON API, browser connector, limits — the kitchen-sink demo |
 | [cli/config_browser.json](cli/config_browser.json) | Headless browser (Chromium) scraping |
 | [cli/config_playwright.json](cli/config_playwright.json) | Playwright-driven scraping |

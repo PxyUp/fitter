@@ -27,6 +27,10 @@ var (
 	XMLFactory Factory = func(ctx context.Context, bytes []byte, logger logger.Logger) Parser {
 		return NewXML(bytes, logger.With("parser", "xml")).WithContext(ctx)
 	}
+
+	PDFFactory Factory = func(ctx context.Context, bytes []byte, logger logger.Logger) Parser {
+		return NewPDF(bytes, logger.With("parser", "pdf")).WithContext(ctx)
+	}
 )
 
 type Factory func(context.Context, []byte, logger.Logger) Parser

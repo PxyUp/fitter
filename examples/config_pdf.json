@@ -1,0 +1,28 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "pdf",
+      "url": "https://bitcoin.org/bitcoin.pdf",
+      "server_config": { "method": "GET" }
+    },
+    "model": {
+      "object_config": {
+        "fields": {
+          "total_pages": { "base_field": { "type": "int", "path": "total_pages" } },
+          "intro": {
+            "base_field": {
+              "type": "string",
+              "path": "pages.0",
+              "generated": {
+                "calculated": {
+                  "type": "string",
+                  "expression": "trim(fRes[:100]) + \"...\""
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

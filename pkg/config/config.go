@@ -16,6 +16,7 @@ const (
 	Json  ParserType = "json"
 	XML   ParserType = "XML"
 	XPath ParserType = "xpath"
+	PDF   ParserType = "pdf"
 )
 
 type HostRequestLimiter map[string]int64

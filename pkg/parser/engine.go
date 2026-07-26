@@ -119,6 +119,9 @@ func NewEngine(cfg *config.ConnectorConfig, logger logger.Logger) Engine {
 	if cfg.ResponseType == config.XML {
 		parserFactory = XMLFactory
 	}
+	if cfg.ResponseType == config.PDF {
+		parserFactory = PDFFactory
+	}
 
 	if connector == nil || parserFactory == nil {
 		return nullEngine

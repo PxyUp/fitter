@@ -2,9 +2,10 @@ package builder
 
 import (
 	"encoding/json"
-	"golang.org/x/net/html"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 type stringField struct {
