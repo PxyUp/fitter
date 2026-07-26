@@ -92,6 +92,7 @@ async function main() {
   ${k("hn_top_story")}: ${s(hn.reading ?? "-", 66)},
   ${k("dad_joke")}:     { ${k("setup")}: ${s(joke.setup ?? "-", 62)},
                   ${k("punchline")}: ${s(joke.punchline ?? "-", 58)} } }${spark}
+  ${k("request_time")}: ${s(d.request_time ?? "-")} <span class="dim">← stamped by the engine itself (now() in the config)</span>
 }
 <span class="ok">✓</span> <span class="dim">real engine, real fetches — executed in ${ms} ms at ${t} UTC, the moment this image was rendered</span>`;
 }
