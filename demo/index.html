@@ -341,6 +341,7 @@
 
     <div class="runbar">
       <input type="text" id="input" placeholder="input (optional — used by {{{FromInput=.}}})">
+      <button id="share" class="ghost" type="button" title="copy a link that opens and runs this config">Share</button>
       <button id="run" class="primary" disabled>Run</button>
     </div>
   </section>
@@ -603,7 +604,60 @@ function loadExample(name) {
   $("input").value = EXAMPLES[name].input;
   syncBuilderFromJson();
 }
-select.addEventListener("change", () => loadExample(select.value));
+select.addEventListener("change", () => {
+  if (!EXAMPLES[select.value]) return; // the injected "shared link" entry
+  clearSharedLink();
+  loadExample(select.value);
+});
+
+/* ---------- share links (?q=…) ---------- */
+const SHARED_OPTION = "— shared link —";
+const txtEnc = new TextEncoder(), txtDec = new TextDecoder();
+
+function b64urlEncode(bytes) {
+  let s = "";
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+}
+function b64urlDecode(str) {
+  const s = str.replaceAll("-", "+").replaceAll("_", "/");
+  const bin = atob(s + "=".repeat((4 - s.length % 4) % 4));
+  return Uint8Array.from(bin, c => c.charCodeAt(0));
+}
+async function pipeBytes(bytes, stream) {
+  return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer());
+}
+// token format: "<version>.<base64url>" — 1 = deflate-raw compressed, 0 = plain JSON
+async function encodeShare(payload) {
+  const json = txtEnc.encode(JSON.stringify(payload));
+  if ("CompressionStream" in window) {
+    return "1." + b64urlEncode(await pipeBytes(json, new CompressionStream("deflate-raw")));
+  }
+  return "0." + b64urlEncode(json);
+}
+async function decodeShare(token) {
+  const dot = token.indexOf(".");
+  if (dot < 0) throw new Error("bad share token");
+  let bytes = b64urlDecode(token.slice(dot + 1));
+  if (token.slice(0, dot) === "1") {
+    bytes = await pipeBytes(bytes, new DecompressionStream("deflate-raw"));
+  }
+  return JSON.parse(txtDec.decode(bytes));
+}
+function clearSharedLink() {
+  if (location.search) history.replaceState(null, "", location.pathname);
+  for (const opt of [...select.options]) {
+    if (opt.textContent === SHARED_OPTION) opt.remove();
+  }
+}
+function markShared() {
+  if (![...select.options].some(o => o.textContent === SHARED_OPTION)) {
+    const opt = document.createElement("option");
+    opt.textContent = SHARED_OPTION;
+    select.prepend(opt);
+  }
+  select.value = SHARED_OPTION;
+}
 
 /* ---------- builder state ---------- */
 const FIELD_TYPES = ["string", "int", "float", "boolean", "array", "object"];
@@ -1117,7 +1171,11 @@ const go = new Go();
   statusEl.textContent = "engine ready";
   statusEl.className = "ready";
   runBtn.disabled = false;
-  output.textContent = "Pick an example, build a config on the Builder tab, or write JSON/YAML — then hit Run.";
+  if (runSharedOnReady) {
+    run();
+  } else {
+    output.textContent = "Pick an example, build a config on the Builder tab, or write JSON/YAML — then hit Run.";
+  }
 }).catch(err => {
   statusEl.textContent = "engine failed to load";
   statusEl.className = "error";
@@ -1152,8 +1210,45 @@ document.addEventListener("keydown", e => {
   if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !runBtn.disabled) run();
 });
 
+const shareBtn = $("share");
+shareBtn.addEventListener("click", async () => {
+  const token = await encodeShare({ c: configEl.value, i: $("input").value });
+  const url = location.origin + location.pathname + "?q=" + token;
+  history.replaceState(null, "", url);
+  const old = shareBtn.textContent;
+  try {
+    await navigator.clipboard.writeText(url);
+    shareBtn.textContent = "copied ✓";
+  } catch {
+    shareBtn.textContent = "link in address bar";
+  }
+  setTimeout(() => { shareBtn.textContent = old; }, 1600);
+});
+
 /* ---------- init ---------- */
-loadExample(select.value = Object.keys(EXAMPLES)[0]);
+let runSharedOnReady = false;
+(async () => {
+  const q = new URLSearchParams(location.search).get("q");
+  if (q) {
+    try {
+      const p = await decodeShare(q);
+      configEl.value = typeof p.c === "string" ? p.c : "";
+      $("input").value = typeof p.i === "string" ? p.i : "";
+      markShared();
+      syncBuilderFromJson();
+      if (runBtn.disabled) {
+        runSharedOnReady = true; // engine still loading — run() fires when it's ready
+      } else {
+        run();
+      }
+      return;
+    } catch (e) {
+      console.warn("ignoring invalid ?q= share link:", e);
+      clearSharedLink();
+    }
+  }
+  loadExample(select.value = Object.keys(EXAMPLES)[0]);
+})();
 </script>
 </body>
 </html>

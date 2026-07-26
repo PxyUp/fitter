@@ -44,3 +44,15 @@ cd demo && python3 -m http.server 8642
   references, limits) stay editable on the JSON tab, with a notice instead of silent loss
 - `sample.pdf` is bundled so the PDF example fetches same-origin (`__BASE__/sample.pdf`
   in the example resolves to the demo's own URL — no CORS involved)
+
+## Share links (`?q=…`)
+
+The **Share** button packs the current config + input into the URL, so a link like
+`https://pxyup.github.io/fitter/?q=<token>` reproduces the exact playground state —
+on open the page restores the config and runs it automatically once the engine loads.
+
+Token format: `<version>.<base64url payload>` where the payload is
+`{"c": "<config text>", "i": "<input text>"}` — version `1` is deflate-raw
+compressed (via `CompressionStream`), version `0` is plain JSON for browsers
+without compression support. Invalid tokens are ignored and the default example
+loads instead.

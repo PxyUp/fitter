@@ -7,6 +7,8 @@
 
 **Fitter turns any website or API into structured JSON — declaratively.** One JSON/YAML config describes where the data lives (HTTP request, headless browser, file, static value) and what to extract (JSON paths, CSS selectors, XPath). No code, no brittle scraping scripts.
 
+**🚀 [Try it in your browser](https://pxyup.github.io/fitter/)** — the real engine compiled to WebAssembly: live examples, a visual config builder, no install.
+
 Because configs are plain data, **LLMs can author them**. The built-in [MCP server](#how-to-use-fitter_mcp) lets Claude Code, Claude Desktop, or any MCP client write and run scraping pipelines on your machine, on demand:
 
 > *"Get the top 5 HackerNews stories with titles and scores"* → the model authors a fitter config, validates it, runs it locally, and gets clean JSON back.
