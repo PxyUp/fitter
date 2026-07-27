@@ -30,7 +30,7 @@ Because configs are plain data, **LLMs can author them**. The built-in [MCP serv
 - **Batteries included** — HTTP client, headless browser (Playwright/Chromium/Docker), JSON/HTML/XML/XPath/PDF parsing, pagination, cached references, host rate-limits — in a single static binary
 - **Reusable** — what the agent authored today becomes tomorrow's cron job or service config
 
-![](https://github.com/PxyUp/fitter/blob/master/demo.gif)
+![fitter demo — declarative config to structured JSON](https://github.com/PxyUp/fitter/blob/master/demo.svg?raw=true)
 
 
 # How to use Fitter_MCP
