@@ -70,3 +70,23 @@ func TestProcessCondition(t *testing.T) {
 		})
 	}
 }
+
+func TestProcessConditionWithSource(t *testing.T) {
+	source := builder.Object(map[string]builder.Interfacable{
+		"in_stock": builder.Bool(true),
+		"price":    builder.Number(10),
+	})
+	value := builder.String("title")
+
+	pass, err := utils.ProcessConditionWithSource("fSrc.in_stock && fSrc.price > 5", value, source, nil, nil)
+	assert.NoError(t, err)
+	assert.True(t, pass)
+
+	pass, err = utils.ProcessConditionWithSource(`fSrc.price > 5 && fRes == "title"`, value, source, nil, nil)
+	assert.NoError(t, err)
+	assert.True(t, pass)
+
+	pass, err = utils.ProcessConditionWithSource("fSrc.price > 50", value, source, nil, nil)
+	assert.NoError(t, err)
+	assert.False(t, pass)
+}

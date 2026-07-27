@@ -43,9 +43,10 @@ func (e *engineParser[T]) context() context.Context {
 }
 
 // checkCondition reports whether the field must be kept; evaluation errors
-// omit the field instead of failing the whole parse
-func (e *engineParser[T]) checkCondition(condition string, value builder.Interfacable, index *uint32, input builder.Interfacable) bool {
-	pass, err := utils.ProcessCondition(condition, value, index, input)
+// omit the field instead of failing the whole parse. source is exposed to the
+// expression as fSrc
+func (e *engineParser[T]) checkCondition(condition string, value builder.Interfacable, source builder.Interfacable, index *uint32, input builder.Interfacable) bool {
+	pass, err := utils.ProcessConditionWithSource(condition, value, source, index, input)
 	if err != nil {
 		e.logger.Errorw("error during process condition, field will be omitted", "error", err.Error(), "condition", condition)
 		return false
@@ -113,8 +114,11 @@ func (e *engineParser[T]) fillUpBaseField(source T, field *config.BaseField) bui
 }
 
 func (e *engineParser[T]) buildObjectField(source T, objectConfig *config.ObjectConfig, index *uint32, input builder.Interfacable) builder.Interfacable {
-	if objectConfig.Condition != "" && !e.checkCondition(objectConfig.Condition, e.sourceValue(source), index, input) {
-		return builder.OmitValue
+	if objectConfig.Condition != "" {
+		sourceVal := e.sourceValue(source)
+		if !e.checkCondition(objectConfig.Condition, sourceVal, sourceVal, index, input) {
+			return builder.OmitValue
+		}
 	}
 
 	kv := make(map[string]builder.Interfacable)
@@ -173,6 +177,7 @@ func (e *engineParser[T]) buildBaseField(source T, field *config.BaseField, inde
 		return e.buildFirstOfBaseField(source, field.FirstOf, index, input)
 	}
 
+	parentSource := source
 	if field.Path != "" {
 		source = e.getOne(source, field.Path)
 	}
@@ -184,7 +189,7 @@ func (e *engineParser[T]) buildBaseField(source T, field *config.BaseField, inde
 		tempValue = e.fillUpBaseField(source, field)
 	}
 
-	if field.Condition != "" && !e.checkCondition(field.Condition, tempValue, index, input) {
+	if field.Condition != "" && !e.checkCondition(field.Condition, tempValue, e.sourceValue(parentSource), index, input) {
 		return builder.OmitValue
 	}
 
@@ -209,8 +214,11 @@ func (e *engineParser[T]) resolveField(parent T, field *config.Field, index *uin
 	}
 
 	if field.ArrayConfig != nil {
-		if field.ArrayConfig.Condition != "" && !e.checkCondition(field.ArrayConfig.Condition, e.sourceValue(parent), index, input) {
-			return builder.OmitValue
+		if field.ArrayConfig.Condition != "" {
+			sourceVal := e.sourceValue(parent)
+			if !e.checkCondition(field.ArrayConfig.Condition, sourceVal, sourceVal, index, input) {
+				return builder.OmitValue
+			}
 		}
 
 		return e.buildArrayField(e.getAll(parent, field.ArrayConfig.RootPath), field.ArrayConfig, input)
@@ -255,8 +263,11 @@ func (e *engineParser[T]) buildStaticArray(cfg *config.StaticArrayConfig, input 
 }
 
 func (e *engineParser[T]) buildArray(array *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
-	if array.Condition != "" && !e.checkCondition(array.Condition, e.sourceValue(e.parserBody), nil, input) {
-		return builder.OmitValue
+	if array.Condition != "" {
+		sourceVal := e.sourceValue(e.parserBody)
+		if !e.checkCondition(array.Condition, sourceVal, sourceVal, nil, input) {
+			return builder.OmitValue
+		}
 	}
 
 	return e.buildArrayField(e.getAll(e.parserBody, array.RootPath), array, input)
@@ -324,8 +335,9 @@ func (e *engineParser[T]) buildArrayField(parent []T, cfg *config.ArrayConfig, i
 
 // finalizeArrayItems drops items rejected by a condition (omitted or failing
 // item_condition); nil slots stay null to preserve the declared size when
-// length_limit exceeds the amount of source elements
-func finalizeArrayItems[T comparable](engine *engineParser[T], values []builder.Interfacable, cfg *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
+// length_limit exceeds the amount of source elements. parent aligns with
+// values by index and feeds fSrc for item_condition
+func finalizeArrayItems[T comparable](engine *engineParser[T], parent []T, values []builder.Interfacable, cfg *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
 	res := make([]builder.Interfacable, 0, len(values))
 	for i, v := range values {
 		if v == nil {
@@ -338,7 +350,11 @@ func finalizeArrayItems[T comparable](engine *engineParser[T], values []builder.
 
 		if cfg.ItemCondition != "" {
 			arrIndex := uint32(i)
-			if !engine.checkCondition(cfg.ItemCondition, v, &arrIndex, input) {
+			var src builder.Interfacable = builder.NullValue
+			if i < len(parent) {
+				src = engine.sourceValue(parent[i])
+			}
+			if !engine.checkCondition(cfg.ItemCondition, v, src, &arrIndex, input) {
 				continue
 			}
 		}
@@ -372,7 +388,7 @@ func FillArrayBaseField[T comparable](engine *engineParser[T], parent []T, size 
 	}
 	wg.Wait()
 
-	return finalizeArrayItems(engine, values, cfg, input)
+	return finalizeArrayItems(engine, parent, values, cfg, input)
 }
 
 func FillArrayArrayField[T comparable](engine *engineParser[T], parent []T, size int, fn func(T, string) []T, cfg *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
@@ -393,7 +409,8 @@ func FillArrayArrayField[T comparable](engine *engineParser[T], parent []T, size
 
 			if inner.Condition != "" {
 				arrIndex := uint32(index)
-				if !engine.checkCondition(inner.Condition, engine.sourceValue(selection), &arrIndex, input) {
+				sourceVal := engine.sourceValue(selection)
+				if !engine.checkCondition(inner.Condition, sourceVal, sourceVal, &arrIndex, input) {
 					values[index] = builder.OmitValue
 					return
 				}
@@ -404,7 +421,7 @@ func FillArrayArrayField[T comparable](engine *engineParser[T], parent []T, size
 	}
 	wg.Wait()
 
-	return finalizeArrayItems(engine, values, cfg, input)
+	return finalizeArrayItems(engine, parent, values, cfg, input)
 }
 
 func FillArrayObjectField[T comparable](engine *engineParser[T], parent []T, size int, cfg *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
@@ -429,5 +446,5 @@ func FillArrayObjectField[T comparable](engine *engineParser[T], parent []T, siz
 	}
 	wg.Wait()
 
-	return finalizeArrayItems(engine, values, cfg, input)
+	return finalizeArrayItems(engine, parent, values, cfg, input)
 }

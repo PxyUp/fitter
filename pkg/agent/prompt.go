@@ -47,8 +47,10 @@ config and apply only the requested change - keep every other field as it was.
 base_field/object_config/array_config accept "condition", array_config also
 "item_condition" (both expr-lang). Anything except true OMITS the field/item
 from the output (no null). base_field condition sees the extracted value as
-fRes; "item_condition" runs on every built array item (fRes = item, fIndex =
-index) - use it to filter arrays, e.g. "item_condition": "fRes.price > 0".
+fRes and its source node (siblings included) as fSrc; "item_condition" runs on
+every built array item (fRes = item, fSrc = source element, fIndex = index) -
+use it to filter arrays, e.g. "item_condition": "fSrc.in_stock && fRes.price > 0"
+(fSrc filters on source attributes without extracting them into the output).
 
 ## Path Syntax
 - JSON: "field", "items.0", "items.#.name", "@this" (root array), "items.#.city|@flatten"

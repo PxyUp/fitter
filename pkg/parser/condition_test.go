@@ -25,9 +25,9 @@ func (s *ConditionSuite) SetupTest() {
 	"on_sale": false,
 	"discount_pct": 15.5,
 	"products": [
-		{"title": "first", "price": 10},
-		{"title": "second", "price": 0},
-		{"title": "third", "price": 5}
+		{"title": "first", "price": 10, "featured": true},
+		{"title": "second", "price": 0, "featured": true},
+		{"title": "third", "price": 5, "featured": false}
 	]
 }`), logger.Null)
 }
@@ -177,6 +177,70 @@ func (s *ConditionSuite) Test_ArrayConfig_ItemCondition_ScalarItems() {
 	}, nil)
 	assert.NoError(s.T(), err)
 	assert.JSONEq(s.T(), `[10, 5]`, res.ToJson())
+}
+
+func (s *ConditionSuite) Test_ItemCondition_FSrc_UnextractedSourceField() {
+	res, err := s.parser.Parse(&config.Model{
+		ArrayConfig: &config.ArrayConfig{
+			RootPath:      "products",
+			ItemCondition: "fSrc.featured == true && fRes.price > 0",
+			ItemConfig: &config.ObjectConfig{
+				Fields: map[string]*config.Field{
+					"title": {BaseField: &config.BaseField{Type: config.String, Path: "title"}},
+					"price": {BaseField: &config.BaseField{Type: config.Float, Path: "price"}},
+				},
+			},
+		},
+	}, nil)
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), `[{"title": "first", "price": 10}]`, res.ToJson())
+}
+
+func (s *ConditionSuite) Test_BaseField_FSrc_SiblingAccess() {
+	res, err := s.parser.Parse(&config.Model{
+		ObjectConfig: &config.ObjectConfig{
+			Fields: map[string]*config.Field{
+				"name": {
+					BaseField: &config.BaseField{
+						Type:      config.String,
+						Path:      "name",
+						Condition: "fSrc.age > 18",
+					},
+				},
+				"discount": {
+					BaseField: &config.BaseField{
+						Type:      config.Float,
+						Path:      "discount_pct",
+						Condition: "fSrc.on_sale == true",
+					},
+				},
+			},
+		},
+	}, nil)
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), `{"name": "fitter"}`, res.ToJson())
+}
+
+func (s *ConditionSuite) Test_HTML_ItemCondition_FSrc() {
+	htmlParser := parser.NewHTML([]byte(`<html><body>
+		<ul>
+			<li class="price">10</li>
+			<li class="price">0</li>
+			<li class="price">5</li>
+		</ul>
+	</body></html>`), logger.Null)
+
+	res, err := htmlParser.Parse(&config.Model{
+		ArrayConfig: &config.ArrayConfig{
+			RootPath:      "ul li.price",
+			ItemCondition: "fSrc > 0",
+			ItemConfig: &config.ObjectConfig{
+				Field: &config.BaseField{Type: config.String},
+			},
+		},
+	}, nil)
+	assert.NoError(s.T(), err)
+	assert.JSONEq(s.T(), `["10", "5"]`, res.ToJson())
 }
 
 func (s *ConditionSuite) Test_ArrayConfig_Condition_False_KeyOmitted() {

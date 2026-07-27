@@ -345,6 +345,9 @@
           </select>
           <input type="text" id="bRootPath" placeholder="root path of the array (e.g. docs, @this, //item)" hidden>
         </div>
+        <div class="brow">
+          <input type="text" id="bItemCondition" placeholder="item condition — drop items when false, e.g. fRes.price > 0 (optional)" hidden>
+        </div>
         <div id="bFields" style="display:flex;flex-direction:column;gap:8px;"></div>
         <button class="ghost" id="bAddField" type="button">+ add field</button>
         <div class="hint">path syntax follows “parse as”: gjson for json/pdf, CSS selectors for HTML, XPath for xpath/XML</div>
@@ -562,6 +565,37 @@ const EXAMPLES = {
         }
       },
       limits: { host_request_limiter: { "openlibrary.org": 2 } }
+    }
+  },
+  "Conditional fields — filter & omit (offline)": {
+    counter: "conditional-fields",
+    config: {
+      item: {
+        connector_config: {
+          response_type: "json",
+          static_config: {
+            value: JSON.stringify({ products: [
+              { title: "AeroBook 13", price: 999,  in_stock: true,  discount_pct: 15 },
+              { title: "Broken listing", price: 0, in_stock: true,  discount_pct: 0 },
+              { title: "ZenPad 11", price: 459,    in_stock: false, discount_pct: 20 },
+              { title: "NovaBook 15", price: 1299, in_stock: true,  discount_pct: 0 }
+            ] })
+          }
+        },
+        model: {
+          array_config: {
+            root_path: "products",
+            item_condition: "fSrc.in_stock && fRes.price > 0",
+            item_config: { fields: {
+              title: { base_field: { type: "string", path: "title" } },
+              price: { base_field: { type: "float", path: "price" } },
+              discount_pct: {
+                base_field: { type: "float", path: "discount_pct", condition: "fRes > 0" }
+              }
+            } }
+          }
+        }
+      }
     }
   },
   "Static JSON (offline)": {
@@ -849,7 +883,7 @@ function defaultState() {
     source: "url", url: "", method: "GET",
     staticValue: "", seqStart: 1, seqEnd: 5, seqStep: 1,
     responseType: "json",
-    kind: "object", rootPath: "", itemShape: "fields",
+    kind: "object", rootPath: "", itemShape: "fields", itemCondition: "",
     fields: [newField()],
     refName: "",
     references: [],
@@ -857,13 +891,13 @@ function defaultState() {
   };
 }
 function newField() {
-  return { id: ++fieldSeq, name: "", type: "string", path: "", transform: "none", expr: "", calcType: null, nested: null };
+  return { id: ++fieldSeq, name: "", type: "string", path: "", condition: "", transform: "none", expr: "", calcType: null, nested: null };
 }
 function defaultNested() {
   return {
     url: "", method: "GET", responseType: "json", nullOnError: true,
     headers: [], body: "", timeout: "",
-    kind: "object", rootPath: "", itemShape: "fields", fields: [newField()]
+    kind: "object", rootPath: "", itemShape: "fields", itemCondition: "", fields: [newField()]
   };
 }
 const RESPONSE_TYPES = ["json", "HTML", "xpath", "XML", "pdf"];
@@ -877,6 +911,7 @@ function buildFieldConfig(f) {
   }
   const base = { type: f.type };
   if (f.path !== "") base.path = f.path;
+  if (f.condition) base.condition = f.condition;
   if (f.transform === "calculated" && f.expr !== "") {
     base.generated = { calculated: { type: f.calcType || f.type, expression: f.expr } };
   } else if (f.transform === "formatted" && f.expr !== "") {
@@ -922,6 +957,7 @@ function buildModelPart(p) {
     ac.item_config = { fields };
   }
   if (p.rootPath !== "") ac.root_path = p.rootPath;
+  if (p.itemCondition) ac.item_condition = p.itemCondition;
   return { array_config: ac };
 }
 
@@ -981,13 +1017,15 @@ function importField(fieldCfg) {
 }
 
 function importBaseField(b) {
-  const allowed = new Set(["type", "path", "generated"]);
+  const allowed = new Set(["type", "path", "condition", "generated"]);
   if (!b || typeof b !== "object" || Object.keys(b).some(k => !allowed.has(k))) return null;
   if (!FIELD_TYPES.includes(b.type)) return null;
+  if (b.condition != null && typeof b.condition !== "string") return null;
 
   const f = newField();
   f.type = b.type;
   f.path = b.path || "";
+  f.condition = b.condition || "";
   if (b.generated) {
     const gk = Object.keys(b.generated);
     if (gk.length !== 1) return null;
@@ -1022,7 +1060,7 @@ function importBaseField(b) {
       f.nested = {
         url: mcc.url, ...msc,
         responseType: mcc.response_type, nullOnError: !!mcc.null_on_error,
-        kind: part.kind, rootPath: part.rootPath, itemShape: part.itemShape, fields: part.fields
+        kind: part.kind, rootPath: part.rootPath, itemShape: part.itemShape, itemCondition: part.itemCondition, fields: part.fields
       };
     } else return null;
   }
@@ -1056,14 +1094,14 @@ function importReference(name, r) {
     id: ++fieldSeq, name, expire: r.expire ?? "",
     url: cc.url, ...sc,
     responseType: cc.response_type, nullOnError: !!cc.null_on_error,
-    kind: part.kind, rootPath: part.rootPath, itemShape: part.itemShape, fields: part.fields
+    kind: part.kind, rootPath: part.rootPath, itemShape: part.itemShape, itemCondition: part.itemCondition, fields: part.fields
   };
 }
 
 function importModelPart(model) {
   const mk = Object.keys(model || {});
   if (mk.length !== 1) return null;
-  const part = { kind: "object", rootPath: "", itemShape: "fields", fields: [] };
+  const part = { kind: "object", rootPath: "", itemShape: "fields", itemCondition: "", fields: [] };
   let fieldsCfg;
   if (mk[0] === "base_field") {
     const f = importBaseField(model.base_field);
@@ -1078,9 +1116,11 @@ function importModelPart(model) {
     fieldsCfg = oc.fields || {};
   } else if (mk[0] === "array_config") {
     const ac = model.array_config;
-    if (!ac || Object.keys(ac).some(k => !["root_path", "item_config"].includes(k))) return null;
+    if (!ac || Object.keys(ac).some(k => !["root_path", "item_config", "item_condition"].includes(k))) return null;
+    if (ac.item_condition != null && typeof ac.item_condition !== "string") return null;
     part.kind = "array";
     part.rootPath = ac.root_path || "";
+    part.itemCondition = ac.item_condition || "";
     const ic = ac.item_config || {};
     const icKeys = Object.keys(ic);
     if (icKeys.some(k => !["fields", "field"].includes(k)) || icKeys.length > 1) return null;
@@ -1162,6 +1202,7 @@ function importConfig(cfg) {
   s.kind = part.kind;
   s.rootPath = part.rootPath;
   s.itemShape = part.itemShape;
+  s.itemCondition = part.itemCondition;
   s.fields = part.fields;
   return s;
 }
@@ -1186,6 +1227,8 @@ function renderBuilder() {
   $("bRefName").value = bState.refName;
   $("bRootPath").value = bState.rootPath;
   $("bRootPath").hidden = bState.kind !== "array";
+  $("bItemCondition").value = bState.itemCondition;
+  $("bItemCondition").hidden = bState.kind !== "array";
   $("bItemShape").value = bState.itemShape;
   $("bItemShape").hidden = bState.kind !== "array";
   for (const row of document.querySelectorAll("[data-src]")) {
@@ -1344,6 +1387,18 @@ function fieldRow(f, siblings, singleItem, isAlt) {
   xtra.append(tf, expr);
   row.appendChild(xtra);
 
+  if (!isFirstOf) {
+    const condRow = document.createElement("div");
+    condRow.className = "xtra";
+    const cond = document.createElement("input");
+    cond.type = "text";
+    cond.placeholder = "condition — omit this field when false, e.g. fRes > 0 (optional)";
+    cond.value = f.condition || "";
+    cond.addEventListener("input", () => { f.condition = cond.value; builderChanged(); });
+    condRow.appendChild(cond);
+    row.appendChild(condRow);
+  }
+
   if (f.transform === "model" && f.nested) {
     row.appendChild(nestedPanel(f.nested));
   }
@@ -1469,7 +1524,13 @@ function nestedPanel(n) {
   rootPath.value = n.rootPath;
   rootPath.hidden = n.kind !== "array";
   rootPath.addEventListener("input", () => { n.rootPath = rootPath.value; builderChanged(); });
-  r3.append(kind, shape, rootPath);
+  const itemCond = document.createElement("input");
+  itemCond.type = "text";
+  itemCond.placeholder = "item condition — drop items when false (optional)";
+  itemCond.value = n.itemCondition || "";
+  itemCond.hidden = n.kind !== "array";
+  itemCond.addEventListener("input", () => { n.itemCondition = itemCond.value; builderChanged(); });
+  r3.append(kind, shape, rootPath, itemCond);
 
   const nSingle = (n.kind === "array" && n.itemShape === "single") || n.kind === "value";
   if (nSingle && n.fields.length === 0) n.fields.push(newField());
@@ -1523,6 +1584,7 @@ $("bSeqStep").addEventListener("input", e => { bState.seqStep = e.target.value; 
 $("bKind").addEventListener("change", e => { bState.kind = e.target.value; renderBuilder(); builderChanged(); });
 $("bItemShape").addEventListener("change", e => { bState.itemShape = e.target.value; renderBuilder(); builderChanged(); });
 $("bRootPath").addEventListener("input", e => { bState.rootPath = e.target.value; builderChanged(); });
+$("bItemCondition").addEventListener("input", e => { bState.itemCondition = e.target.value; builderChanged(); });
 $("bAddField").addEventListener("click", () => { bState.fields.push(newField()); renderBuilder(); builderChanged(); });
 $("bFresh").addEventListener("click", () => { bState = defaultState(); renderBuilder(); builderChanged(); });
 $("bRefName").addEventListener("input", e => { bState.refName = e.target.value; builderChanged(); });

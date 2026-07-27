@@ -1060,7 +1060,7 @@ type ArrayConfig struct {
 - Reverse - bool[false] - indicate that need use reverse iteration(n to 1)
 - LengthLimit - for define size of array only for generated(not working for static)
 - Condition - optional [condition](#conditional-fields) expression evaluated against the source node **before** resolution; when false the whole array is omitted from the parent
-- ItemCondition - optional [condition](#conditional-fields) expression evaluated against every **built** item (fRes - item value, fIndex - item index); items resolving to false are dropped from the array - declarative filtering. Not applied to static_array
+- ItemCondition - optional [condition](#conditional-fields) expression evaluated against every **built** item (fRes - item value, fSrc - source element, fIndex - item index); items resolving to false are dropped from the array - declarative filtering. Not applied to static_array
 
 Config can be one of:
 - [ItemConfig](#objectconfig) - configuration of each element of the array 
@@ -1129,7 +1129,7 @@ type BaseField struct {
 - FieldType - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object", "html", "raw_string"] - static field for parse. **Important**: type html will only works from connector which return HTML (HTMLAttribute - have no effect in this case). [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L25) 
 - Path - selector(relative in case it is array child) for parsing
 - HTMLAttribute - extra value which have effect only in HTML parsing via **goquery**. Here you can specify which attribute need to be parsed.
-- Condition - optional [condition](#conditional-fields) expression evaluated against the **extracted** value (fRes/fResJson/fResRaw, fIndex); when false the field is omitted from the parent object/array instead of producing null. Evaluated before [Generated](#generatedfieldconfig), so a false condition also skips generated work (sub-requests, file downloads)
+- Condition - optional [condition](#conditional-fields) expression evaluated against the **extracted** value (fRes/fResJson/fResRaw, fIndex; fSrc - the node the field was resolved from, siblings included); when false the field is omitted from the parent object/array instead of producing null. Evaluated before [Generated](#generatedfieldconfig), so a false condition also skips generated work (sub-requests, file downloads)
 
 **Important**: by default "string" type trimmed and all special chars is replaced, if you need plain string use "raw_string"
 
@@ -1158,16 +1158,16 @@ Examples
 Every field can carry a `condition` - an [expr-lang](https://expr-lang.org/) expression ([predefined values](#predefined-values)). When it evaluates to anything except `true` the field is **omitted** from the output (the key/item disappears), not set to `null`. An invalid expression also omits the field and logs an error.
 
 Where the condition is evaluated:
-- [BaseField](#basefield).`condition` - **after** extraction: `fRes` is the extracted value. A false condition skips [generated](#generatedfieldconfig) work entirely (no sub-request, no file download)
-- [ObjectConfig](#objectconfig).`condition` / [ArrayConfig](#arrayconfig).`condition` - **before** resolution: `fRes` is the source node (parsed value for json, text content for html)
-- [ArrayConfig](#arrayconfig).`item_condition` - against every **built** item: `fRes` is the item, `fIndex` its index; false items are dropped - declarative array filtering
+- [BaseField](#basefield).`condition` - **after** extraction: `fRes` is the extracted value, `fSrc` the node the field was resolved from (its siblings included) - so `fSrc.on_sale == true` can gate a field on data you did not extract. A false condition skips [generated](#generatedfieldconfig) work entirely (no sub-request, no file download)
+- [ObjectConfig](#objectconfig).`condition` / [ArrayConfig](#arrayconfig).`condition` - **before** resolution: `fRes`/`fSrc` are the source node (parsed value for json, text content for html)
+- [ArrayConfig](#arrayconfig).`item_condition` - against every **built** item: `fRes` is the item, `fSrc` the source element it was built from, `fIndex` its index; false items are dropped - declarative array filtering. Use `fSrc` to filter on source attributes without adding them to the output
 
-Filter array items by value:
+Filter array items - `fSrc.in_stock` reads the source element (not extracted into the output), `fRes.price` the built item:
 ```json
 {
   "array_config": {
     "root_path": "products",
-    "item_condition": "fRes.price > 0",
+    "item_condition": "fSrc.in_stock && fRes.price > 0",
     "item_config": {
       "fields": {
         "title": { "base_field": { "type": "string", "path": "title" } },
@@ -1438,6 +1438,8 @@ type CalculatedConfig struct {
 **fResJson** - it is JSON string representation of the raw result
 
 **fResRaw** - result in bytes format
+
+**fSrc** - only in [condition/item_condition](#conditional-fields) expressions: the source node the value was resolved from (parsed value for json - siblings included, text content for html). Not available in calculated/formatted/notifier expressions
 
 **FNewLine** - new line separator
 

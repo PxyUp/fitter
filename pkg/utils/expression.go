@@ -10,6 +10,7 @@ import (
 const (
 	fitterResultJsonRef           = "fResJson"
 	fitterResultRef               = "fRes"
+	fitterSourceRef               = "fSrc"
 	fitterIndexRef                = "fIndex"
 	fitterResultRaw               = "fResRaw"
 	fitterNewLinePlaceholderKey   = "FNewLine"
@@ -62,7 +63,18 @@ func ValidateExpression(expression string) error {
 
 // ProcessCondition reports whether the expression resolved to boolean true
 func ProcessCondition(expression string, result builder.Interfacable, index *uint32, input builder.Interfacable) (bool, error) {
-	out, err := ProcessExpression(expression, result, index, input)
+	return ProcessConditionWithSource(expression, result, nil, index, input)
+}
+
+// ProcessConditionWithSource is ProcessCondition with the source node the
+// value was resolved from additionally exposed as fSrc
+func ProcessConditionWithSource(expression string, result builder.Interfacable, source builder.Interfacable, index *uint32, input builder.Interfacable) (bool, error) {
+	env := extendEnv(defEnv, result, index)
+	if source != nil {
+		env[fitterSourceRef] = source.ToInterface()
+	}
+
+	out, err := processExpression(env, expression, result, index, input)
 	if err != nil {
 		return false, err
 	}
@@ -71,7 +83,10 @@ func ProcessCondition(expression string, result builder.Interfacable, index *uin
 }
 
 func ProcessExpression(expression string, result builder.Interfacable, index *uint32, input builder.Interfacable) (builder.Interfacable, error) {
-	env := extendEnv(defEnv, result, index)
+	return processExpression(extendEnv(defEnv, result, index), expression, result, index, input)
+}
+
+func processExpression(env map[string]interface{}, expression string, result builder.Interfacable, index *uint32, input builder.Interfacable) (builder.Interfacable, error) {
 	program, err := expr.Compile(Format(expression, result, index, input), expr.Env(env))
 	if err != nil {
 		return nil, err

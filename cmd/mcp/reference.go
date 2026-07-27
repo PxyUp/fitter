@@ -76,7 +76,7 @@ ArrayConfig:
   "length_limit": 10,
   "reverse": false,
   "condition": "",                               // optional: false = whole array omitted from the parent
-  "item_condition": "fRes.price > 0",            // optional filter over every BUILT item (fRes = item, fIndex = index); false items are dropped. Not applied to static_array
+  "item_condition": "fSrc.in_stock && fRes.price > 0",  // optional filter over every BUILT item (fRes = item, fSrc = source element, fIndex = index); false items are dropped. Not applied to static_array
   "static_array": { "length": 3, "items": { "0": <Field>, ... } }   // fixed-length array, key = index
 }
 
@@ -101,8 +101,10 @@ calculated/expression predefined values (expr-lang):
 Conditional fields: base_field/object_config/array_config accept "condition",
 array_config also "item_condition". Anything except true (incl. errors) OMITS
 the field/item from the output — no null is produced. base_field conditions see
-the extracted value in fRes; object/array conditions run before resolution
-against the source node; item_condition sees each built item (fRes) and its
+the extracted value in fRes and the node it was resolved from (siblings
+included) in fSrc; object/array conditions run before resolution against the
+source node; item_condition sees each built item (fRes), the source element it
+was built from (fSrc — filter on attributes without extracting them) and its
 index (fIndex) — use it for declarative array filtering.
 
 ## Placeholders (usable in url, headers, body, templates, file paths, values)
