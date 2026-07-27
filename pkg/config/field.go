@@ -33,6 +33,10 @@ type BaseField struct {
 
 	HTMLAttribute string `json:"html_attribute" yaml:"html_attribute"`
 
+	// Condition is evaluated against the extracted value (fRes/fResJson/fResRaw, fIndex);
+	// when false the field is omitted from the parent instead of producing null
+	Condition string `json:"condition" yaml:"condition"`
+
 	Generated *GeneratedFieldConfig `yaml:"generated" json:"generated"`
 
 	FirstOf []*BaseField `json:"first_of" yaml:"first_of"`

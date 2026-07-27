@@ -140,6 +140,76 @@ func TestValidateConfigAcceptsStaticConnector(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestValidateConfigConditions(t *testing.T) {
+	connector := `"connector_config": {"response_type": "json", "url": "https://x.dev"}`
+
+	invalid := []struct {
+		name    string
+		config  string
+		wantErr string
+	}{
+		{
+			name:    "broken base_field condition",
+			config:  `{"item": {` + connector + `, "model": {"base_field": {"type": "int", "path": "age", "condition": "fRes >>> 5"}}}}`,
+			wantErr: "model.base_field.condition",
+		},
+		{
+			name:    "broken condition in nested field",
+			config:  `{"item": {` + connector + `, "model": {"object_config": {"fields": {"age": {"base_field": {"type": "int", "condition": "fRes ==="}}}}}}}`,
+			wantErr: "model.object_config.fields.age.base_field.condition",
+		},
+		{
+			name:    "broken item_condition",
+			config:  `{"item": {` + connector + `, "model": {"array_config": {"root_path": "@this", "item_condition": "fRes.price >", "item_config": {"field": {"type": "int"}}}}}}`,
+			wantErr: "model.array_config.item_condition",
+		},
+		{
+			name:    "broken condition in first_of branch",
+			config:  `{"item": {` + connector + `, "model": {"base_field": {"first_of": [{"type": "int", "condition": "not not not"}]}}}}`,
+			wantErr: "model.base_field.first_of.0.condition",
+		},
+		{
+			name:    "broken condition in generated sub-model",
+			config:  `{"item": {` + connector + `, "model": {"base_field": {"type": "int", "generated": {"model": {"connector_config": {"response_type": "json", "url": "https://x.dev"}, "model": {"object_config": {"condition": "1 +"}}}}}}}}`,
+			wantErr: "model.base_field.generated.model.model.object_config.condition",
+		},
+		{
+			name:    "broken condition in reference model",
+			config:  `{"references": {"MyRef": {"connector_config": {"response_type": "json", "url": "https://x.dev"}, "model": {"base_field": {"type": "string", "condition": "fRes ??"}}}}, "item": {` + connector + `, "model": {"base_field": {"type": "string"}}}}`,
+			wantErr: "references.MyRef.model.base_field.condition",
+		},
+	}
+
+	for _, tc := range invalid {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := parseResult(envelope(t, tc.config))
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
+
+	valid := []struct {
+		name   string
+		config string
+	}{
+		{
+			name:   "valid conditions everywhere",
+			config: `{"item": {` + connector + `, "model": {"array_config": {"root_path": "@this", "condition": "len(fRes) > 0", "item_condition": "fRes.price > 0 && fIndex < 10", "item_config": {"condition": "fRes != FNull", "fields": {"age": {"base_field": {"type": "int", "condition": "fRes >= 18"}}}}}}}}`,
+		},
+		{
+			name:   "condition with placeholder is skipped",
+			config: `{"item": {` + connector + `, "model": {"base_field": {"type": "int", "condition": "fRes > {{{FromInput=.}}}"}}}}`,
+		},
+	}
+
+	for _, tc := range valid {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := parseResult(envelope(t, tc.config))
+			assert.NoError(t, err)
+		})
+	}
+}
+
 func TestParseEffort(t *testing.T) {
 	valid := map[string]anthropic.OutputConfigEffort{
 		"":       anthropic.OutputConfigEffortHigh,

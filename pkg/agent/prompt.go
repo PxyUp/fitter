@@ -43,6 +43,13 @@ config and apply only the requested change - keep every other field as it was.
 ## Field Types
 "string" | "int" | "int64" | "float" | "float64" | "boolean" | "null" | "html" | "array" | "object"
 
+## Conditional Fields
+base_field/object_config/array_config accept "condition", array_config also
+"item_condition" (both expr-lang). Anything except true OMITS the field/item
+from the output (no null). base_field condition sees the extracted value as
+fRes; "item_condition" runs on every built array item (fRes = item, fIndex =
+index) - use it to filter arrays, e.g. "item_condition": "fRes.price > 0".
+
 ## Path Syntax
 - JSON: "field", "items.0", "items.#.name", "@this" (root array), "items.#.city|@flatten"
 - HTML: "div.class", "#id", "a[href]", "table tr td:nth-of-type(2)"

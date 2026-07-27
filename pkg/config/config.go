@@ -59,6 +59,10 @@ type ObjectConfig struct {
 	Field       *BaseField        `json:"field" yaml:"field"`
 	Fields      map[string]*Field `json:"fields" yaml:"fields"`
 	ArrayConfig *ArrayConfig      `json:"array_config" yaml:"array_config"`
+
+	// Condition is evaluated against the source node before resolution;
+	// when false the whole object is omitted from the parent
+	Condition string `json:"condition" yaml:"condition"`
 }
 
 type ArrayConfig struct {
@@ -66,6 +70,13 @@ type ArrayConfig struct {
 	Reverse     bool          `yaml:"reverse" json:"reverse"`
 	ItemConfig  *ObjectConfig `json:"item_config" yaml:"item_config"`
 	LengthLimit uint32        `json:"length_limit" yaml:"length_limit"`
+
+	// Condition is evaluated against the source node before resolution;
+	// when false the whole array is omitted from the parent
+	Condition string `json:"condition" yaml:"condition"`
+	// ItemCondition is evaluated against every built item (fRes, fIndex);
+	// items resolving to false are dropped. Not applied to static_array
+	ItemCondition string `json:"item_condition" yaml:"item_condition"`
 
 	StaticConfig *StaticArrayConfig `json:"static_array"  yaml:"static_array"`
 }

@@ -183,7 +183,8 @@ func newServer() *mcp.Server {
 	mcp.AddTool(server, &mcp.Tool{
 		Name: "fitter_validate_config",
 		Description: "Validate a Fitter config (JSON or YAML) without executing it. Checks the structural rules: item/connector_config/model " +
-			"presence, valid response_type, and that the connector has a data source. Returns \"valid\" or the validation error. " +
+			"presence, valid response_type, that the connector has a data source, and compiles every condition/item_condition expression " +
+			"in the model. Returns \"valid\" or the validation error. " +
 			"Cheap and safe — use it while iterating on a config before calling fitter_run.",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in validateArgs) (*mcp.CallToolResult, any, error) {
 		cfg, err := parseCliItem([]byte(in.Config))

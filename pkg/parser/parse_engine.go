@@ -5,6 +5,8 @@ import (
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/utils"
+	"github.com/tidwall/gjson"
 	"slices"
 	"strconv"
 	"sync"
@@ -38,6 +40,42 @@ func (e *engineParser[T]) context() context.Context {
 		return context.Background()
 	}
 	return e.ctx
+}
+
+// checkCondition reports whether the field must be kept; evaluation errors
+// omit the field instead of failing the whole parse
+func (e *engineParser[T]) checkCondition(condition string, value builder.Interfacable, index *uint32, input builder.Interfacable) bool {
+	pass, err := utils.ProcessCondition(condition, value, index, input)
+	if err != nil {
+		e.logger.Errorw("error during process condition, field will be omitted", "error", err.Error(), "condition", condition)
+		return false
+	}
+
+	return pass
+}
+
+// sourceValue exposes the current source node to condition expressions:
+// structured value when the node text is valid JSON (json parser, numeric
+// html text), plain string otherwise
+func (e *engineParser[T]) sourceValue(source T) builder.Interfacable {
+	if IsZero(source) {
+		return builder.NullValue
+	}
+
+	text := e.getText(source)
+	if gjson.Valid(text) {
+		return builder.ToJsonableFromString(text)
+	}
+
+	return builder.String(text)
+}
+
+func unomit(value builder.Interfacable) builder.Interfacable {
+	if builder.IsOmitted(value) {
+		return builder.NullValue
+	}
+
+	return value
 }
 
 func (e *engineParser[T]) fillUpBaseField(source T, field *config.BaseField) builder.Interfacable {
@@ -74,7 +112,11 @@ func (e *engineParser[T]) fillUpBaseField(source T, field *config.BaseField) bui
 	return builder.NullValue
 }
 
-func (e *engineParser[T]) buildObjectField(source T, objectConfig *config.ObjectConfig, input builder.Interfacable) builder.Interfacable {
+func (e *engineParser[T]) buildObjectField(source T, objectConfig *config.ObjectConfig, index *uint32, input builder.Interfacable) builder.Interfacable {
+	if objectConfig.Condition != "" && !e.checkCondition(objectConfig.Condition, e.sourceValue(source), index, input) {
+		return builder.OmitValue
+	}
+
 	kv := make(map[string]builder.Interfacable)
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
@@ -86,8 +128,13 @@ func (e *engineParser[T]) buildObjectField(source T, objectConfig *config.Object
 		go func(k string, v *config.Field) {
 			defer wg.Done()
 
+			resolved := e.resolveField(source, v, nil, input)
+			if builder.IsOmitted(resolved) {
+				return
+			}
+
 			mutex.Lock()
-			kv[k] = e.resolveField(source, v, nil, input)
+			kv[k] = resolved
 			mutex.Unlock()
 
 		}(key, value)
@@ -137,6 +184,10 @@ func (e *engineParser[T]) buildBaseField(source T, field *config.BaseField, inde
 		tempValue = e.fillUpBaseField(source, field)
 	}
 
+	if field.Condition != "" && !e.checkCondition(field.Condition, tempValue, index, input) {
+		return builder.OmitValue
+	}
+
 	if field.Generated != nil {
 		return buildGeneratedField(e.context(), tempValue, field.Type, field.Generated, e.logger, index, input)
 	}
@@ -154,10 +205,14 @@ func (e *engineParser[T]) resolveField(parent T, field *config.Field, index *uin
 	}
 
 	if field.ObjectConfig != nil {
-		return e.buildObjectField(parent, field.ObjectConfig, input)
+		return e.buildObjectField(parent, field.ObjectConfig, index, input)
 	}
 
 	if field.ArrayConfig != nil {
+		if field.ArrayConfig.Condition != "" && !e.checkCondition(field.ArrayConfig.Condition, e.sourceValue(parent), index, input) {
+			return builder.OmitValue
+		}
+
 		return e.buildArrayField(e.getAll(parent, field.ArrayConfig.RootPath), field.ArrayConfig, input)
 	}
 
@@ -189,15 +244,26 @@ func (e *engineParser[T]) buildStaticArray(cfg *config.StaticArrayConfig, input 
 
 	wg.Wait()
 
+	// static arrays are positional: omitted/unset slots stay null instead of shifting indexes
+	for i, v := range values {
+		if v == nil || builder.IsOmitted(v) {
+			values[i] = builder.NullValue
+		}
+	}
+
 	return builder.Array(values)
 }
 
 func (e *engineParser[T]) buildArray(array *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
+	if array.Condition != "" && !e.checkCondition(array.Condition, e.sourceValue(e.parserBody), nil, input) {
+		return builder.OmitValue
+	}
+
 	return e.buildArrayField(e.getAll(e.parserBody, array.RootPath), array, input)
 }
 
 func (e *engineParser[T]) buildObject(object *config.ObjectConfig, input builder.Interfacable) builder.Interfacable {
-	return e.buildObjectField(e.parserBody, object, input)
+	return e.buildObjectField(e.parserBody, object, nil, input)
 }
 
 func (e *engineParser[T]) Parse(model *config.Model, input builder.Interfacable) (*ParseResult, error) {
@@ -209,7 +275,7 @@ func (e *engineParser[T]) Parse(model *config.Model, input builder.Interfacable)
 	}
 
 	if model.BaseField != nil {
-		res := e.buildBaseField(e.parserBody, model.BaseField, nil, input)
+		res := unomit(e.buildBaseField(e.parserBody, model.BaseField, nil, input))
 		return &ParseResult{
 			RawResult: res.Raw(),
 			Json:      res.ToJson(),
@@ -217,14 +283,14 @@ func (e *engineParser[T]) Parse(model *config.Model, input builder.Interfacable)
 	}
 
 	if model.ArrayConfig != nil {
-		res := e.buildArray(model.ArrayConfig, input)
+		res := unomit(e.buildArray(model.ArrayConfig, input))
 		return &ParseResult{
 			RawResult: res.Raw(),
 			Json:      res.ToJson(),
 		}, nil
 	}
 
-	res := e.buildObject(model.ObjectConfig, input)
+	res := unomit(e.buildObject(model.ObjectConfig, input))
 	return &ParseResult{
 		RawResult: res.Raw(),
 		Json:      res.ToJson(),
@@ -246,17 +312,44 @@ func (e *engineParser[T]) buildArrayField(parent []T, cfg *config.ArrayConfig, i
 	}
 
 	if cfg.ItemConfig.Field != nil {
-		return FillArrayBaseField(e, parent, size, cfg.ItemConfig.Field, input)
+		return FillArrayBaseField(e, parent, size, cfg, input)
 	}
 
 	if cfg.ItemConfig.ArrayConfig != nil {
-		return FillArrayArrayField(e, parent, size, e.getAll, cfg.ItemConfig.ArrayConfig, input)
+		return FillArrayArrayField(e, parent, size, e.getAll, cfg, input)
 	}
 
-	return FillArrayObjectField(e, parent, size, cfg.ItemConfig, input)
+	return FillArrayObjectField(e, parent, size, cfg, input)
 }
 
-func FillArrayBaseField[T comparable](engine *engineParser[T], parent []T, size int, cfg *config.BaseField, input builder.Interfacable) builder.Interfacable {
+// finalizeArrayItems drops items rejected by a condition (omitted or failing
+// item_condition); nil slots stay null to preserve the declared size when
+// length_limit exceeds the amount of source elements
+func finalizeArrayItems[T comparable](engine *engineParser[T], values []builder.Interfacable, cfg *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
+	res := make([]builder.Interfacable, 0, len(values))
+	for i, v := range values {
+		if v == nil {
+			v = builder.NullValue
+		}
+
+		if builder.IsOmitted(v) {
+			continue
+		}
+
+		if cfg.ItemCondition != "" {
+			arrIndex := uint32(i)
+			if !engine.checkCondition(cfg.ItemCondition, v, &arrIndex, input) {
+				continue
+			}
+		}
+
+		res = append(res, v)
+	}
+
+	return builder.Array(res)
+}
+
+func FillArrayBaseField[T comparable](engine *engineParser[T], parent []T, size int, cfg *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
 	values := make([]builder.Interfacable, size)
 
 	var wg sync.WaitGroup
@@ -273,16 +366,17 @@ func FillArrayBaseField[T comparable](engine *engineParser[T], parent []T, size 
 
 			arrIndex := uint32(index)
 
-			values[index] = engine.buildBaseField(selection, cfg, &arrIndex, input)
+			values[index] = engine.buildBaseField(selection, cfg.ItemConfig.Field, &arrIndex, input)
 		}(i, s)
 
 	}
 	wg.Wait()
 
-	return builder.Array(values)
+	return finalizeArrayItems(engine, values, cfg, input)
 }
 
 func FillArrayArrayField[T comparable](engine *engineParser[T], parent []T, size int, fn func(T, string) []T, cfg *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
+	inner := cfg.ItemConfig.ArrayConfig
 	values := make([]builder.Interfacable, size)
 
 	var wg sync.WaitGroup
@@ -297,15 +391,23 @@ func FillArrayArrayField[T comparable](engine *engineParser[T], parent []T, size
 		go func(index int, selection T) {
 			defer wg.Done()
 
-			values[index] = engine.buildArrayField(fn(selection, cfg.RootPath), cfg, input)
+			if inner.Condition != "" {
+				arrIndex := uint32(index)
+				if !engine.checkCondition(inner.Condition, engine.sourceValue(selection), &arrIndex, input) {
+					values[index] = builder.OmitValue
+					return
+				}
+			}
+
+			values[index] = engine.buildArrayField(fn(selection, inner.RootPath), inner, input)
 		}(i, s)
 	}
 	wg.Wait()
 
-	return builder.Array(values)
+	return finalizeArrayItems(engine, values, cfg, input)
 }
 
-func FillArrayObjectField[T comparable](engine *engineParser[T], parent []T, size int, cfg *config.ObjectConfig, input builder.Interfacable) builder.Interfacable {
+func FillArrayObjectField[T comparable](engine *engineParser[T], parent []T, size int, cfg *config.ArrayConfig, input builder.Interfacable) builder.Interfacable {
 	values := make([]builder.Interfacable, size)
 
 	var wg sync.WaitGroup
@@ -320,10 +422,12 @@ func FillArrayObjectField[T comparable](engine *engineParser[T], parent []T, siz
 		go func(index int, selection T) {
 			defer wg.Done()
 
-			values[index] = engine.buildObjectField(selection, cfg, input)
+			arrIndex := uint32(index)
+
+			values[index] = engine.buildObjectField(selection, cfg.ItemConfig, &arrIndex, input)
 		}(i, s)
 	}
 	wg.Wait()
 
-	return builder.Array(values)
+	return finalizeArrayItems(engine, values, cfg, input)
 }

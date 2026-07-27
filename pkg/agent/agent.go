@@ -12,6 +12,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/utils"
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 )
@@ -309,6 +310,139 @@ func ValidateConfig(cfg *config.CliItem) error {
 	}
 	if model.ObjectConfig == nil && model.ArrayConfig == nil && model.BaseField == nil {
 		return errors.New(`"model" must define one of "object_config", "array_config" or "base_field"`)
+	}
+
+	if err := validateModelConditions(model, "model"); err != nil {
+		return err
+	}
+
+	for name, ref := range cfg.References {
+		if ref == nil || ref.ModelField == nil || ref.Model == nil {
+			continue
+		}
+		if err := validateModelConditions(ref.Model, fmt.Sprintf("references.%s.model", name)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// validateModelConditions walks the model tree and compiles every
+// condition/item_condition expression, so typos surface at validation time
+// instead of silently omitting the field at runtime
+func validateModelConditions(model *config.Model, path string) error {
+	if model == nil {
+		return nil
+	}
+
+	if err := validateBaseFieldConditions(model.BaseField, path+".base_field"); err != nil {
+		return err
+	}
+	if err := validateObjectConditions(model.ObjectConfig, path+".object_config"); err != nil {
+		return err
+	}
+	return validateArrayConditions(model.ArrayConfig, path+".array_config")
+}
+
+func validateCondition(condition string, path string) error {
+	if err := utils.ValidateExpression(condition); err != nil {
+		return fmt.Errorf("%s: invalid expression %q: %w", path, condition, err)
+	}
+	return nil
+}
+
+func validateBaseFieldConditions(field *config.BaseField, path string) error {
+	if field == nil {
+		return nil
+	}
+
+	if err := validateCondition(field.Condition, path+".condition"); err != nil {
+		return err
+	}
+
+	for i, sub := range field.FirstOf {
+		if err := validateBaseFieldConditions(sub, fmt.Sprintf("%s.first_of.%d", path, i)); err != nil {
+			return err
+		}
+	}
+
+	if field.Generated != nil && field.Generated.Model != nil {
+		return validateModelConditions(field.Generated.Model.Model, path+".generated.model.model")
+	}
+
+	return nil
+}
+
+func validateFieldConditions(field *config.Field, path string) error {
+	if field == nil {
+		return nil
+	}
+
+	if err := validateBaseFieldConditions(field.BaseField, path+".base_field"); err != nil {
+		return err
+	}
+	if err := validateObjectConditions(field.ObjectConfig, path+".object_config"); err != nil {
+		return err
+	}
+	if err := validateArrayConditions(field.ArrayConfig, path+".array_config"); err != nil {
+		return err
+	}
+
+	for i, sub := range field.FirstOf {
+		if err := validateFieldConditions(sub, fmt.Sprintf("%s.first_of.%d", path, i)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateObjectConditions(object *config.ObjectConfig, path string) error {
+	if object == nil {
+		return nil
+	}
+
+	if err := validateCondition(object.Condition, path+".condition"); err != nil {
+		return err
+	}
+	if err := validateBaseFieldConditions(object.Field, path+".field"); err != nil {
+		return err
+	}
+	if err := validateArrayConditions(object.ArrayConfig, path+".array_config"); err != nil {
+		return err
+	}
+
+	for name, field := range object.Fields {
+		if err := validateFieldConditions(field, fmt.Sprintf("%s.fields.%s", path, name)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateArrayConditions(array *config.ArrayConfig, path string) error {
+	if array == nil {
+		return nil
+	}
+
+	if err := validateCondition(array.Condition, path+".condition"); err != nil {
+		return err
+	}
+	if err := validateCondition(array.ItemCondition, path+".item_condition"); err != nil {
+		return err
+	}
+	if err := validateObjectConditions(array.ItemConfig, path+".item_config"); err != nil {
+		return err
+	}
+
+	if array.StaticConfig != nil {
+		for index, field := range array.StaticConfig.Items {
+			if err := validateFieldConditions(field, fmt.Sprintf("%s.static_array.items.%d", path, index)); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

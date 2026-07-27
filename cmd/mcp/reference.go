@@ -47,7 +47,7 @@ Exactly one of:
 Plus "is_array": true to force array output (useful with model fields).
 
 object_config:
-{ "fields": { "<name>": <Field>, ... } }        // or "field": <BaseField> (for arrays of scalars), or nested "array_config"
+{ "fields": { "<name>": <Field>, ... }, "condition": "" }   // or "field": <BaseField> (for arrays of scalars), or nested "array_config"
 
 Field:
 {
@@ -62,6 +62,7 @@ BaseField:
   "type": "string"|"int"|"int64"|"float"|"float64"|"boolean"|"html"|"raw_string"|"null"|"array"|"object",
   "path": "<selector in the response_type language; relative when inside an array item>",
   "html_attribute": "href",                      // HTML parsing only: take attribute instead of text
+  "condition": "fRes > 0",                       // optional expr-lang check on the EXTRACTED value; false = field omitted (no null), generated work skipped
   "generated": <GeneratedFieldConfig>,           // computed instead of extracted
   "first_of": [<BaseField>, ...]
 }
@@ -74,6 +75,8 @@ ArrayConfig:
   "item_config": <ObjectConfig>,                 // model of each element (paths relative to root_path)
   "length_limit": 10,
   "reverse": false,
+  "condition": "",                               // optional: false = whole array omitted from the parent
+  "item_condition": "fRes.price > 0",            // optional filter over every BUILT item (fRes = item, fIndex = index); false items are dropped. Not applied to static_array
   "static_array": { "length": 3, "items": { "0": <Field>, ... } }   // fixed-length array, key = index
 }
 
@@ -94,6 +97,13 @@ calculated/expression predefined values (expr-lang):
 - fResJson — JSON string of the value;  fResRaw — value as bytes
 - fIndex   — index in the parent array (if any)
 - FNull / FNil / isNull(v) / FNewLine
+
+Conditional fields: base_field/object_config/array_config accept "condition",
+array_config also "item_condition". Anything except true (incl. errors) OMITS
+the field/item from the output — no null is produced. base_field conditions see
+the extracted value in fRes; object/array conditions run before resolution
+against the source node; item_condition sees each built item (fRes) and its
+index (fIndex) — use it for declarative array filtering.
 
 ## Placeholders (usable in url, headers, body, templates, file paths, values)
 

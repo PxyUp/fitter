@@ -1012,8 +1012,12 @@ type ObjectConfig struct {
     Fields      map[string]*Field `json:"fields" yaml:"fields"`
     Field       *BaseField        `json:"field" yaml:"field"`
     ArrayConfig *ArrayConfig      `json:"array_config" yaml:"array_config"`
+
+    Condition string `json:"condition" yaml:"condition"`
 }
 ```
+
+- Condition - optional [condition](#conditional-fields) expression evaluated against the source node **before** resolution; when false the whole object is omitted from the parent (fields are not resolved at all)
 
 Config can be one of:
 - [Fields](#field) - map of each field definition; key - field name, value - configuration
@@ -1044,6 +1048,9 @@ type ArrayConfig struct {
     
     ItemConfig  *ObjectConfig `json:"item_config" yaml:"item_config"`
     LengthLimit uint32        `json:"length_limit" yaml:"length_limit"`
+
+    Condition     string `json:"condition" yaml:"condition"`
+    ItemCondition string `json:"item_condition" yaml:"item_condition"`
     
     StaticConfig *StaticArrayConfig `json:"static_array"  yaml:"static_array"`
 }
@@ -1052,6 +1059,8 @@ type ArrayConfig struct {
 - RootPath - selector for find root element of the array or repeated element in case of html parsing, size of array will be amount of children element under the root
 - Reverse - bool[false] - indicate that need use reverse iteration(n to 1)
 - LengthLimit - for define size of array only for generated(not working for static)
+- Condition - optional [condition](#conditional-fields) expression evaluated against the source node **before** resolution; when false the whole array is omitted from the parent
+- ItemCondition - optional [condition](#conditional-fields) expression evaluated against every **built** item (fRes - item value, fIndex - item index); items resolving to false are dropped from the array - declarative filtering. Not applied to static_array
 
 Config can be one of:
 - [ItemConfig](#objectconfig) - configuration of each element of the array 
@@ -1109,6 +1118,8 @@ type BaseField struct {
 
 	HTMLAttribute string `json:"html_attribute" yaml:"html_attribute"`
 
+	Condition string `json:"condition" yaml:"condition"`
+
 	Generated *GeneratedFieldConfig `yaml:"generated" json:"generated"`
 
 	FirstOf []*BaseField `json:"first_of" yaml:"first_of"`
@@ -1118,6 +1129,7 @@ type BaseField struct {
 - FieldType - enum["null", "boolean", "string", "int", "int64", "float", "float64", "array", "object", "html", "raw_string"] - static field for parse. **Important**: type html will only works from connector which return HTML (HTMLAttribute - have no effect in this case). [Example](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_ref.json#L25) 
 - Path - selector(relative in case it is array child) for parsing
 - HTMLAttribute - extra value which have effect only in HTML parsing via **goquery**. Here you can specify which attribute need to be parsed.
+- Condition - optional [condition](#conditional-fields) expression evaluated against the **extracted** value (fRes/fResJson/fResRaw, fIndex); when false the field is omitted from the parent object/array instead of producing null. Evaluated before [Generated](#generatedfieldconfig), so a false condition also skips generated work (sub-requests, file downloads)
 
 **Important**: by default "string" type trimmed and all special chars is replaced, if you need plain string use "raw_string"
 
@@ -1140,6 +1152,49 @@ Examples
   "path": "text()"
 }
 ```
+
+#### Conditional fields
+
+Every field can carry a `condition` - an [expr-lang](https://expr-lang.org/) expression ([predefined values](#predefined-values)). When it evaluates to anything except `true` the field is **omitted** from the output (the key/item disappears), not set to `null`. An invalid expression also omits the field and logs an error.
+
+Where the condition is evaluated:
+- [BaseField](#basefield).`condition` - **after** extraction: `fRes` is the extracted value. A false condition skips [generated](#generatedfieldconfig) work entirely (no sub-request, no file download)
+- [ObjectConfig](#objectconfig).`condition` / [ArrayConfig](#arrayconfig).`condition` - **before** resolution: `fRes` is the source node (parsed value for json, text content for html)
+- [ArrayConfig](#arrayconfig).`item_condition` - against every **built** item: `fRes` is the item, `fIndex` its index; false items are dropped - declarative array filtering
+
+Filter array items by value:
+```json
+{
+  "array_config": {
+    "root_path": "products",
+    "item_condition": "fRes.price > 0",
+    "item_config": {
+      "fields": {
+        "title": { "base_field": { "type": "string", "path": "title" } },
+        "price": { "base_field": { "type": "float", "path": "price" } }
+      }
+    }
+  }
+}
+```
+
+Omit a key unless the value passes a check:
+```json
+{
+  "discount": {
+    "base_field": {
+      "type": "float",
+      "path": "discount_pct",
+      "condition": "fRes > 0"
+    }
+  }
+}
+```
+
+Special cases:
+- in a [static array](#static-array-config) an omitted item stays `null` (positions are fixed by definition, indexes never shift)
+- if the **root** model config is omitted the parse result is `null`
+- inside [first_of](#basefield) a branch with a false condition counts as empty, so the next branch is tried
 
 #### GeneratedFieldConfig
 Provide functionality of generating field on the flight
