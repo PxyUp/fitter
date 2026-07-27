@@ -1196,6 +1196,8 @@ Special cases:
 - if the **root** model config is omitted the parse result is `null`
 - inside [first_of](#basefield) a branch with a false condition counts as empty, so the next branch is tried
 
+Runnable example: [examples/config_conditions.json](https://github.com/PxyUp/fitter/blob/master/examples/config_conditions.json)
+
 #### GeneratedFieldConfig
 Provide functionality of generating field on the flight
 

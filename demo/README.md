@@ -23,7 +23,8 @@ cd demo && python3 -m http.server 8642
 ## What works in the browser
 
 - All parsers: JSON, HTML, XML, XPath, PDF
-- `static_config`, `int_sequence_config`, references, expressions, generated fields
+- `static_config`, `int_sequence_config`, references, expressions, generated fields,
+  conditional fields (`condition`/`item_condition`, incl. `fSrc`)
 - Live HTTP fetching via the browser Fetch API — for APIs that send CORS headers
   (GitHub, OpenLibrary, CoinGecko, …)
 

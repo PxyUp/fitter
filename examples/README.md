@@ -16,6 +16,7 @@ Ready-to-run Fitter configs. Two formats live here:
 | [config_book_authors.json](config_book_authors.json) | OpenLibrary book search (query via `{{{FromInput=.}}}`) with per-book author details via a `{{{FromExp=...}}}` JSON-field join |
 | [config_crypto_csv.json](config_crypto_csv.json) | Top-5 crypto coins written to a local CSV with `file_storage` (`{HUMAN_INDEX}` rank column) |
 | [config_pdf.json](config_pdf.json) | PDF text extraction (`response_type: "pdf"`): Bitcoin whitepaper page count + trimmed intro via a calculated expression |
+| [config_conditions.json](config_conditions.json) | Conditional fields: `item_condition` filters products by a source attribute (`fSrc.rating` — never extracted into the output), field `condition` omits `discount_pct` unless it is ≥ 10 |
 | [cli/config_cli.json](cli/config_cli.json) | HackerNews + quotes: JSON API, browser connector, limits — the kitchen-sink demo |
 | [cli/config_browser.json](cli/config_browser.json) | Headless browser (Chromium) scraping |
 | [cli/config_playwright.json](cli/config_playwright.json) | Playwright-driven scraping |

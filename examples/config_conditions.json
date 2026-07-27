@@ -1,0 +1,40 @@
+{
+  "item": {
+    "connector_config": {
+      "response_type": "json",
+      "url": "https://dummyjson.com/products?limit=10",
+      "server_config": {
+        "method": "GET"
+      }
+    },
+    "model": {
+      "array_config": {
+        "root_path": "products",
+        "item_condition": "fSrc.rating >= 4 && fRes.price > 0",
+        "item_config": {
+          "fields": {
+            "title": {
+              "base_field": {
+                "type": "string",
+                "path": "title"
+              }
+            },
+            "price": {
+              "base_field": {
+                "type": "float",
+                "path": "price"
+              }
+            },
+            "discount_pct": {
+              "base_field": {
+                "type": "float",
+                "path": "discountPercentage",
+                "condition": "fRes >= 10"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
