@@ -93,6 +93,16 @@ jobs:
             -t ghcr.io/pxyup/fitter-mcp:latest \
             --push .
 
+      - name: Release MCP server with Playwright browsers to Docker
+        run: |
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -f Dockerfile.mcp-playwright \
+            --build-arg VERSION=${{ steps.set_env.outputs.RELEASE_VERSION }} \
+            -t ghcr.io/pxyup/fitter-mcp:${{ steps.set_env.outputs.RELEASE_VERSION }}-playwright \
+            -t ghcr.io/pxyup/fitter-mcp:playwright \
+            --push .
+
       # runs after the docker push: the registry verifies the oci package
       # by reading the io.modelcontextprotocol.server.name label from ghcr
       - name: Publish to MCP Registry

@@ -1,4 +1,5 @@
 # Fitter MCP server image (slim: server/static/file connectors; no browsers).
+# For browser connectors see Dockerfile.mcp-playwright.
 #
 # stdio mode (default, for MCP clients that spawn containers):
 #   docker run --rm -i ghcr.io/pxyup/fitter-mcp:latest

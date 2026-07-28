@@ -11,8 +11,7 @@ import (
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/utils"
 	stealth "github.com/go-rod/stealth"
-	stealth2 "github.com/jonfriesen/playwright-go-stealth"
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/semaphore"
 	"time"
@@ -152,7 +151,9 @@ func getFromPlaywright(ctx context.Context, url string, cfg *config.PlaywrightCo
 		}
 
 		if cfg.Stealth {
-			err = stealth2.Inject(page)
+			err = page.AddInitScript(playwright.Script{
+				Content: playwright.String(stealthJS),
+			})
 			if err != nil {
 				logger.Errorw("could not inject stealth to page: %v", "error", err.Error())
 				return

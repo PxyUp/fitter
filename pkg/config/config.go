@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/playwright-community/playwright-go"
+	"github.com/mxschmitt/playwright-go"
 )
 
 type Connector string

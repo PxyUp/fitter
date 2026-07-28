@@ -1,0 +1,70 @@
+# Fitter MCP server image with Playwright browsers (chromium/firefox/webkit),
+# so browser_config.playwright connectors work out of the box.
+# For the slim image (no browsers) see Dockerfile.mcp.
+#
+# stdio mode (default, for MCP clients that spawn containers):
+#   docker run --rm -i ghcr.io/pxyup/fitter-mcp:playwright
+#
+# hosted HTTP mode:
+#   docker run --rm -p 8080:8080 \
+#     -e FITTER_MCP_HTTP_ADDR=:8080 \
+#     -e FITTER_MCP_AUTH_TOKEN=my-secret \
+#     ghcr.io/pxyup/fitter-mcp:playwright
+
+FROM --platform=$BUILDPLATFORM golang:1.25-bookworm AS build
+
+WORKDIR /src
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+ARG TARGETOS
+ARG TARGETARCH
+ARG VERSION=dev
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -ldflags="-X main.version=${VERSION#v}" -o /out/fitter_mcp ./cmd/mcp
+
+# the playwright-go installer CLI, built from go.mod so the driver it
+# downloads always matches the library version fitter is compiled against
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -o /out/playwright github.com/mxschmitt/playwright-go/cmd/playwright
+
+FROM debian:bookworm-slim
+
+LABEL org.opencontainers.image.source="https://github.com/PxyUp/fitter" \
+      org.opencontainers.image.description="Fitter MCP server — web data for AI agents (with Playwright browsers)" \
+      org.opencontainers.image.licenses="MIT"
+
+# browsers land in $XDG_CACHE_HOME/ms-playwright, the driver in $PLAYWRIGHT_DRIVER_PATH
+# (playwright-go defaults the driver to $HOME/.cache, which differs between the
+# root build step and the runtime user — hence the explicit path);
+# kept at runtime so playwright-go resolves the same paths
+ENV XDG_CACHE_HOME=/opt/fitter/cache \
+    PLAYWRIGHT_DRIVER_PATH=/opt/fitter/cache/ms-playwright-go
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates wget && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /out/playwright /usr/local/bin/playwright
+
+# override to e.g. "chromium" for a smaller image
+ARG PLAYWRIGHT_BROWSERS="chromium firefox webkit"
+RUN playwright install --with-deps $PLAYWRIGHT_BROWSERS && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /out/fitter_mcp /usr/local/bin/fitter_mcp
+
+RUN useradd --create-home fitter && chown -R fitter /opt/fitter/cache
+
+USER fitter
+
+EXPOSE 8080
+
+# healthy in HTTP mode when /healthz answers; a no-op in stdio mode
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+  CMD [ -z "$FITTER_MCP_HTTP_ADDR" ] || wget -qO- "http://127.0.0.1:${FITTER_MCP_HTTP_ADDR##*:}/healthz" || exit 1
+
+ENTRYPOINT ["fitter_mcp"]

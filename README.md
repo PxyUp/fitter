@@ -119,7 +119,16 @@ docker run --rm -p 8080:8080 \
 claude mcp add fitter -s user -- docker run --rm -i ghcr.io/pxyup/fitter-mcp:latest
 ```
 
-The image contains only the fitter binary and CA certificates: server/static/file connectors work, browser connectors (`chromium`/`docker`/`playwright`) do not — use a release binary on a host with a browser for those.
+The slim image contains only the fitter binary and CA certificates: server/static/file connectors work, browser connectors (`chromium`/`docker`/`playwright`) do not.
+
+For browser-based configs use the `playwright` variant, which bundles Playwright with Chromium, Firefox and WebKit (matched to the `playwright-go` version fitter is built against, so no `"install": true` is needed in configs):
+
+```bash
+docker run --rm -i ghcr.io/pxyup/fitter-mcp:playwright        # stdio mode
+# per-release tag: ghcr.io/pxyup/fitter-mcp:vX.Y.Z-playwright
+```
+
+It is built from [`Dockerfile.mcp-playwright`](https://github.com/PxyUp/fitter/blob/master/Dockerfile.mcp-playwright); build with `--build-arg PLAYWRIGHT_BROWSERS=chromium` for a smaller Chromium-only image.
 
 ### Environment variables
 1. **FITTER_PLUGINS** - string[""] - [path for plugins folder](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md), same as the `--plugins` flag of Fitter/Fitter_CLI
@@ -961,7 +970,7 @@ type PlaywrightConfig struct {
 ```
 
 - Browser - enum["Chromium", "FireFox", "WebKit"] - which browser to use
-- Install - should we install browser
+- Install - should we install browser (downloads the driver + browser matching the built-in `playwright-go` version on first use; not needed with the `ghcr.io/pxyup/fitter-mcp:playwright` image, which ships them preinstalled)
 - Timeout[sec] - timeout to run playwright
 - Wait[sec] - timeout of page loading
 - TypeOfWait - enum["load", "domcontentloaded", "networkidle", "commit"] which state of page we waiting, default is "load"
