@@ -186,7 +186,33 @@ type ServerConnectorConfig struct {
 	JsonRawBody json.RawMessage   `json:"json_raw_body" yaml:"json_raw_body"`
 	Body        string            `yaml:"body" json:"body"`
 
-	Proxy *ProxyConfig `yaml:"proxy" json:"proxy"`
+	Proxy  *ProxyConfig  `yaml:"proxy" json:"proxy"`
+	OAuth2 *OAuth2Config `yaml:"oauth2" json:"oauth2"`
+}
+
+type OAuth2GrantType string
+
+const (
+	ClientCredentialsGrant OAuth2GrantType = "client_credentials"
+	RefreshTokenGrant      OAuth2GrantType = "refresh_token"
+)
+
+type OAuth2Config struct {
+	TokenUrl string `json:"token_url" yaml:"token_url"`
+	// GrantType is "client_credentials" (default) or "refresh_token"
+	GrantType    OAuth2GrantType `json:"grant_type" yaml:"grant_type"`
+	ClientId     string          `json:"client_id" yaml:"client_id"`
+	ClientSecret string          `json:"client_secret" yaml:"client_secret"`
+	Scopes       []string        `json:"scopes" yaml:"scopes"`
+	// RefreshToken is required for the "refresh_token" grant
+	RefreshToken string `json:"refresh_token" yaml:"refresh_token"`
+	// EndpointParams are extra parameters sent to the token endpoint ("client_credentials" grant only)
+	EndpointParams map[string]string `json:"endpoint_params" yaml:"endpoint_params"`
+	// AuthStyle is "" (auto detect, default), "header" (basic auth) or "params" (credentials in the request body)
+	AuthStyle string `json:"auth_style" yaml:"auth_style"`
+	// TokenFile is an optional path for persisting tokens between runs; the stored
+	// token is preferred over RefreshToken and rotated refresh tokens are written back
+	TokenFile string `json:"token_file" yaml:"token_file"`
 }
 
 type ProxyConfig struct {

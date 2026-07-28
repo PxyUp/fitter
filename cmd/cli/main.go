@@ -71,6 +71,11 @@ func getConfig(filePath string, urlPath string) *config.CliItem {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "auth" {
+		runAuth(os.Args[2:])
+		return
+	}
+
 	filePath := flag.String("path", "", "Path for config file yaml|json")
 	urlPath := flag.String("url", "", "URL for path for config")
 	copyFlag := flag.Bool("copy", false, "Copy to clip board")

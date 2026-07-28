@@ -25,6 +25,10 @@ ARG VERSION=dev
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -ldflags="-X main.version=${VERSION#v}" -o /out/fitter_mcp ./cmd/mcp
 
+# fitter_cli ships too for the one-time `fitter_cli auth` oauth2 login
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -o /out/fitter_cli ./cmd/cli
+
 FROM alpine:3.20
 
 LABEL org.opencontainers.image.source="https://github.com/PxyUp/fitter" \
@@ -35,6 +39,10 @@ LABEL org.opencontainers.image.source="https://github.com/PxyUp/fitter" \
 RUN apk add --no-cache ca-certificates
 
 COPY --from=build /out/fitter_mcp /usr/local/bin/fitter_mcp
+COPY --from=build /out/fitter_cli /usr/local/bin/fitter_cli
+
+# writable token dir; a named volume mounted here inherits this ownership
+RUN mkdir -p /tokens && chown nobody:nobody /tokens
 
 USER nobody:nobody
 

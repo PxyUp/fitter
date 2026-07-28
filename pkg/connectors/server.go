@@ -133,8 +133,46 @@ func (api *apiConnector) get(ctx context.Context, parsedValue builder.Interfacab
 	reqCtx, cancel := context.WithTimeout(ctx, tt)
 	defer cancel()
 
+	var tokenKey string
+	if api.cfg.OAuth2 != nil {
+		token, key, errToken := oauth2AccessToken(client, api.cfg.OAuth2, parsedValue, index, input, api.logger)
+		if errToken != nil {
+			api.logger.Errorw("unable to get oauth2 token", "url", formattedURL, "error", errToken.Error())
+			return nil, nil, errToken
+		}
+		tokenKey = key
+		token.SetAuthHeader(req)
+	}
+
+	doRequest := func() (*http.Response, error) {
+		attemptReq := req.Clone(reqCtx)
+		if req.GetBody != nil {
+			body, errBody := req.GetBody()
+			if errBody != nil {
+				return nil, errBody
+			}
+			attemptReq.Body = body
+		}
+		return client.Do(attemptReq)
+	}
+
 	api.logger.Infow("sending request to url", "url", formattedURL, "body", formattedBody)
-	resp, err := client.Do(req.WithContext(reqCtx))
+	resp, err := doRequest()
+	if err == nil && api.cfg.OAuth2 != nil && resp.StatusCode == http.StatusUnauthorized {
+		// cached token may be revoked: drop it and retry once with a fresh one
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
+		oauth2Evict(tokenKey)
+		api.logger.Infow("got 401 with oauth2, retrying with fresh token", "url", formattedURL)
+
+		token, _, errToken := oauth2AccessToken(client, api.cfg.OAuth2, parsedValue, index, input, api.logger)
+		if errToken != nil {
+			api.logger.Errorw("unable to refresh oauth2 token", "url", formattedURL, "error", errToken.Error())
+			return nil, nil, errToken
+		}
+		token.SetAuthHeader(req)
+		resp, err = doRequest()
+	}
 	if err != nil {
 		api.logger.Errorw("unable to send http request", "method", api.cfg.Method, "url", formattedURL, "error", err.Error())
 		return nil, nil, err

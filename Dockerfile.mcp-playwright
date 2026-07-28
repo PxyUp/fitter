@@ -26,6 +26,10 @@ ARG VERSION=dev
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -ldflags="-X main.version=${VERSION#v}" -o /out/fitter_mcp ./cmd/mcp
 
+# fitter_cli ships too for the one-time `fitter_cli auth` oauth2 login
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -o /out/fitter_cli ./cmd/cli
+
 # the playwright-go installer CLI, built from go.mod so the driver it
 # downloads always matches the library version fitter is compiled against
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
@@ -56,8 +60,11 @@ RUN playwright install --with-deps $PLAYWRIGHT_BROWSERS && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /out/fitter_mcp /usr/local/bin/fitter_mcp
+COPY --from=build /out/fitter_cli /usr/local/bin/fitter_cli
 
-RUN useradd --create-home fitter && chown -R fitter /opt/fitter/cache
+# /tokens: writable token dir; a named volume mounted here inherits this ownership
+RUN useradd --create-home fitter && chown -R fitter /opt/fitter/cache && \
+    mkdir -p /tokens && chown fitter /tokens
 
 USER fitter
 

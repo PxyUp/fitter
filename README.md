@@ -130,6 +130,36 @@ docker run --rm -i ghcr.io/pxyup/fitter-mcp:playwright        # stdio mode
 
 It is built from [`Dockerfile.mcp-playwright`](https://github.com/PxyUp/fitter/blob/master/Dockerfile.mcp-playwright); build with `--build-arg PLAYWRIGHT_BROWSERS=chromium` for a smaller Chromium-only image.
 
+#### OAuth2 accounts in Docker
+
+Both images ship `fitter_cli`, so the one-time [OAuth2 login](#fitter_cli-auth--connect-an-oauth2-account) can run inside the container. Store the token on a volume mounted at `/tokens` (pre-created writable in the image) and share it with the MCP server:
+
+```bash
+# one-time login, device flow: no ports needed — open the printed url on any device
+docker run --rm -it -v fitter-tokens:/tokens --entrypoint fitter_cli \
+  ghcr.io/pxyup/fitter-mcp:latest \
+  auth --provider github --client-id <ID> --client-secret <SECRET> --token-file /tokens/github.json
+
+# or browser flow (device flow not enabled for the app): publish the callback port and
+# bind on 0.0.0.0 so the published port reaches the listener; the browser still visits 127.0.0.1
+docker run --rm -it -p 8988:8988 -e FITTER_AUTH_LISTEN=0.0.0.0 \
+  -v fitter-tokens:/tokens --entrypoint fitter_cli ghcr.io/pxyup/fitter-mcp:latest \
+  auth --provider github --client-id <ID> --client-secret <SECRET> --token-file /tokens/github.json
+
+# then run the MCP server with the same volume; configs reference "token_file": "/tokens/github.json"
+# stdio mode (spawned by the MCP client, no port):
+docker run --rm -i -v fitter-tokens:/tokens ghcr.io/pxyup/fitter-mcp:latest
+# hosted HTTP mode (MCP endpoint on 8080, like the run examples above):
+docker run --rm -p 8080:8080 -v fitter-tokens:/tokens \
+  -e FITTER_MCP_HTTP_ADDR=:8080 \
+  -e FITTER_MCP_AUTH_TOKEN=my-secret \
+  ghcr.io/pxyup/fitter-mcp:latest
+```
+
+Note: `8988` is only for the one-time browser-flow login; the MCP server itself needs no port in stdio mode and only `8080` in hosted HTTP mode.
+
+The volume must stay writable for the server: rotated refresh tokens are written back on every refresh.
+
 ### Environment variables
 1. **FITTER_PLUGINS** - string[""] - [path for plugins folder](https://github.com/PxyUp/fitter/blob/master/examples/plugin/README.md), same as the `--plugins` flag of Fitter/Fitter_CLI
 2. **FITTER_MCP_HTTP_ADDR** - string[""] - listen address for [remote mode](#remote--hosted-mode-streamable-http), same as `--http`
@@ -400,6 +430,34 @@ go run cmd/cli/main.go --path=./examples/cli/config_cli.json
 ```bash
 ./fitter_cli_${VERSION} --path=./examples/cli/config_cli.json --copy=true
 ```
+
+### fitter_cli auth — connect an OAuth2 account
+
+One-time interactive login which stores a (refresh) token for the [oauth2 connector config](#oauth2-config):
+
+```bash
+# device flow (default when the provider supports it): no callback, works headless
+./fitter_cli_${VERSION} auth --provider github --client-id <ID> --client-secret <SECRET> --token-file ~/.fitter/tokens/github.json
+
+# custom provider without preset
+./fitter_cli_${VERSION} auth --auth-url https://.../authorize --token-url https://.../token --client-id <ID> --token-file ./token.json
+```
+
+Arguments:
+1. **--provider** - preset with known endpoints: `github|google|microsoft|gitlab|spotify`
+2. **--client-id** / **--client-secret** - OAuth2 app credentials (some device flows work without secret)
+3. **--token-file** - where to store the received token (0600 permissions); reference the same path in `oauth2.token_file`
+4. **--flow** - `auto` (device if available, else browser), `device` (visit a url + enter a code) or `browser` (localhost callback with PKCE, default port 8988 — register `http://127.0.0.1:8988/callback` as the app callback url)
+5. **--scopes** - comma separated scopes
+6. **--auth-url/--token-url/--device-auth-url/--auth-style** - endpoint overrides for providers without preset
+7. **--port** - int[8988] - browser flow callback port (env `FITTER_AUTH_PORT`); with the default the callback url to register at the provider is `http://127.0.0.1:8988/callback`
+8. **--listen** - browser flow bind address, default `127.0.0.1`; set `0.0.0.0` inside a container so the published port reaches the listener (env `FITTER_AUTH_LISTEN`)
+9. **--redirect-url** - callback url registered at the provider when it differs from the listen address, e.g. docker port mapping (env `FITTER_AUTH_REDIRECT_URL`)
+10. **--no-browser** - only print the authorization url
+
+Running inside Docker: see [OAuth2 accounts in Docker](#oauth2-accounts-in-docker).
+
+After login the command prints the ready-to-use `oauth2` config block. The connector refreshes the access token automatically and writes rotated refresh tokens back to the token file, so the login is needed only once.
 
 Examples:
 1. **Server version** [HackerNews + Quotes + Guardian News](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json) - using API + HTML + XPath parsing
@@ -803,7 +861,8 @@ type ServerConnectorConfig struct {
     JsonRawBody json.RawMessage   `json:"json_raw_body" yaml:"json_raw_body"`
     Body        string            `yaml:"body" json:"body"`
     
-    Proxy *ProxyConfig `yaml:"proxy" json:"proxy"`
+    Proxy  *ProxyConfig  `yaml:"proxy" json:"proxy"`
+    OAuth2 *OAuth2Config `yaml:"oauth2" json:"oauth2"`
 }
 ```
 
@@ -813,6 +872,7 @@ type ServerConnectorConfig struct {
 - Body - body of the request, parsed value [can be injected](#placeholder-list)
 - JsonRawBody - body of the request in json format; value [can be injected](#placeholder-list)
 - Proxy - setup proxy for request [config](#proxy-config)
+- OAuth2 - fetch/refresh an access token automatically and send it as `Authorization` header [config](#oauth2-config)
 
 Example:
 ```json
@@ -821,6 +881,47 @@ Example:
   "proxy": {
     "server": "http://localhost:8080",
     "username": "pyx"
+  }
+}
+```
+
+##### OAuth2 config
+
+Automatically obtains an access token before the request and injects it as the `Authorization` header (overriding one set via `headers`). Tokens are cached in memory and refreshed before expiry; on a `401` response the cached token is dropped and the request is retried once with a fresh one.
+
+```go
+type OAuth2Config struct {
+    TokenUrl       string            `json:"token_url" yaml:"token_url"`
+    GrantType      OAuth2GrantType   `json:"grant_type" yaml:"grant_type"`
+    ClientId       string            `json:"client_id" yaml:"client_id"`
+    ClientSecret   string            `json:"client_secret" yaml:"client_secret"`
+    Scopes         []string          `json:"scopes" yaml:"scopes"`
+    RefreshToken   string            `json:"refresh_token" yaml:"refresh_token"`
+    EndpointParams map[string]string `json:"endpoint_params" yaml:"endpoint_params"`
+    AuthStyle      string            `json:"auth_style" yaml:"auth_style"`
+    TokenFile      string            `json:"token_file" yaml:"token_file"`
+}
+```
+
+- TokenUrl - token endpoint URL. Also support [formatting](#placeholder-list)
+- GrantType - enum["client_credentials", "refresh_token"], default is "client_credentials". Use "refresh_token" for APIs where the user consented once (Google, Microsoft, ...) and you hold a long-lived refresh token
+- ClientId/ClientSecret - client credentials. Also support [formatting](#placeholder-list), e.g. `{{{FromEnv=CLIENT_SECRET}}}`
+- Scopes - requested scopes
+- RefreshToken - required for the "refresh_token" grant. Also support [formatting](#placeholder-list)
+- EndpointParams - extra token endpoint parameters (e.g. `audience` for Auth0), "client_credentials" grant only
+- AuthStyle - enum["", "header", "params"] - how client credentials are passed to the token endpoint: basic auth header or request body; empty means auto detect
+- TokenFile - optional path (supports `~/`) for persisting tokens between runs; the stored token is preferred over RefreshToken and rotated refresh tokens are written back — required for providers with single-use refresh tokens (GitHub Apps and similar). Create it with [fitter_cli auth](#fitter_cli-auth--connect-an-oauth2-account)
+
+Example:
+```json
+{
+  "method": "GET",
+  "oauth2": {
+    "token_url": "https://oauth2.googleapis.com/token",
+    "grant_type": "refresh_token",
+    "client_id": "{{{FromEnv=GOOGLE_CLIENT_ID}}}",
+    "client_secret": "{{{FromEnv=GOOGLE_CLIENT_SECRET}}}",
+    "refresh_token": "{{{FromEnv=GOOGLE_REFRESH_TOKEN}}}"
   }
 }
 ```

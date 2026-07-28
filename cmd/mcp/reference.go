@@ -19,7 +19,7 @@ A config for fitter_run/fitter_run_file is a "CliItem" object (JSON or YAML):
   "null_on_error": false,                              // return null instead of failing
 
   // exactly ONE of the following connector configs:
-  "server_config":  { "method": "GET", "headers": {"Authorization": "Bearer {{{RefName=Token}}}"}, "timeout": 30, "body": "", "json_raw_body": {}, "proxy": {"server": "http://host:3128", "username": "", "password": ""} },
+  "server_config":  { "method": "GET", "headers": {"Authorization": "Bearer {{{RefName=Token}}}"}, "timeout": 30, "body": "", "json_raw_body": {}, "proxy": {"server": "http://host:3128", "username": "", "password": ""}, "oauth2": {"token_url": "https://.../token", "grant_type": "client_credentials"|"refresh_token", "client_id": "{{{FromEnv=ID}}}", "client_secret": "", "scopes": [], "refresh_token": "", "endpoint_params": {}, "auth_style": ""|"header"|"params", "token_file": "~/.fitter/tokens/name.json"} },   // oauth2: token fetched/refreshed/cached automatically, sent as Authorization header; token_file persists rotated refresh tokens between runs (create it once with the "fitter_cli auth" command)
   "static_config":  { "value": "string value (can be html/json)", "raw": {"any": "json"} },
   "file_config":    { "path": "/path/to/file", "use_formatting": false },
   "int_sequence_config": { "start": 0, "end": 10, "step": 1 },   // [start, end) like range(); good for pagination
