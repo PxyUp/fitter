@@ -26,7 +26,7 @@ A config for fitter_run/fitter_run_file is a "CliItem" object (JSON or YAML):
   "reference_config": { "name": "MyRef" },             // read prefetched value from top-level references
   "plugin_connector_config": { "name": "my_plugin", "config": {...} },  // requires FITTER_PLUGINS env on the MCP server
   "browser_config": {                                  // headless browser (JS-rendered pages), one of:
-    "playwright": { "browser": "Chromium"|"FireFox"|"WebKit", "install": true, "timeout": 30, "wait": 30, "type_of_wait": "load"|"domcontentloaded"|"networkidle"|"commit", "stealth": false, "pre_run_script": "", "proxy": {...} },   // timeout/wait in SECONDS
+    "playwright": { "browser": "Chromium"|"FireFox"|"WebKit", "install": true, "timeout": 30, "wait": 30, "type_of_wait": "load"|"domcontentloaded"|"networkidle"|"commit", "stealth": false, "pre_run_script": "", "post_run_script": "", "proxy": {...} },   // timeout/wait in SECONDS; pre_run_script = init script injected before page scripts run (no DOM access), post_run_script = evaluated after load before reading content
     "chromium":   { "path": "/path/to/chromium", "timeout": 30, "wait": 10000, "flags": [] },   // timeout sec, wait MILLISECONDS
     "docker":     { "image": "docker.io/zenika/alpine-chrome:with-node", "entry_point": "chromium-browser", "timeout": 30, "wait": 10000, "flags": [], "purge": true, "no_pull": false, "pull_timeout": 60 }   // timeout sec, wait msec
   }

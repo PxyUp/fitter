@@ -175,6 +175,16 @@ func getFromPlaywright(ctx context.Context, url string, cfg *config.PlaywrightCo
 			}
 		}()
 
+		if cfg.PreRunScript != "" {
+			err = page.AddInitScript(playwright.Script{
+				Content: playwright.String(utils.Format(cfg.PreRunScript, parsedValue, index, input)),
+			})
+			if err != nil {
+				logger.Errorw("could not inject pre run script to page", "error", err.Error(), "script", cfg.PreRunScript)
+				return
+			}
+		}
+
 		tt := timeout
 		if cfg.Wait > 0 {
 			tt = time.Second * time.Duration(cfg.Wait)
@@ -190,10 +200,10 @@ func getFromPlaywright(ctx context.Context, url string, cfg *config.PlaywrightCo
 			return
 		}
 
-		if cfg.PreRunScript != "" {
-			_, err = page.Evaluate(utils.Format(cfg.PreRunScript, parsedValue, index, input))
+		if cfg.PostRunScript != "" {
+			_, err = page.Evaluate(utils.Format(cfg.PostRunScript, parsedValue, index, input))
 			if err != nil {
-				logger.Errorw("could execute script on page", "error", err.Error(), "script", cfg.PreRunScript)
+				logger.Errorw("could execute script on page", "error", err.Error(), "script", cfg.PostRunScript)
 				return
 			}
 		}
