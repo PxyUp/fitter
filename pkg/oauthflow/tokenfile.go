@@ -39,9 +39,15 @@ func LoadTokenFile(path string) (*oauth2.Token, error) {
 
 // SaveTokenFile persists an oauth2 token with 0600 permissions via temp file + rename
 func SaveTokenFile(path string, token *oauth2.Token) error {
+	return SaveJSONFile(path, token)
+}
+
+// SaveJSONFile persists any credential-like value as JSON with 0600 permissions
+// via temp file + rename
+func SaveJSONFile(path string, value interface{}) error {
 	path = ExpandPath(path)
 
-	content, err := json.MarshalIndent(token, "", "  ")
+	content, err := json.MarshalIndent(value, "", "  ")
 	if err != nil {
 		return err
 	}

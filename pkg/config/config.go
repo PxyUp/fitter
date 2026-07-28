@@ -141,6 +141,14 @@ type PlaywrightConfig struct {
 	PreRunScript  string                     `json:"pre_run_script" yaml:"pre_run_script"`
 	PostRunScript string                     `json:"post_run_script" yaml:"post_run_script"`
 	Stealth       bool                       `json:"stealth" yaml:"stealth"`
+	// StorageStateFile is an optional path to a playwright storage state json
+	// (cookies + localStorage): loaded into the browser context before navigation,
+	// written back after the page is read so refreshed sessions persist.
+	// Create it with the "fitter_cli browser-login" command
+	StorageStateFile string `json:"storage_state_file" yaml:"storage_state_file"`
+	// IndexedDB includes IndexedDB in the persisted storage state (some SPAs,
+	// e.g. Firebase Auth, keep tokens there)
+	IndexedDB bool `json:"indexed_db" yaml:"indexed_db"`
 
 	Proxy *ProxyConfig `json:"proxy" yaml:"proxy"`
 }

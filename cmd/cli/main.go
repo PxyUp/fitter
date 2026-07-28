@@ -71,9 +71,15 @@ func getConfig(filePath string, urlPath string) *config.CliItem {
 }
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "auth" {
-		runAuth(os.Args[2:])
-		return
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "auth":
+			runAuth(os.Args[2:])
+			return
+		case "browser-login":
+			runBrowserLogin(os.Args[2:])
+			return
+		}
 	}
 
 	filePath := flag.String("path", "", "Path for config file yaml|json")

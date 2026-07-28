@@ -9,11 +9,13 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/oauthflow"
 	"github.com/PxyUp/fitter/pkg/utils"
 	stealth "github.com/go-rod/stealth"
 	"github.com/mxschmitt/playwright-go"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/semaphore"
+	"os"
 	"time"
 )
 
@@ -144,7 +146,31 @@ func getFromPlaywright(ctx context.Context, url string, cfg *config.PlaywrightCo
 			}
 		}()
 
-		page, err := browserInstance.NewPage()
+		var contextOpts playwright.BrowserNewContextOptions
+		storageStateFile := ""
+		if cfg.StorageStateFile != "" {
+			storageStateFile = oauthflow.ExpandPath(utils.Format(cfg.StorageStateFile, parsedValue, index, input))
+			if _, errStat := os.Stat(storageStateFile); errStat == nil {
+				contextOpts.StorageStatePath = playwright.String(storageStateFile)
+			} else {
+				logger.Infow("storage state file does not exist yet, starting a fresh session", "path", storageStateFile)
+			}
+		}
+
+		browserCtx, err := browserInstance.NewContext(contextOpts)
+		if err != nil {
+			logger.Errorw("could not create browser context", "error", err.Error())
+			return
+		}
+
+		defer func() {
+			errCtxClose := browserCtx.Close()
+			if errCtxClose != nil {
+				logger.Errorw("could not close browser context", "error", errCtxClose.Error())
+			}
+		}()
+
+		page, err := browserCtx.NewPage()
 		if err != nil {
 			logger.Errorw("could not create page: %v", "error", err.Error())
 			return
@@ -212,6 +238,18 @@ func getFromPlaywright(ctx context.Context, url string, cfg *config.PlaywrightCo
 		if err != nil {
 			logger.Errorw("unable to get page content", "error", err.Error())
 			return
+		}
+
+		if storageStateFile != "" {
+			// write refreshed cookies back so rotated sessions stay alive; non-fatal
+			state, errState := browserCtx.StorageState(playwright.BrowserContextStorageStateOptions{
+				IndexedDB: playwright.Bool(cfg.IndexedDB),
+			})
+			if errState != nil {
+				logger.Errorw("unable to get storage state", "error", errState.Error())
+			} else if errSave := oauthflow.SaveJSONFile(storageStateFile, state); errSave != nil {
+				logger.Errorw("unable to persist storage state", "path", storageStateFile, "error", errSave.Error())
+			}
 		}
 	}()
 

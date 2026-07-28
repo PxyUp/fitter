@@ -62,9 +62,10 @@ RUN playwright install --with-deps $PLAYWRIGHT_BROWSERS && \
 COPY --from=build /out/fitter_mcp /usr/local/bin/fitter_mcp
 COPY --from=build /out/fitter_cli /usr/local/bin/fitter_cli
 
-# /tokens: writable token dir; a named volume mounted here inherits this ownership
+# /tokens (oauth2 token_file) and /sessions (playwright storage_state_file):
+# writable dirs; a volume mounted there inherits this ownership
 RUN useradd --create-home fitter && chown -R fitter /opt/fitter/cache && \
-    mkdir -p /tokens && chown fitter /tokens
+    mkdir -p /tokens /sessions && chown fitter /tokens /sessions
 
 USER fitter
 

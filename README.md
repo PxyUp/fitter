@@ -158,6 +158,20 @@ docker run --rm -p 8080:8080 -v fitter-tokens:/tokens \
 
 Note: `8988` is only for the one-time browser-flow login; the MCP server itself needs no port in stdio mode and only `8080` in hosted HTTP mode.
 
+#### Logged-in browser sessions in Docker
+
+[Browser sessions](#fitter_cli-browser-login--reuse-a-real-login-session) need the `playwright` image (the slim one has no browsers). The one-time headed login needs a display, so run it **on the host**, then bind-mount the session dir into the container (the image pre-creates a writable `/sessions`):
+
+```bash
+# on the host: log in once, save the session
+fitter_cli browser-login --url https://example.com/login --storage-state ~/.fitter/sessions/example.json
+
+# run the MCP server with the sessions dir mounted; configs reference "storage_state_file": "/sessions/example.json"
+docker run --rm -i -v ~/.fitter/sessions:/sessions ghcr.io/pxyup/fitter-mcp:playwright
+```
+
+Use a bind mount (not a named volume): the container writes refreshed cookies back after every run, so the host copy stays current and can be re-extended with `browser-login` at any time.
+
 The volume must stay writable for the server: rotated refresh tokens are written back on every refresh.
 
 ### Environment variables
@@ -458,6 +472,24 @@ Arguments:
 Running inside Docker: see [OAuth2 accounts in Docker](#oauth2-accounts-in-docker).
 
 After login the command prints the ready-to-use `oauth2` config block. The connector refreshes the access token automatically and writes rotated refresh tokens back to the token file, so the login is needed only once.
+
+### fitter_cli browser-login — reuse a real login session
+
+For sites without an API/OAuth: log in once by hand in a real (headed) browser window — any auth scheme works, including passwords, 2FA, SSO and captchas — and save the session for headless scraping via [storage_state_file](#playwright):
+
+```bash
+./fitter_cli_${VERSION} browser-login --url https://example.com/login --storage-state ~/.fitter/sessions/example.json
+# a browser window opens; log in, then press Enter in the terminal to save the session
+```
+
+Arguments:
+1. **--url** - login page to open (required)
+2. **--storage-state** - where to save the session (cookies + localStorage, 0600 permissions); reference the same path in `playwright.storage_state_file` (required)
+3. **--browser** - enum["Chromium", "FireFox", "WebKit"] default "Chromium"; use the same value as the scraping config — sites may bind sessions to the browser fingerprint
+4. **--install** - bool[false] - install playwright browsers first
+5. **--indexeddb** - bool[false] - include IndexedDB in the snapshot (Firebase Auth and similar)
+
+Re-running the command loads the existing state first, so you can extend/refresh a session without logging in from scratch. The scraping connector also writes refreshed cookies back after every run, keeping the session alive as long as it is used regularly. Needs a display: inside Docker run this command on the host and mount the file — see [browser sessions in Docker](#logged-in-browser-sessions-in-docker).
 
 Examples:
 1. **Server version** [HackerNews + Quotes + Guardian News](https://github.com/PxyUp/fitter/blob/master/examples/cli/config_cli.json) - using API + HTML + XPath parsing
@@ -1067,6 +1099,9 @@ type PlaywrightConfig struct {
     PostRunScript string                     `json:"post_run_script" yaml:"post_run_script"`
     Stealth       bool                       `json:"stealth" yaml:"stealth"`
     
+    StorageStateFile string `json:"storage_state_file" yaml:"storage_state_file"`
+    IndexedDB        bool   `json:"indexed_db" yaml:"indexed_db"`
+    
     Proxy *ProxyConfig `yaml:"proxy" json:"proxy"`
 }
 ```
@@ -1079,6 +1114,8 @@ type PlaywrightConfig struct {
 - PreRunScript[""] - script which will be injected via AddInitScript and executed before any page script runs (on document creation, before navigation completes). Useful for patching the environment (navigator overrides, API stubs). Cannot access the loaded DOM. Also support placeholder [{PL}](#placeholder-list)
 - PostRunScript[""] - script which will be executed after page load, before reading content of the page. Useful for DOM interaction (clicks, scrolling). Also support placeholder [{PL}](#placeholder-list)
 - Stealth[false] - add script for trying passing bot defends
+- StorageStateFile[""] - path (supports `~/`) to a playwright storage state json (cookies + localStorage): loaded into the browser context before navigation, written back after every run so refreshed sessions stay alive. Lets headless runs reuse a real login — create the file once with [fitter_cli browser-login](#fitter_cli-browser-login--reuse-a-real-login-session). Use the same `browser` for login and scraping: sites may bind sessions to the browser fingerprint. Also support [formatting](#placeholder-list)
+- IndexedDB[false] - include IndexedDB in the persisted storage state (some SPAs, e.g. Firebase Auth, keep tokens there)
 - Proxy - setup proxy for request [config](#proxy-config)
 
 Example
