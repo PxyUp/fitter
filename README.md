@@ -1,5 +1,7 @@
 # Fitter — web data for AI agents
 
+[![MCP Toplist](https://mcptoplist.com/badge/io.github.PxyUp%2Ffitter.svg)](https://mcptoplist.com/server/io.github.PxyUp%2Ffitter)
+
 [![Release](https://img.shields.io/github/v/release/PxyUp/fitter)](https://github.com/PxyUp/fitter/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/PxyUp/fitter/blob/master/LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/PxyUp/fitter.svg)](https://pkg.go.dev/github.com/PxyUp/fitter)
