@@ -94,6 +94,7 @@ The `.mcpb` bundle and native binary ship **without** browsers: HTTP, static and
 | `fitter_run` | Run a Fitter config passed inline (JSON or YAML string) and return the extracted data as JSON. Accepts an optional `input` value available in the config via `{{{FromInput=.}}}` / `{{{FromInput=json.path}}}` |
 | `fitter_run_file` | Same as `fitter_run` but reads the config from a local `.json`/`.yaml` file |
 | `fitter_run_url` | Same as `fitter_run` but downloads the config from an HTTP(S) URL, e.g. a raw GitHub link |
+| `fitter_inspect_url` | Fetch a URL and return a compact structure outline + candidate selectors/paths (gjson paths for JSON; repeated-element/list-row selectors for HTML) so the model authors a config first-try instead of guessing selectors and getting nulls. Detects client-rendered SPAs and can `render` them in a headless browser. Read-only — does not extract |
 | `fitter_validate_config` | Validate a config without executing it (structure, `response_type`, connector data source, model). Useful while iterating on a config |
 | `fitter_config_reference` | Return a condensed reference of the whole config format (connectors, parsers, model/field schema, placeholders, notifiers, references, limits) with working examples, so the model can author configs without external docs |
 
@@ -1226,7 +1227,7 @@ type ArrayConfig struct {
 
 - RootPath - selector for find root element of the array or repeated element in case of html parsing, size of array will be amount of children element under the root
 - Reverse - bool[false] - indicate that need use reverse iteration(n to 1)
-- LengthLimit - for define size of array only for generated(not working for static)
+- LengthLimit - fixed size of the array (generated arrays only; not for static). Note: when the source has **fewer** elements than the limit, the array is **padded with trailing `null`s** to preserve the declared size (this is intentional) — omit `length_limit` to get exactly the source length instead
 - Condition - optional [condition](#conditional-fields) expression evaluated against the source node **before** resolution; when false the whole array is omitted from the parent
 - ItemCondition - optional [condition](#conditional-fields) expression evaluated against every **built** item (fRes - item value, fSrc - source element, fIndex - item index); items resolving to false are dropped from the array - declarative filtering. Not applied to static_array
 

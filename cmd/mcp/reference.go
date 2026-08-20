@@ -73,7 +73,7 @@ ArrayConfig:
 {
   "root_path": "<selector of the repeating element>",
   "item_config": <ObjectConfig>,                 // model of each element (paths relative to root_path)
-  "length_limit": 10,
+  "length_limit": 10,                            // fixed array size; pads with trailing nulls if the source has fewer items — omit for exactly the source length
   "reverse": false,
   "condition": "",                               // optional: false = whole array omitted from the parent
   "item_condition": "fSrc.in_stock && fRes.price > 0",  // optional filter over every BUILT item (fRes = item, fSrc = source element, fIndex = index); false items are dropped. Not applied to static_array
