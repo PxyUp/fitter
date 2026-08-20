@@ -19,6 +19,8 @@ import (
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/limitter"
 	"github.com/PxyUp/fitter/pkg/logger"
+	"github.com/PxyUp/fitter/pkg/parser"
+	"github.com/PxyUp/fitter/pkg/references"
 	"gopkg.in/yaml.v3"
 )
 
@@ -69,8 +71,14 @@ func fitterRun(_ js.Value, args []js.Value) any {
 			}
 
 			// the page is a long-lived process running many unrelated configs;
-			// without this, only the first config's limits would ever apply
+			// without these, only the first config's limits/references would
+			// ever apply (pkg/limitter and pkg/references both default to
+			// process-lifetime "set once" semantics, correct for the native
+			// one-shot CLI/service but wrong here)
 			limitter.ReplaceLimits(cfg.Limits)
+			references.ReplaceReferences(cfg.References, func(refName string, model *config.ModelField) (builder.Jsonable, error) {
+				return parser.NewEngine(model.ConnectorConfig, logger.Null.With("reference_name", refName)).Get(context.Background(), model.Model, nil, nil, nil)
+			})
 
 			res, errParse := lib.ParseCtx(context.Background(), cfg.Item, cfg.Limits, cfg.References, builder.PureString(input), logger.Null)
 			if errParse != nil {
