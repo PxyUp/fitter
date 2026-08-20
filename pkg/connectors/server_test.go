@@ -29,6 +29,53 @@ func TestApiConnectorGet(t *testing.T) {
 	assert.Equal(t, `{"ok":true}`, string(body))
 }
 
+func TestApiConnectorDefaultUserAgent(t *testing.T) {
+	var gotUA string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotUA = r.Header.Get("User-Agent")
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer srv.Close()
+
+	_, err := connectors.NewAPI(srv.URL, &config.ServerConnectorConfig{Method: http.MethodGet}, nil).Get(context.Background(), nil, nil, nil)
+	require.NoError(t, err)
+	assert.Equal(t, connectors.DefaultUserAgent, gotUA)
+}
+
+func TestApiConnectorUserAgentOverride(t *testing.T) {
+	var gotUA string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotUA = r.Header.Get("User-Agent")
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer srv.Close()
+
+	_, err := connectors.NewAPI(srv.URL, &config.ServerConnectorConfig{
+		Method:  http.MethodGet,
+		Headers: map[string]string{"User-Agent": "custom-agent/9.9"},
+	}, nil).Get(context.Background(), nil, nil, nil)
+	require.NoError(t, err)
+	assert.Equal(t, "custom-agent/9.9", gotUA)
+}
+
+func TestApiConnectorErrorOnStatus(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"error":"not found"}`))
+	}))
+	defer srv.Close()
+
+	// default (off): non-2xx is NOT an error, the body is returned — unchanged behavior
+	body, err := connectors.NewAPI(srv.URL, &config.ServerConnectorConfig{Method: http.MethodGet}, nil).Get(context.Background(), nil, nil, nil)
+	require.NoError(t, err)
+	assert.Equal(t, `{"error":"not found"}`, string(body))
+
+	// opt-in (on): a 404 surfaces as a fetch error
+	_, err = connectors.NewAPI(srv.URL, &config.ServerConnectorConfig{Method: http.MethodGet, ErrorOnStatus: true}, nil).Get(context.Background(), nil, nil, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "404")
+}
+
 func TestApiConnectorGetCancelled(t *testing.T) {
 	block := make(chan struct{})
 	defer close(block)

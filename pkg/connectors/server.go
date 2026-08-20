@@ -3,6 +3,7 @@ package connectors
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/http_client"
@@ -22,6 +23,13 @@ const (
 	timeout                 = 60 * time.Second
 	defaultConcurrentWorker = 1000
 )
+
+// DefaultUserAgent identifies fitter's HTTP requests when a config sets no
+// User-Agent header (previously the requests went out with Go's generic
+// "Go-http-client/1.1"). Override it per request by setting a "User-Agent"
+// header in server_config; override the default globally by reassigning this
+// variable (e.g. to embed the build version).
+var DefaultUserAgent = "fitter (+https://github.com/PxyUp/fitter)"
 
 type apiConnector struct {
 	url    string
@@ -92,6 +100,11 @@ func (api *apiConnector) get(ctx context.Context, parsedValue builder.Interfacab
 
 	for k, v := range api.cfg.Headers {
 		req.Header.Add(utils.Format(k, parsedValue, index, input), utils.Format(v, parsedValue, index, input))
+	}
+
+	// identify fitter unless the config already set a User-Agent
+	if req.Header.Get("User-Agent") == "" && DefaultUserAgent != "" {
+		req.Header.Set("User-Agent", DefaultUserAgent)
 	}
 
 	client := http_client.GetDefaultClient()
@@ -189,6 +202,15 @@ func (api *apiConnector) get(ctx context.Context, parsedValue builder.Interfacab
 	}
 
 	api.logger.Debugw("returned response", "status_code", resp.Status, "body", string(bytes))
+
+	// opt-in: surface HTTP error statuses as fetch errors so a caller can tell a
+	// failed fetch from a genuinely empty result (default keeps the old behavior
+	// of parsing whatever body came back regardless of status)
+	if api.cfg.ErrorOnStatus && resp.StatusCode >= http.StatusBadRequest {
+		api.logger.Errorw("http response returned error status", "method", api.cfg.Method, "url", formattedURL, "status_code", resp.Status)
+		return resp.Header, bytes, fmt.Errorf("unexpected http status %d (%s) for %s", resp.StatusCode, http.StatusText(resp.StatusCode), formattedURL)
+	}
+
 	return resp.Header, bytes, nil
 }
 

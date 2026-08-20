@@ -194,6 +194,13 @@ type ServerConnectorConfig struct {
 	JsonRawBody json.RawMessage   `json:"json_raw_body" yaml:"json_raw_body"`
 	Body        string            `yaml:"body" json:"body"`
 
+	// ErrorOnStatus, when true, treats an HTTP response status >= 400 as a fetch
+	// error (flowing through attempts/null_on_error) instead of parsing the error
+	// body — so a caller can tell a failed fetch from a genuinely empty result.
+	// Default false keeps the original behavior: the body is parsed regardless of
+	// status code.
+	ErrorOnStatus bool `json:"error_on_status" yaml:"error_on_status"`
+
 	Proxy  *ProxyConfig  `yaml:"proxy" json:"proxy"`
 	OAuth2 *OAuth2Config `yaml:"oauth2" json:"oauth2"`
 }

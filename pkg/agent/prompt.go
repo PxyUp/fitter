@@ -27,7 +27,7 @@ config and apply only the requested change - keep every other field as it was.
   "response_type": "json" | "HTML" | "xpath" | "XML" | "pdf",
   "url": "https://...",
   "attempts": 3,
-  "server_config": { "method": "GET", "headers": {...}, "body": "...", "timeout": 30 },
+  "server_config": { "method": "GET", "headers": {...}, "body": "...", "timeout": 30, "error_on_status": false },  // error_on_status: true -> http >=400 becomes a fetch error (obeys attempts/null_on_error); an identifiable User-Agent is sent unless headers set one
   "browser_config": { "playwright": { "browser": "Chromium", "timeout": 60000, "wait": 10000 } },
   "static_config": { "value": "..." },
   "file_config": { "path": "..." }
