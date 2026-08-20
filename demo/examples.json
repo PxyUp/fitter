@@ -237,6 +237,27 @@
     }
   },
   {
+    "id": "error-on-status",
+    "title": "error_on_status — surfacing a failed fetch instead of a silent null",
+    "category": "Connectors",
+    "tags": ["connector: server (GET)", "error_on_status", "live API", "error handling"],
+    "description": "server_config.error_on_status turns an HTTP status ≥ 400 into a fetch error instead of a normally-parsed body. This request hits a live endpoint that always returns 404 with an empty body — with error_on_status left false (the default) that would quietly parse down to null, indistinguishable from a genuinely empty result. With it set true here, the run intentionally fails and shows the real error message instead, so you can tell \"the fetch failed\" apart from \"there's nothing there\".",
+    "counter": "error-on-status",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "url": "https://httpbin.org/status/404",
+          "server_config": { "method": "GET", "error_on_status": true }
+        },
+        "model": {
+          "base_field": { "type": "raw_string", "path": "@this" }
+        }
+      }
+    }
+  },
+  {
     "id": "crypto-top5",
     "title": "Top-5 crypto (live API + expressions)",
     "category": "Generated values",
