@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -19,7 +20,9 @@ import (
 	"github.com/PxyUp/fitter/pkg/agent"
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
+	"github.com/PxyUp/fitter/pkg/connectors"
 	"github.com/PxyUp/fitter/pkg/http_client"
+	"github.com/PxyUp/fitter/pkg/inspect"
 	"github.com/PxyUp/fitter/pkg/logger"
 	"github.com/PxyUp/fitter/pkg/plugins/store"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -48,6 +51,12 @@ type runURLArgs struct {
 
 type validateArgs struct {
 	Config string `json:"config" jsonschema:"Fitter CliItem config as a JSON or YAML string to validate without executing it."`
+}
+
+type inspectArgs struct {
+	URL          string `json:"url" jsonschema:"HTTP(S) URL to fetch and inspect for its structure and candidate selectors."`
+	ResponseType string `json:"response_type,omitempty" jsonschema:"Optional hint for how to read the response: json, HTML, xpath or XML. Empty auto-detects from the Content-Type/body."`
+	Render       bool   `json:"render,omitempty" jsonschema:"Render the page in a headless browser (Playwright/Chromium) before inspecting — needed for client-rendered SPAs whose content is built by JavaScript and is absent from the raw HTML. Requires browser support (the fitter-mcp:playwright image or a local Playwright install)."`
 }
 
 func parseCliItem(content []byte) (*config.CliItem, error) {
@@ -195,6 +204,56 @@ func newServer() *mcp.Server {
 			return nil, nil, err
 		}
 		return textResult("valid"), nil, nil
+	})
+
+	mcp.AddTool(server, &mcp.Tool{
+		Name: "fitter_inspect_url",
+		Description: "Fetch a URL and return a compact structure outline plus candidate selectors/paths, so you can author a fitter config that matches on the first try instead of guessing selectors and getting nulls. " +
+			"For JSON it lists gjson paths with types and sample values; for HTML it lists repeated elements (candidate array_config root_path / list rows) and link/heading selectors. " +
+			"For client-rendered SPAs (content built by JavaScript), a plain fetch sees only an empty shell — the output warns when it detects one; pass render:true to render it in a headless browser first (mirrors what a browser_config scrape would see). " +
+			"Read-only helper that does NOT extract data — use it before fitter_run, then fitter_run to actually extract.",
+	}, func(ctx context.Context, req *mcp.CallToolRequest, in inspectArgs) (*mcp.CallToolResult, any, error) {
+		if strings.TrimSpace(in.URL) == "" {
+			return nil, nil, fmt.Errorf("url is required")
+		}
+		kind := in.ResponseType
+		var body []byte
+		if in.Render {
+			content, err := connectors.NewBrowser(in.URL, &config.BrowserConnectorConfig{
+				Playwright: &config.PlaywrightConfig{Browser: config.Chromium, Install: true, Stealth: true},
+			}).Get(ctx, nil, nil, nil)
+			if err != nil {
+				return nil, nil, fmt.Errorf("unable to render %s in a headless browser: %w", in.URL, err)
+			}
+			body = content
+			if kind == "" {
+				kind = "html"
+			}
+		} else {
+			header, b, err := connectors.NewAPI(in.URL, &config.ServerConnectorConfig{Method: http.MethodGet}, nil).
+				GetWithHeaders(ctx, nil, nil, nil)
+			if err != nil {
+				return nil, nil, fmt.Errorf("unable to fetch %s: %w", in.URL, err)
+			}
+			body = b
+			if kind == "" {
+				ct := header.Get("Content-Type")
+				switch {
+				case strings.Contains(ct, "json"):
+					kind = "json"
+				case strings.Contains(ct, "html"):
+					kind = "html"
+				case strings.Contains(ct, "xml"):
+					kind = "xml"
+				}
+			}
+		}
+		mode := "http"
+		if in.Render {
+			mode = "browser-rendered"
+		}
+		out := fmt.Sprintf("inspected %s (%s, %d bytes)\n\n%s", in.URL, mode, len(body), inspect.Summarize(body, kind))
+		return textResult(out), nil, nil
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
