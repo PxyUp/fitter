@@ -91,3 +91,20 @@ func SetReference(references config.RefMap, cb refFetcher) {
 		}
 	})
 }
+
+// ReplaceReferences swaps the reference store, bypassing the process-lifetime
+// once semantics of SetReference. Long-lived embedders that execute many
+// unrelated configs in a single process (e.g. the WASM playground, which
+// never restarts the Go runtime between runs) call it before each run so
+// every config gets exactly its own references instead of only ever seeing
+// whichever config happened to run first. Not used by the native CLI/service/
+// MCP binaries, where SetReference's once-per-process semantics are intentional.
+func ReplaceReferences(references config.RefMap, cb refFetcher) {
+	refStoreImpl.mutex.Lock()
+	defer refStoreImpl.mutex.Unlock()
+
+	refStoreImpl.kv = make(map[string]*refRecord, len(references))
+	for k, v := range references {
+		refStoreImpl.kv[k] = createRecord(k, v, cb)
+	}
+}
