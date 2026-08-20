@@ -74,6 +74,19 @@ The model calls `fitter_config_reference`, authors a config, optionally checks i
 }
 ```
 
+### Browser support (Playwright)
+
+The `.mcpb` bundle and native binary ship **without** browsers: HTTP, static and file connectors work out of the box, but browser configs (the `playwright` connector) need Playwright's browsers. A few ways to get them:
+
+- **On first use (native binary / `.mcpb`):** set `"install": true` in the playwright connector — fitter downloads the driver + browser matching its built-in `playwright-go` version on first use (one-time, cached), so no separate install step is needed.
+- **Ahead of time (native, optional):** to avoid the first-run download, install the browsers beforehand with the same `playwright-go` version fitter is built against (check [`go.mod`](https://github.com/PxyUp/fitter/blob/master/go.mod), currently `v0.6100.0`):
+  ```bash
+  go run github.com/mxschmitt/playwright-go/cmd/playwright@v0.6100.0 install
+  # Linux: append --with-deps to also install the required OS libraries
+  ```
+  The version must match `go.mod` exactly — `playwright-go` refuses to run against a mismatched driver. Then run configs without `"install": true`.
+- **Docker:** use the [`ghcr.io/pxyup/fitter-mcp:playwright`](#docker) image, which bundles Chromium, Firefox and WebKit preinstalled (no `"install": true` needed).
+
 ### Tools
 
 | Tool | Description |
