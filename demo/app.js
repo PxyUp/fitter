@@ -56,12 +56,42 @@ onStatusChange((status, detail) => {
   }
 });
 
-// A bare "?q=<token>" URL (no hash) is the legacy/canonical share-link
-// shape — route it straight into the playground, which reads location.search
-// itself. New Share links always append "#/playground" too, so this only
-// matters for links captured before the SPA rewrite.
-if (new URLSearchParams(location.search).has("q") && (!location.hash || location.hash === "#")) {
-  location.hash = "/playground";
+// A "?q=<token>" URL is a share link — it must open the playground and load
+// that config no matter what hash it's paired with (a bare URL, the legacy
+// no-hash shape, or someone having replaced "#/playground" with another
+// route like "#/examples"). Force-route to the playground, overriding
+// whatever hash is currently set; the playground itself reads
+// location.search to decode the token.
+if (new URLSearchParams(location.search).has("q")) {
+  const h = location.hash.replace(/^#/, "");
+  if (h !== "/playground" && !h.startsWith("/playground/")) {
+    location.hash = "/playground";
+  }
 }
+
+// Once a share token has done its job of getting the user into the
+// playground, don't let it linger in the address bar past a navigation to a
+// different route — otherwise copying the URL from, say, "#/examples" would
+// silently carry along someone else's (or a stale) shared config. This is
+// distinct from view-playground.js's own "q" clearing, which fires on
+// same-route actions inside the playground (picking an example, discarding
+// an invalid shared config) and never sees a hashchange event.
+function topPathFromHash(hash) {
+  let h = hash.replace(/^#/, "");
+  if (!h) return "/";
+  const q = h.indexOf("?");
+  if (q >= 0) h = h.slice(0, q);
+  if (h.length > 1 && h.endsWith("/")) h = h.slice(0, -1);
+  if (!h.startsWith("/")) h = "/" + h;
+  return "/" + (h.split("/")[1] || "");
+}
+window.addEventListener("hashchange", (e) => {
+  if (!new URLSearchParams(location.search).has("q")) return;
+  const oldTop = topPathFromHash(new URL(e.oldURL).hash);
+  const newTop = topPathFromHash(new URL(e.newURL).hash);
+  if (oldTop === "/playground" && newTop !== "/playground") {
+    history.replaceState(null, "", location.pathname + location.hash);
+  }
+});
 
 start();
