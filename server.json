@@ -98,6 +98,20 @@
           "isRequired": false
         }
       ]
+    },
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/pxyup/fitter-mcp:__TAG__-playwright",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "FITTER_PLUGINS",
+          "description": "Optional path to a fitter plugins folder",
+          "isRequired": false
+        }
+      ]
     }
   ]
 }

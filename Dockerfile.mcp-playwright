@@ -39,7 +39,8 @@ FROM debian:bookworm-slim
 
 LABEL org.opencontainers.image.source="https://github.com/PxyUp/fitter" \
       org.opencontainers.image.description="Fitter MCP server — web data for AI agents (with Playwright browsers)" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.licenses="MIT" \
+      io.modelcontextprotocol.server.name="io.github.PxyUp/fitter"
 
 # browsers land in $XDG_CACHE_HOME/ms-playwright, the driver in $PLAYWRIGHT_DRIVER_PATH
 # (playwright-go defaults the driver to $HOME/.cache, which differs between the
