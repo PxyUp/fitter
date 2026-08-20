@@ -1,0 +1,783 @@
+[
+  {
+    "id": "telegram-briefing",
+    "title": "Telegram bot \u2192 scraped briefing to yourself",
+    "category": "References & placeholders",
+    "tags": ["references", "generated: model", "placeholders", "expressions", "connector: server (POST)"],
+    "description": "Prefetches Hacker News + BTC price as references, then sends a Telegram message built from them via a nested generated.model fetch. Needs a real bot token + chat_id in the input to actually deliver (a placeholder token fails Telegram's CORS preflight and yields null).",
+    "counter": "telegram-sends",
+    "input": {
+      "token": "123456:PASTE_YOUR_BOT_TOKEN",
+      "chat_id": 123456789,
+      "_hint": "create a bot via @BotFather, get your chat_id from @userinfobot; with the placeholder token the run yields null (invalid bots fail Telegram's CORS preflight) \u2014 paste real values and it delivers. Don't Share links with a real token inside"
+    },
+    "config": {
+      "references": {
+        "hn_top": {
+          "connector_config": {
+            "response_type": "json",
+            "url": "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=5",
+            "server_config": { "method": "GET", "timeout": 15 }
+          },
+          "model": {
+            "array_config": {
+              "root_path": "hits",
+              "item_config": {
+                "fields": {
+                  "title": { "base_field": { "type": "string", "path": "title" } },
+                  "points": { "base_field": { "type": "int", "path": "points" } }
+                }
+              }
+            }
+          }
+        },
+        "btc": {
+          "connector_config": {
+            "response_type": "json",
+            "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true",
+            "server_config": { "method": "GET", "timeout": 15 }
+          },
+          "model": {
+            "object_config": {
+              "fields": {
+                "usd": { "base_field": { "type": "int", "path": "bitcoin.usd" } },
+                "trend": {
+                  "base_field": {
+                    "type": "float",
+                    "path": "bitcoin.usd_24h_change",
+                    "generated": { "calculated": { "type": "string", "expression": "fRes > 0 ? \"\ud83d\udcc8 up\" : \"\ud83d\udcc9 down\"" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "reference_config": { "name": "hn_top" }
+        },
+        "model": {
+          "base_field": {
+            "type": "object",
+            "generated": {
+              "model": {
+                "type": "object",
+                "connector_config": {
+                  "response_type": "json",
+                  "url": "https://api.telegram.org/bot{{{FromInput=token}}}/sendMessage",
+                  "server_config": {
+                    "method": "POST",
+                    "headers": { "Content-Type": "application/json" },
+                    "body": "{\"chat_id\":\"{{{FromInput=chat_id}}}\",\"link_preview_options\":{\"is_disabled\":true},\"text\":\"\ud83d\udce1 fitter briefing\\n\\n\u20bf BTC: ${{{RefName=btc usd}}} ({{{RefName=btc trend}}} last 24h)\\n\\n\ud83d\udda8 Hacker News front page:\\n{{{FromExp=join(map(fromJSON(fResJson), {string(#index+1) + '. ' + .title + ' \u2014 ' + string(.points) + ' pts'}), '\\n')}}}\"}"
+                  }
+                },
+                "model": {
+                  "object_config": {
+                    "fields": {
+                      "delivered": { "base_field": { "type": "boolean", "path": "ok" } },
+                      "message_id": { "base_field": { "type": "int", "path": "result.message_id" } },
+                      "to": { "base_field": { "type": "string", "path": "result.chat.first_name" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "book-author-join",
+    "title": "Book search \u2192 author join",
+    "category": "Generated values",
+    "tags": ["generated: model", "connector: server (GET)", "host limit", "live API"],
+    "description": "Searches OpenLibrary by title, then for each result runs a nested fetch (generated.model) to look up the author's name and birth date. A host_request_limiter caps parallel requests to openlibrary.org.",
+    "counter": "book-search",
+    "input": "dune",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "url": "https://openlibrary.org/search.json?q={{{FromInput=.}}}&limit=3&fields=title,author_key,first_publish_year",
+          "server_config": { "method": "GET" }
+        },
+        "model": {
+          "array_config": {
+            "root_path": "docs",
+            "item_config": {
+              "fields": {
+                "title": { "base_field": { "type": "string", "path": "title" } },
+                "year": { "base_field": { "type": "int", "path": "first_publish_year" } },
+                "author": {
+                  "base_field": {
+                    "type": "object",
+                    "generated": {
+                      "model": {
+                        "type": "object",
+                        "connector_config": {
+                          "response_type": "json",
+                          "url": "https://openlibrary.org/authors/{{{FromExp=fromJSON(fRes).author_key[0]}}}.json",
+                          "server_config": { "method": "GET" },
+                          "null_on_error": true
+                        },
+                        "model": {
+                          "object_config": {
+                            "fields": {
+                              "name": { "base_field": { "type": "string", "path": "name" } },
+                              "born": { "base_field": { "type": "string", "path": "birth_date" } }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "limits": { "host_request_limiter": { "openlibrary.org": 2 } }
+    }
+  },
+  {
+    "id": "conditional-fields",
+    "title": "Conditional fields \u2014 filter & omit",
+    "category": "Conditions",
+    "tags": ["condition", "item_condition", "connector: static", "offline"],
+    "description": "item_condition drops out-of-stock or zero-priced products before they reach the output; a per-field condition additionally omits discount_pct when it's not a positive number. Runs fully offline against a static payload.",
+    "counter": "conditional-fields",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "static_config": {
+            "value": "{\"products\":[{\"title\":\"AeroBook 13\",\"price\":999,\"in_stock\":true,\"discount_pct\":15},{\"title\":\"Broken listing\",\"price\":0,\"in_stock\":true,\"discount_pct\":0},{\"title\":\"ZenPad 11\",\"price\":459,\"in_stock\":false,\"discount_pct\":20},{\"title\":\"NovaBook 15\",\"price\":1299,\"in_stock\":true,\"discount_pct\":0}]}"
+          }
+        },
+        "model": {
+          "array_config": {
+            "root_path": "products",
+            "item_condition": "fSrc.in_stock && fRes.price > 0",
+            "item_config": {
+              "fields": {
+                "title": { "base_field": { "type": "string", "path": "title" } },
+                "price": { "base_field": { "type": "float", "path": "price" } },
+                "discount_pct": { "base_field": { "type": "float", "path": "discount_pct", "condition": "fRes > 0" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "static-json",
+    "title": "Static JSON + a calculated field",
+    "category": "Basics",
+    "tags": ["connector: static", "generated: calculated", "offline"],
+    "description": "The simplest possible config: parse a static JSON payload (no network at all), pick a few fields, and compute one via an expr-lang expression over the extracted value.",
+    "counter": "static-json",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "static_config": { "value": "{\"name\":\"fitter\",\"stars\":400,\"topics\":[\"scraping\",\"mcp\",\"ai-agents\"]}" }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "project": { "base_field": { "type": "string", "path": "name" } },
+              "stars": { "base_field": { "type": "int", "path": "stars" } },
+              "first_topic": { "base_field": { "type": "string", "path": "topics.0" } },
+              "shout": {
+                "base_field": {
+                  "type": "string",
+                  "path": "name",
+                  "generated": { "calculated": { "type": "string", "expression": "upper(fRes) + \"!\"" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "github-repo",
+    "title": "GitHub repo (live API)",
+    "category": "Connectors",
+    "tags": ["connector: server (GET)", "json", "live API"],
+    "description": "A plain GET request against a CORS-friendly JSON API, mapped straight into an object.",
+    "counter": "github-repo",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "url": "https://api.github.com/repos/PxyUp/fitter",
+          "server_config": { "method": "GET" }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "repo": { "base_field": { "type": "string", "path": "full_name" } },
+              "description": { "base_field": { "type": "string", "path": "description" } },
+              "stars": { "base_field": { "type": "int", "path": "stargazers_count" } },
+              "language": { "base_field": { "type": "string", "path": "language" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "crypto-top5",
+    "title": "Top-5 crypto (live API + expressions)",
+    "category": "Generated values",
+    "tags": ["array", "generated: calculated", "connector: server (GET)", "live API"],
+    "description": "Fetches an array straight from the API response root (root_path \"@this\") and computes an up/down label per item from its 24h change.",
+    "counter": "crypto-top5",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=5&page=1",
+          "server_config": { "method": "GET" }
+        },
+        "model": {
+          "array_config": {
+            "root_path": "@this",
+            "item_config": {
+              "fields": {
+                "coin": { "base_field": { "type": "string", "path": "name" } },
+                "price": { "base_field": { "type": "float", "path": "current_price" } },
+                "trend": {
+                  "base_field": {
+                    "type": "float",
+                    "path": "price_change_percentage_24h",
+                    "generated": { "calculated": { "type": "string", "expression": "fRes > 0 ? \"up\" : \"down\"" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "html-css",
+    "title": "HTML scraping with CSS selectors",
+    "category": "Parsers",
+    "tags": ["parser: HTML", "connector: server (GET)", "live API"],
+    "description": "response_type \"HTML\" parses the body with goquery, so field paths are CSS selectors; httpbin.org sends CORS headers so this works straight from the browser.",
+    "counter": "html-css",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "HTML",
+          "url": "https://httpbin.org/html",
+          "server_config": { "method": "GET" }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "title": { "base_field": { "type": "string", "path": "h1" } },
+              "excerpt": {
+                "base_field": {
+                  "type": "string",
+                  "path": "div p",
+                  "generated": { "calculated": { "type": "string", "expression": "trim(fRes[:120]) + \"\u2026\"" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "xpath-html",
+    "title": "HTML via XPath (offline)",
+    "category": "Parsers",
+    "tags": ["parser: xpath", "connector: static", "offline"],
+    "description": "response_type \"xpath\" is usable on HTML documents too (not just XML) \u2014 same selector language, different content. Runs against a static HTML fragment.",
+    "counter": "xpath-html",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "xpath",
+          "static_config": {
+            "value": "<html><body><ul class=\"list\"><li><a href=\"/a\">First</a></li><li><a href=\"/b\">Second</a></li></ul></body></html>"
+          }
+        },
+        "model": {
+          "array_config": {
+            "root_path": "//li",
+            "item_config": {
+              "fields": {
+                "text": { "base_field": { "type": "string", "path": "/a/text()" } },
+                "href": { "base_field": { "type": "string", "path": "/a/@href" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "pdf-extract",
+    "title": "PDF text extraction",
+    "category": "Parsers",
+    "tags": ["parser: pdf", "connector: server (GET)"],
+    "description": "response_type \"pdf\" extracts page count and full text; fetches the bundled sample.pdf from this site's own origin (__BASE__ resolves at runtime).",
+    "counter": "pdf-extract",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "pdf",
+          "url": "__BASE__/sample.pdf",
+          "server_config": { "method": "GET" }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "total_pages": { "base_field": { "type": "int", "path": "total_pages" } },
+              "intro": {
+                "base_field": {
+                  "type": "string",
+                  "path": "text",
+                  "generated": { "calculated": { "type": "string", "expression": "trim(fRes[:100]) + \"\u2026\"" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "xml-rss",
+    "title": "XML / RSS parsing",
+    "category": "Parsers",
+    "tags": ["parser: XML", "connector: static", "offline"],
+    "description": "response_type \"XML\" parses via xmlquery; root_path selects the repeating node and field paths are relative to it.",
+    "counter": "xml-rss",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "XML",
+          "static_config": {
+            "value": "<rss><channel><item><title>Fitter ships PDF support</title><link>https://github.com/PxyUp/fitter</link></item><item><title>Fitter playground runs on WebAssembly</title><link>https://pxyup.github.io/fitter</link></item></channel></rss>"
+          }
+        },
+        "model": {
+          "array_config": {
+            "root_path": "//item",
+            "item_config": {
+              "fields": {
+                "headline": { "base_field": { "type": "string", "path": "/title" } },
+                "url": { "base_field": { "type": "string", "path": "/link" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "int-sequence",
+    "title": "Generated sequence",
+    "category": "Connectors",
+    "tags": ["connector: int_sequence", "generated: calculated", "offline"],
+    "description": "int_sequence_config generates [start, end) without any network call \u2014 useful for pagination loops driving a nested generated.model fetch per page.",
+    "counter": "int-sequence",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "int_sequence_config": { "start": 1, "end": 6, "step": 1 }
+        },
+        "model": {
+          "array_config": {
+            "root_path": "@this",
+            "item_config": {
+              "field": {
+                "type": "int",
+                "generated": { "calculated": { "type": "int", "expression": "fRes * fRes" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "first-of-fallback",
+    "title": "first_of \u2014 fallback fields",
+    "category": "Model & fields",
+    "tags": ["first_of", "connector: static", "offline"],
+    "description": "first_of tries each alternative field in order and keeps the first one that resolves to a non-empty value \u2014 handy when an API's shape is inconsistent between items.",
+    "counter": "first-of-fallback",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "static_config": {
+            "value": "{\"items\":[{\"display_name\":\"Ada\"},{\"name\":\"Grace\"},{\"login\":\"linus\"}]}"
+          }
+        },
+        "model": {
+          "array_config": {
+            "root_path": "items",
+            "item_config": {
+              "fields": {
+                "name": {
+                  "first_of": [
+                    { "base_field": { "type": "string", "path": "display_name" } },
+                    { "base_field": { "type": "string", "path": "name" } },
+                    { "base_field": { "type": "string", "path": "login" } }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "static-array",
+    "title": "Static array \u2014 fixed length, indexed fields",
+    "category": "Model & fields",
+    "tags": ["static_array", "connector: static", "offline"],
+    "description": "array_config.static_array builds a fixed-length array where each index has its own independent field definition, instead of repeating one item_config over a root_path.",
+    "counter": "static-array",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "static_config": { "value": "{\"a\":1,\"b\":\"two\",\"c\":true}" }
+        },
+        "model": {
+          "array_config": {
+            "static_array": {
+              "length": 3,
+              "items": {
+                "0": { "base_field": { "type": "int", "path": "a" } },
+                "1": { "base_field": { "type": "string", "path": "b" } },
+                "2": { "base_field": { "type": "boolean", "path": "c" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "nested-object-array",
+    "title": "Object with a nested array field",
+    "category": "Model & fields",
+    "tags": ["object_config", "array_config", "connector: static", "offline"],
+    "description": "A Field can be a nested object_config/array_config directly (not just a base_field) \u2014 here an object has a scalar field and a nested array field built from a sub-path.",
+    "counter": "nested-object-array",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "static_config": {
+            "value": "{\"name\":\"fitter\",\"releases\":[{\"tag\":\"v1.2\"},{\"tag\":\"v1.1\"},{\"tag\":\"v1.0\"}]}"
+          }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "name": { "base_field": { "type": "string", "path": "name" } },
+              "releases": {
+                "array_config": {
+                  "root_path": "releases",
+                  "item_config": {
+                    "fields": {
+                      "tag": { "base_field": { "type": "string", "path": "tag" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reference-as-source",
+    "title": "Reference used as the item's own source",
+    "category": "References & placeholders",
+    "tags": ["reference_config", "references", "connector: server (GET)", "live API"],
+    "description": "The top-level item doesn't fetch anything itself \u2014 its connector_config is a reference_config pointing at a prefetched, cached reference, and the model reshapes that cached value.",
+    "counter": "reference-as-source",
+    "input": "",
+    "config": {
+      "references": {
+        "repo": {
+          "connector_config": {
+            "response_type": "json",
+            "url": "https://api.github.com/repos/PxyUp/fitter",
+            "server_config": { "method": "GET" }
+          },
+          "model": { "base_field": { "type": "object", "path": "@this" } }
+        }
+      },
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "reference_config": { "name": "repo" }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "repo": { "base_field": { "type": "string", "path": "full_name" } },
+              "stars": { "base_field": { "type": "int", "path": "stargazers_count" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "generated-values-showcase",
+    "title": "Generated values \u2014 static, uuid, formatted",
+    "category": "Generated values",
+    "tags": ["generated: static", "generated: uuid", "generated: formatted", "connector: static", "offline"],
+    "description": "Three generated-value kinds side by side: a fixed static value, a random uuid, and a formatted template that injects the current field value via {PL}.",
+    "counter": "generated-values-showcase",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "static_config": { "value": "{\"id\":42}" }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "plan": { "base_field": { "type": "string", "generated": { "static": { "type": "string", "value": "pro" } } } },
+              "request_id": { "base_field": { "type": "string", "generated": { "uuid": {} } } },
+              "permalink": {
+                "base_field": {
+                  "type": "string",
+                  "path": "id",
+                  "generated": { "formatted": { "template": "https://example.com/items/{PL}" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "field-types-showcase",
+    "title": "Base field types \u2014 string, raw_string, int64, float64, null\u2026",
+    "category": "Model & fields",
+    "tags": ["base_field_types", "connector: static", "offline"],
+    "description": "Every base_field.type side by side against one static payload: string (trimmed/normalized) vs raw_string (untouched), int/int64 and float/float64 numeric coercion, boolean, and null (always resolves to null \u2014 useful as a first_of fallback or a placeholder to fill in later).",
+    "counter": "field-types-showcase",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "static_config": {
+            "value": "{\"name\":\"  fitter engine \\t\\n\",\"big_id\":9007199254740991,\"price\":19.987654321,\"in_stock\":true}"
+          }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "name_string": { "base_field": { "type": "string", "path": "name" } },
+              "name_raw_string": { "base_field": { "type": "raw_string", "path": "name" } },
+              "id_int": { "base_field": { "type": "int", "path": "big_id" } },
+              "id_int64": { "base_field": { "type": "int64", "path": "big_id" } },
+              "price_float": { "base_field": { "type": "float", "path": "price" } },
+              "price_float64": { "base_field": { "type": "float64", "path": "price" } },
+              "in_stock": { "base_field": { "type": "boolean", "path": "in_stock" } },
+              "always_null": { "base_field": { "type": "null" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "html-attribute-and-innerhtml",
+    "title": "HTML \u2014 html_attribute and the html type",
+    "category": "Parsers",
+    "tags": ["parser: HTML", "html_attribute", "generated: calculated", "connector: static", "offline"],
+    "description": "response_type \"HTML\" fields can read three different things off the same element: the text (type string), an attribute via html_attribute (e.g. href), or the inner markup itself (type html) \u2014 handy when you need to keep formatting instead of just the plain text.",
+    "counter": "html-attribute-and-innerhtml",
+    "input": "",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "HTML",
+          "static_config": {
+            "value": "<html><body><p class=\"byline\">By <a href=\"https://example.com/authors/ada\" data-id=\"42\">Ada Lovelace</a> \u2014 <b>fitter</b> contributor</p></body></html>"
+          }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "author_text": { "base_field": { "type": "string", "path": "p.byline a" } },
+              "author_href": { "base_field": { "type": "string", "path": "p.byline a", "html_attribute": "href" } },
+              "author_id": { "base_field": { "type": "int", "path": "p.byline a", "html_attribute": "data-id" } },
+              "byline_html": { "base_field": { "type": "html", "path": "p.byline" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "browser-config-native-only",
+    "title": "Browser connectors (Chromium / Docker / Playwright)",
+    "category": "Native-only",
+    "tags": ["browser_config", "native-only"],
+    "description": "browser_config runs a real headless browser (Playwright, a local Chromium, or a Docker image) to render JS-heavy pages before parsing. That needs a real OS process and isn't available inside a WebAssembly sandbox \u2014 the WASM build stubs these connectors to return a clear error. The config below is real and copyable \u2014 open it in the Playground to inspect it, Run just stays disabled there. Run it with the native fitter_cli, MCP server, or service binary instead.",
+    "nativeOnly": true,
+    "docsSlug": "connectors",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "HTML",
+          "url": "https://example.com/spa",
+          "browser_config": {
+            "playwright": {
+              "browser": "Chromium",
+              "install": true,
+              "timeout": 30,
+              "wait": 30,
+              "type_of_wait": "networkidle"
+            }
+          }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "heading": { "base_field": { "type": "string", "path": "h1" } }
+            }
+          }
+        }
+      },
+      "limits": { "playwright_instance": 1 }
+    }
+  },
+  {
+    "id": "file-connector-native-only",
+    "title": "file_config \u2014 read a local file",
+    "category": "Native-only",
+    "tags": ["file_config", "native-only"],
+    "description": "file_config reads a connector's bytes from the local filesystem instead of the network \u2014 needs real disk access, so it can't run inside the browser sandbox this playground uses. The config below is real and copyable; Run stays disabled once it's loaded here. Use the native fitter_cli or MCP server.",
+    "nativeOnly": true,
+    "docsSlug": "connectors",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "file_config": { "path": "/etc/fitter/products.json", "use_formatting": false }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "name": { "base_field": { "type": "string", "path": "name" } },
+              "price": { "base_field": { "type": "float", "path": "price" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "generated-file-native-only",
+    "title": "generated.file & generated.file_storage \u2014 download / write to disk",
+    "category": "Native-only",
+    "tags": ["generated: file", "generated: file_storage", "native-only"],
+    "description": "Two generated-value kinds that touch the local filesystem: \"file\" downloads a URL and resolves to the local path it saved to, \"file_storage\" writes the field's value straight to a file (optionally appending). Both need real disk access, so they're native-only \u2014 the config below is real and copyable; Run stays disabled once it's loaded here.",
+    "nativeOnly": true,
+    "docsSlug": "generated-values",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "static_config": { "value": "{\"id\":42,\"report_url\":\"https://example.com/reports/42.pdf\"}" }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "id": { "base_field": { "type": "int", "path": "id" } },
+              "downloaded_path": {
+                "base_field": {
+                  "type": "string",
+                  "path": "report_url",
+                  "generated": { "file": { "url": "{PL}", "file_name": "report-{{{id}}}.pdf", "path": "/tmp/downloads", "config": { "method": "GET" } } }
+                }
+              },
+              "audit_logged": {
+                "base_field": {
+                  "type": "string",
+                  "path": "id",
+                  "generated": { "file_storage": { "content": "processed id={PL}\n", "file_name": "audit.log", "path": "/tmp", "append": true } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "plugin-connector-native-only",
+    "title": "Plugin connector & generated value",
+    "category": "Native-only",
+    "tags": ["plugin_connector_config", "generated: plugin", "native-only"],
+    "description": "plugin_connector_config (as a data source) and generated.plugin (as a computed field) both load a compiled Go .so plugin via FITTER_PLUGINS. Go's native plugin loader isn't available under GOOS=js at all, so this only runs on the native binary \u2014 the config below is real and copyable; Run stays disabled once it's loaded here.",
+    "nativeOnly": true,
+    "docsSlug": "connectors",
+    "config": {
+      "item": {
+        "connector_config": {
+          "response_type": "json",
+          "plugin_connector_config": { "name": "my_plugin", "config": { "api_key": "{{{FromEnv=MY_PLUGIN_KEY}}}" } }
+        },
+        "model": {
+          "object_config": {
+            "fields": {
+              "value": { "base_field": { "type": "string", "path": "value" } },
+              "computed": {
+                "base_field": {
+                  "type": "string",
+                  "generated": { "plugin": { "name": "my_plugin", "config": { "op": "checksum" } } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

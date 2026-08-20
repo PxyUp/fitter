@@ -44,7 +44,11 @@ jobs:
           WASM_EXEC="$(go env GOROOT)/lib/wasm/wasm_exec.js"
           [ -f "$WASM_EXEC" ] || WASM_EXEC="$(go env GOROOT)/misc/wasm/wasm_exec.js"
           cp "$WASM_EXEC" pages/
-          cp demo/index.html demo/live.html demo/sample.pdf pages/
+          # copies the whole static site (index.html, live.html, sample.pdf, the
+          # SPA's *.js/*.json/*.css, ...) so new demo/ assets deploy automatically;
+          # demo/ has no Go sources and never contains main.wasm/wasm_exec.js
+          # (both gitignored, built above instead)
+          cp -r demo/. pages/
       - uses: actions/upload-pages-artifact@v4
         with:
           path: pages
