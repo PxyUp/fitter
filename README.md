@@ -902,11 +902,12 @@ Connector type which fetch data using golang http.Client(server side request lik
 
 ```go
 type ServerConnectorConfig struct {
-    Method      string            `json:"method" yaml:"method"`
-    Headers     map[string]string `yaml:"headers" json:"headers"`
-    Timeout     uint32            `yaml:"timeout" json:"timeout"`
-    JsonRawBody json.RawMessage   `json:"json_raw_body" yaml:"json_raw_body"`
-    Body        string            `yaml:"body" json:"body"`
+    Method        string            `json:"method" yaml:"method"`
+    Headers       map[string]string `yaml:"headers" json:"headers"`
+    Timeout       uint32            `yaml:"timeout" json:"timeout"`
+    JsonRawBody   json.RawMessage   `json:"json_raw_body" yaml:"json_raw_body"`
+    Body          string            `yaml:"body" json:"body"`
+    ErrorOnStatus bool              `json:"error_on_status" yaml:"error_on_status"`
     
     Proxy  *ProxyConfig  `yaml:"proxy" json:"proxy"`
     OAuth2 *OAuth2Config `yaml:"oauth2" json:"oauth2"`
@@ -918,8 +919,11 @@ type ServerConnectorConfig struct {
 - Timeout[sec] - default 60sec timeout or used provided
 - Body - body of the request, parsed value [can be injected](#placeholder-list)
 - JsonRawBody - body of the request in json format; value [can be injected](#placeholder-list)
+- ErrorOnStatus - optional, default `false`. When `true`, an HTTP response status `>= 400` is treated as a fetch error (flowing through `attempts` / `null_on_error`) instead of parsing the error body — so you can distinguish a failed fetch from a genuinely empty result. Leaving it `false` keeps the original behavior of parsing whatever body came back.
 - Proxy - setup proxy for request [config](#proxy-config)
 - OAuth2 - fetch/refresh an access token automatically and send it as `Authorization` header [config](#oauth2-config)
+
+> Requests send an identifiable `User-Agent` (`fitter (+https://github.com/PxyUp/fitter)`) by default; set your own `User-Agent` in `Headers` to override it.
 
 Example:
 ```json
