@@ -7,6 +7,7 @@ import (
 
 func GetDefaultClient() *http.Client {
 	return &http.Client{
-		Timeout: time.Minute * 2,
+		Timeout:   time.Minute * 2,
+		Transport: WrapTransport(nil),
 	}
 }
