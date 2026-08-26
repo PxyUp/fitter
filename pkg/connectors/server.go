@@ -131,7 +131,7 @@ func (api *apiConnector) get(ctx context.Context, parsedValue builder.Interfacab
 	}
 
 	if hostLimit := limitter.HostLimiter(req.Host); hostLimit != nil {
-		errHostLimit := hostLimit.Acquire(ctx, 1)
+		errHostLimit := limitter.TimedAcquire(ctx, hostLimit, "host", req.Host)
 		if errHostLimit != nil {
 			api.logger.Errorw("unable to acquire host limit semaphore", "method", api.cfg.Method, "url", formattedURL, "error", errHostLimit.Error(), "host", req.Host)
 			return nil, nil, errHostLimit

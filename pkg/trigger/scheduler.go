@@ -50,6 +50,7 @@ func (s *scheduler) Run(updates chan<- *Message) {
 
 		startTime := time.Now()
 
+		firesTotal.WithLabelValues(s.name, "scheduler").Inc()
 		updates <- &Message{
 			Name:  s.name,
 			Value: builder.Number(time.Since(startTime).Seconds()),
@@ -61,6 +62,7 @@ func (s *scheduler) Run(updates chan<- *Message) {
 				s.logger.Infof("stop scheduler trigger %s", s.name)
 				return
 			case val := <-time.After(time.Duration(s.cfg.Interval) * time.Second):
+				firesTotal.WithLabelValues(s.name, "scheduler").Inc()
 				updates <- &Message{
 					Name:  s.name,
 					Value: builder.Number(val.Sub(startTime).Seconds()),

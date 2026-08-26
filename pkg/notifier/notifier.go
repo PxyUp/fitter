@@ -96,10 +96,14 @@ func ShouldInform(cfg *config.NotifierConfig, result builder.Interfacable) (bool
 
 func Inform(notifier Notifier, name string, result *parser.ParseResult, errResult error, asArray bool, logger logger.Logger, input builder.Interfacable) error {
 	if errResult != nil {
-		return notifier.notify(resultToSingleRecord(name, nil, errResult, logger), input)
+		errNotify := notifier.notify(resultToSingleRecord(name, nil, errResult, logger), input)
+		countNotify(notifier, errNotify)
+		return errNotify
 	}
 	if !asArray {
-		return notifier.notify(resultToSingleRecord(name, result, nil, logger), input)
+		errNotify := notifier.notify(resultToSingleRecord(name, result, nil, logger), input)
+		countNotify(notifier, errNotify)
+		return errNotify
 	}
 
 	records, err := resultToSingleArray(name, result, errResult, logger)
@@ -109,6 +113,7 @@ func Inform(notifier Notifier, name string, result *parser.ParseResult, errResul
 
 	for _, rec := range records {
 		errNotify := notifier.notify(rec, input)
+		countNotify(notifier, errNotify)
 		if errNotify != nil {
 			return errNotify
 		}
