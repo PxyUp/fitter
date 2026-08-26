@@ -23,6 +23,12 @@ var waitSeconds = promauto.NewHistogramVec(prometheus.HistogramOpts{
 // TimedAcquire is Acquire with the wait recorded. Use it at every limiter
 // call site so saturation is visible instead of just felt.
 func TimedAcquire(ctx context.Context, sem *semaphore.Weighted, resource, host string) error {
+	if sem == nil {
+		// No limit configured means no waiting — the same behaviour every
+		// call site's nil check gives, kept here so the contract does not
+		// depend on callers remembering it.
+		return nil
+	}
 	start := time.Now()
 	err := sem.Acquire(ctx, 1)
 	waitSeconds.WithLabelValues(resource, host).Observe(time.Since(start).Seconds())

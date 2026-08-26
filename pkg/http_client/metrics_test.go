@@ -71,3 +71,14 @@ func TestTransportErrorsAreObservedAsError(t *testing.T) {
 		t.Errorf("error observations = %d, want %d", got, before+1)
 	}
 }
+
+// A request with no URL is answered by the underlying transport with an
+// error, not a panic — and observing it must keep that true. The wrapper is
+// never allowed to be less safe than what it wraps.
+func TestANilURLIsAnErrorNotAPanic(t *testing.T) {
+	req := &http.Request{Method: "GET", URL: nil}
+	_, err := WrapTransport(nil).RoundTrip(req)
+	if err == nil {
+		t.Fatal("a request with no URL succeeded")
+	}
+}

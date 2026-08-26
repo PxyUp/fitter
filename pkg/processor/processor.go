@@ -103,7 +103,8 @@ func (p *processor) process(ctx context.Context, input builder.Interfacable) (*p
 				return result, nil
 			}
 		}
-		errNot := notifier.Inform(p.notifier, p.name, result, err, isArray && p.notifierCfg.SendArrayByItem && !result.IsEmpty(), p.notifier.GetLogger(), input)
+		sendByItem := p.notifierCfg != nil && p.notifierCfg.SendArrayByItem
+		errNot := notifier.Inform(p.notifier, p.name, result, err, isArray && sendByItem && !result.IsEmpty(), p.notifier.GetLogger(), input)
 		if errNot != nil {
 			p.logger.Errorw("cannot notify about result", "error", errNot.Error())
 		}

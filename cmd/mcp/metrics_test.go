@@ -79,3 +79,15 @@ func TestMetricsAreOptIn(t *testing.T) {
 	assert.Equal(t, before, observations(t, "fitter_config_reference", "ok"),
 		"a server without the middleware still recorded a tool call")
 }
+
+// A tools/call whose params failed to decode reaches the middleware with
+// nil Params; the metric label must not be the thing that panics on it.
+func TestNilToolParamsDoNotPanicTheMiddleware(t *testing.T) {
+	handler := metricsMiddleware()(func(ctx context.Context, method string, req mcp.Request) (mcp.Result, error) {
+		return &mcp.CallToolResult{}, nil
+	})
+	_, err := handler(context.Background(), "tools/call", &mcp.CallToolRequest{Params: nil})
+	require.NoError(t, err)
+	assert.GreaterOrEqual(t, observations(t, "unknown", "ok"), uint64(1),
+		"the nameless call was not observed under the unknown label")
+}

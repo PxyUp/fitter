@@ -34,10 +34,18 @@ func (m metricsRoundTripper) RoundTrip(req *http.Request) (*http.Response, error
 	start := time.Now()
 	resp, err := m.next.RoundTrip(req)
 	status := "error"
-	if err == nil {
+	if err == nil && resp != nil {
 		status = strconv.Itoa(resp.StatusCode)
 	}
-	requestSeconds.WithLabelValues(req.URL.Host, req.Method, status).
+	// A malformed request reaches here too — the transport underneath
+	// answers a nil URL with an error, and observing it must not turn that
+	// error into a panic. The wrapper is never allowed to be less safe than
+	// what it wraps.
+	host := ""
+	if req.URL != nil {
+		host = req.URL.Host
+	}
+	requestSeconds.WithLabelValues(host, req.Method, status).
 		Observe(time.Since(start).Seconds())
 	return resp, err
 }

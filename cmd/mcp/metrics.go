@@ -46,6 +46,11 @@ func metricsMiddleware() mcp.Middleware {
 				return next(ctx, method, req)
 			}
 
+			tool := "unknown"
+			if call.Params != nil {
+				tool = call.Params.Name
+			}
+
 			start := time.Now()
 			res, err := next(ctx, method, req)
 			outcome := "ok"
@@ -60,7 +65,7 @@ func metricsMiddleware() mcp.Middleware {
 					outcome = "error"
 				}
 			}
-			toolSeconds.WithLabelValues(call.Params.Name, outcome).
+			toolSeconds.WithLabelValues(tool, outcome).
 				Observe(time.Since(start).Seconds())
 			return res, err
 		}

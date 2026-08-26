@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	DefaultModel = string(anthropic.ModelClaudeOpus4_8)
+	DefaultModel  = string(anthropic.ModelClaudeOpus4_8)
 	DefaultEffort = string(anthropic.OutputConfigEffortHigh)
 
 	// MaxTokens stays under the SDK HTTP timeout for non streaming requests.
