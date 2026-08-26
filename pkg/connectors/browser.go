@@ -2,6 +2,8 @@ package connectors
 
 import (
 	"context"
+	"time"
+
 	"github.com/PxyUp/fitter/pkg/builder"
 	"github.com/PxyUp/fitter/pkg/config"
 	"github.com/PxyUp/fitter/pkg/logger"
@@ -35,15 +37,24 @@ func (c *browserConnector) Get(ctx context.Context, parsedValue builder.Interfac
 	}
 
 	if c.cfg.Chromium != nil {
-		return getFromChromium(ctx, formattedURL, c.cfg.Chromium, c.logger.With("emulator", "chromium"))
+		start := time.Now()
+		body, err := getFromChromium(ctx, formattedURL, c.cfg.Chromium, c.logger.With("emulator", "chromium"))
+		observeBrowser("chromium", start, body, err)
+		return body, err
 	}
 
 	if c.cfg.Docker != nil {
-		return getFromDocker(ctx, formattedURL, c.cfg.Docker, c.logger.With("emulator", "docker"))
+		start := time.Now()
+		body, err := getFromDocker(ctx, formattedURL, c.cfg.Docker, c.logger.With("emulator", "docker"))
+		observeBrowser("docker", start, body, err)
+		return body, err
 	}
 
 	if c.cfg.Playwright != nil {
-		return getFromPlaywright(ctx, formattedURL, c.cfg.Playwright, parsedValue, index, input, c.logger.With("emulator", "playwright"))
+		start := time.Now()
+		body, err := getFromPlaywright(ctx, formattedURL, c.cfg.Playwright, parsedValue, index, input, c.logger.With("emulator", "playwright"))
+		observeBrowser("playwright", start, body, err)
+		return body, err
 	}
 
 	return nil, nil

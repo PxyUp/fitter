@@ -31,11 +31,14 @@ func (r *attemptsConnector) Get(ctx context.Context, parsedValue builder.Interfa
 		}
 		resp, err := r.original.Get(ctx, parsedValue, index, input)
 		if err != nil || len(resp) == 0 {
+			attemptsTotal.WithLabelValues("retried").Inc()
 			continue
 		}
+		attemptsTotal.WithLabelValues("ok").Inc()
 		return resp, nil
 	}
 
+	attemptsTotal.WithLabelValues("exhausted").Inc()
 	return nil, errMaxAttempt
 }
 

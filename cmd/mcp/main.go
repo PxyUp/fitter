@@ -350,6 +350,7 @@ func runHTTP(server *mcp.Server, addr string, authToken string, stateless bool) 
 func main() {
 	httpAddr := flag.String("http", os.Getenv("FITTER_MCP_HTTP_ADDR"), "serve MCP over streamable HTTP on this address (e.g. :8080) instead of stdio; env FITTER_MCP_HTTP_ADDR")
 	stateless := flag.Bool("stateless", os.Getenv("FITTER_MCP_STATELESS") == "true", "run the HTTP transport without per-session state, allows load-balancing without sticky sessions; env FITTER_MCP_STATELESS=true")
+	metricsAddr := flag.String("metrics-addr", os.Getenv("FITTER_MCP_METRICS_ADDR"), "serve Prometheus metrics on this address (e.g. 127.0.0.1:9091); works with both transports; empty disables; env FITTER_MCP_METRICS_ADDR")
 	flag.Parse()
 
 	var realStdout *os.File
@@ -369,6 +370,11 @@ func main() {
 	}
 
 	server := newServer()
+
+	if *metricsAddr != "" {
+		server.AddReceivingMiddleware(metricsMiddleware())
+		go serveMetrics(*metricsAddr)
+	}
 
 	if *httpAddr != "" {
 		runHTTP(server, *httpAddr, os.Getenv("FITTER_MCP_AUTH_TOKEN"), *stateless)

@@ -55,7 +55,7 @@ func TestHTTPTransport(t *testing.T) {
 	for _, tool := range tools.Tools {
 		names = append(names, tool.Name)
 	}
-	assert.ElementsMatch(t, []string{"fitter_run", "fitter_run_file", "fitter_run_url", "fitter_validate_config", "fitter_config_reference"}, names)
+	assert.ElementsMatch(t, []string{"fitter_run", "fitter_run_file", "fitter_run_url", "fitter_validate_config", "fitter_config_reference", "fitter_inspect_url"}, names)
 
 	validate, err := session.CallTool(context.Background(), &mcp.CallToolParams{
 		Name:      "fitter_validate_config",

@@ -67,6 +67,7 @@ func (s *httpServer) Run(updates chan<- *Message) {
 				}
 			}
 
+			firesTotal.WithLabelValues(name, "http").Inc()
 			updates <- &Message{
 				Name:  name,
 				Value: builder.ToJsonable(value),

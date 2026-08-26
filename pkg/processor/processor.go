@@ -1,6 +1,8 @@
 package processor
 
 import (
+	"time"
+
 	"context"
 	"errors"
 	"github.com/PxyUp/fitter/pkg/builder"
@@ -65,6 +67,17 @@ func (p *processor) WithLogger(logger logger.Logger) *processor {
 }
 
 func (p *processor) Process(ctx context.Context, input builder.Interfacable) (*parser.ParseResult, error) {
+	start := time.Now()
+	result, err := p.process(ctx, input)
+	outcome := "ok"
+	if err != nil {
+		outcome = "error"
+	}
+	processSeconds.WithLabelValues(p.name, outcome).Observe(time.Since(start).Seconds())
+	return result, err
+}
+
+func (p *processor) process(ctx context.Context, input builder.Interfacable) (*parser.ParseResult, error) {
 	result, err := p.engine.Get(ctx, p.model, nil, nil, input)
 	if p.notifier != nil {
 		isArray := false
@@ -90,7 +103,8 @@ func (p *processor) Process(ctx context.Context, input builder.Interfacable) (*p
 				return result, nil
 			}
 		}
-		errNot := notifier.Inform(p.notifier, p.name, result, err, isArray && p.notifierCfg.SendArrayByItem && !result.IsEmpty(), p.notifier.GetLogger(), input)
+		sendByItem := p.notifierCfg != nil && p.notifierCfg.SendArrayByItem
+		errNot := notifier.Inform(p.notifier, p.name, result, err, isArray && sendByItem && !result.IsEmpty(), p.notifier.GetLogger(), input)
 		if errNot != nil {
 			p.logger.Errorw("cannot notify about result", "error", errNot.Error())
 		}

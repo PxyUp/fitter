@@ -27,7 +27,7 @@ var (
 
 func getFromPlaywright(ctx context.Context, url string, cfg *config.PlaywrightConfig, parsedValue builder.Interfacable, index *uint32, input builder.Interfacable, logger logger.Logger) ([]byte, error) {
 	if instanceLimit := limitter.PlaywrightLimiter(); instanceLimit != nil {
-		errInstance := instanceLimit.Acquire(ctx, 1)
+		errInstance := limitter.TimedAcquire(ctx, instanceLimit, "playwright", "")
 		if errInstance != nil {
 			logger.Errorw("unable to acquire playwright limit semaphore", "url", url, "error", errInstance.Error())
 			return nil, errInstance

@@ -57,6 +57,12 @@ func (p *ParseResult) Raw() json.RawMessage {
 }
 
 func (p *ParseResult) IsEmpty() bool {
+	// A nil result is as empty as one gets. Callers hold a nil *ParseResult
+	// exactly when the engine failed, and asking whether nothing is empty
+	// must not be the thing that crashes the run.
+	if p == nil {
+		return true
+	}
 	return builder.ToJsonable(p.RawResult).IsEmpty()
 }
 
