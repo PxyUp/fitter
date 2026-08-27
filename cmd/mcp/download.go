@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/PxyUp/fitter/pkg/connectors"
 	"github.com/PxyUp/fitter/pkg/http_client"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -81,6 +82,9 @@ func download(ctx context.Context, rawURL, filename, dir string) (name string, s
 	if err != nil {
 		return "", 0, "", err
 	}
+	// The same identifiable agent the connectors send: Go's default
+	// "Go-http-client" is refused outright by common image hosts.
+	req.Header.Set("User-Agent", connectors.DefaultUserAgent)
 	res, err := http_client.GetDefaultClient().Do(req)
 	if err != nil {
 		return "", 0, "", err
