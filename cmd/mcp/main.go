@@ -280,6 +280,8 @@ func newServer() *mcp.Server {
 		}, nil
 	})
 
+	addDownloadTool(server)
+
 	return server
 }
 

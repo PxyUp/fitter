@@ -117,6 +117,7 @@ claude mcp add --transport http fitter http://localhost:8080/mcp --header "Autho
 - `--http <addr>` (env `FITTER_MCP_HTTP_ADDR`) — listen address; stdio mode when empty
 - `FITTER_MCP_AUTH_TOKEN` — when set, every `/mcp` request must send `Authorization: Bearer <token>`; without it the endpoint is unauthenticated, so bind to localhost or put it behind a proxy
 - `--stateless` (env `FITTER_MCP_STATELESS=true`) — no per-session state, so replicas can sit behind a load balancer without sticky sessions
+- `FITTER_MCP_DOWNLOAD_DIR` — enables the `fitter_download` tool, which fetches a file (image, PDF, any binary) and writes its bytes untouched into this directory; in the container image `/downloads` is detected automatically when mounted. Without a directory the tool is not offered
 - `--metrics-addr <addr>` (env `FITTER_MCP_METRICS_ADDR`) — serve Prometheus metrics on a separate address (e.g. `127.0.0.1:9091`); works in stdio mode too; empty disables. Exposes MCP request counts by method, tool call durations by tool and outcome, and outbound HTTP request durations by host, method and status. The endpoint is unauthenticated — bind it to localhost or a private interface
 
 The server shuts down gracefully on SIGINT/SIGTERM.
